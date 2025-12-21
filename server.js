@@ -27,10 +27,31 @@ const KEY_PATH = path.join(__dirname, process.env.GOOGLE_KEY_FILE);
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 // Google Sheets 連線
-const auth = new google.auth.GoogleAuth({
-    keyFile: KEY_PATH,
-    scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-});
+// --- Google Sheets 設定 (支援 Zeabur 雲端部署) ---
+const SHEET_ID = process.env.GOOGLE_SHEET_ID;
+const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
+
+let auth;
+
+// 判斷：如果有 GOOGLE_CREDENTIALS 環境變數，就用變數 (雲端模式)
+// 否則：就去找檔案 (本機模式)
+if (process.env.GOOGLE_CREDENTIALS) {
+    console.log("正在使用雲端環境變數模式連線 Google Sheet...");
+    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
+    auth = new google.auth.GoogleAuth({
+        credentials, // 直接傳入物件，不用讀檔案
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+} else {
+    console.log("正在使用本機檔案模式連線 Google Sheet...");
+    const KEY_FILE = process.env.GOOGLE_KEY_FILE;
+    const KEY_PATH = path.join(__dirname, KEY_FILE);
+    auth = new google.auth.GoogleAuth({
+        keyFile: KEY_PATH,
+        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
+    });
+}
+
 const sheets = google.sheets({ version: "v4", auth });
 
 // Google Gemini AI 連線
@@ -146,10 +167,23 @@ const checkRole = (allowedRoles) => {
 // 1. 登入系統 (改為讀取 Google Sheet)
 app.post("/auth/login", async (req, res) => {
     const { username, password } = req.body;
+    
+    // 從 Google Sheet 'users' 分頁讀取使用者清單
     const users = await getSheetData("users");
+
+    // 這是抓鬼用的除錯訊息，會印在終端機
+    console.log("【除錯監控】從 Sheet 讀到的資料:", JSON.stringify(users, null, 2)); 
+    console.log("【除錯監控】前端傳來的帳密:", username, password);
+
+    // 比對帳號密碼
     const user = users.find(u => u.username === username && u.password === password);
 
-    if (!user) return res.status(401).json({ message: "帳號或密碼錯誤" });
+    if (!user) {
+        console.log("【除錯監控】比對結果: 找不到使用者或密碼錯誤");
+        return res.status(401).json({ message: "帳號或密碼錯誤" });
+    }
+
+    console.log("【除錯監控】比對結果: 登入成功！使用者是", user.name);
 
     const token = jwt.sign(
         { username: user.username, role: user.role, name: user.name },
