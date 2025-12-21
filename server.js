@@ -166,7 +166,7 @@ app.post("/auth/login", async (req, res) => {
 // 讀取紀錄 (教師、治療師可看全部) - *家長其實也可以看，但只能看自己的(這邊先簡化為全部)*
 app.get("/api/records", verifyToken, async (req, res) => {
     // 如果是家長，這裡可以做過濾邏輯，目前先假設家長不能看專業紀錄
-    if (req.user.role === 'parent') {
+    if (req.user.role === 'parents') {
         return res.status(403).json({ message: "家長權限無法查看專業治療紀錄" });
     }
     const data = await getSheetData("records");
