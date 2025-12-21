@@ -1,11 +1,131 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="zh-TW">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>特教親師溝通平台</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <link rel="stylesheet" href="style.css">
 </head>
 <body>
-    
+
+    <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-none" id="main-nav">
+        <div class="container">
+            <a class="navbar-brand" href="#"><i class="fas fa-hands-holding-child"></i> 特教溝通平台</a>
+            <div class="d-flex align-items-center">
+                <span class="text-white me-3" id="nav-user-info"></span>
+                <button class="btn btn-outline-danger btn-sm" onclick="logout()">登出</button>
+            </div>
+        </div>
+    </nav>
+
+    <div id="login-section" class="container">
+        <div class="text-center mb-4">
+            <h2 class="fw-bold text-primary"><i class="fas fa-shapes"></i> 歡迎使用</h2>
+            <p class="text-muted">親師合作，共創未來</p>
+        </div>
+        <div class="mb-3">
+            <label class="form-label">帳號</label>
+            <input type="text" id="login-username" class="form-control form-control-lg" placeholder="請輸入帳號">
+        </div>
+        <div class="mb-3">
+            <label class="form-label">密碼</label>
+            <input type="password" id="login-password" class="form-control form-control-lg" placeholder="請輸入密碼">
+        </div>
+        <button class="btn btn-primary w-100 btn-lg" onclick="login()">登入系統</button>
+    </div>
+
+    <div id="dashboard-section" class="container mt-5 d-none">
+        
+        <div class="dashboard-menu">
+            <div class="card menu-card card-record p-4 text-center role-restricted" data-deny="parent" onclick="showSection('records')">
+                <i class="fas fa-file-medical fa-3x mb-3"></i>
+                <h4>專業治療紀錄</h4>
+                <p class="small opacity-75">檢視治療師日誌與回饋</p>
+            </div>
+            
+            <div class="card menu-card card-iep p-4 text-center role-restricted" data-deny="parent" onclick="showSection('iep')">
+                <i class="fas fa-folder-open fa-3x mb-3"></i>
+                <h4>IEP 個案資料</h4>
+                <p class="small opacity-75">個案計畫與檔案管理</p>
+            </div>
+
+            <div class="card menu-card card-message p-4 text-center" onclick="showSection('messages')">
+                <i class="fas fa-comments fa-3x mb-3"></i>
+                <h4>親師留言板</h4>
+                <p class="small opacity-75">即時溝通與 AI 摘要</p>
+            </div>
+
+            <div class="card menu-card card-question p-4 text-center" onclick="showSection('questions')">
+                <i class="fas fa-question-circle fa-3x mb-3"></i>
+                <h4>提問與回覆</h4>
+                <p class="small opacity-75">結構化問題追蹤</p>
+            </div>
+        </div>
+
+        <hr class="my-4">
+
+        <div id="content-area">
+            
+            <div id="section-records" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-secondary border-start border-5 border-success ps-3">治療紀錄列表</h3>
+                    <button class="btn btn-success role-only" data-allow="therapist" onclick="openRecordModal()">
+                        <i class="fas fa-plus"></i> 新增紀錄
+                    </button>
+                </div>
+                <div id="record-list" class="list-group">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-secondary" role="status"></div>
+                        <p>載入資料中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-messages" class="d-none animate-fade">
+                <div class="row">
+                    <div class="col-md-8 offset-md-2">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h3 class="text-secondary border-start border-5 border-info ps-3">親師交流區</h3>
+                            <button class="btn btn-warning text-dark shadow-sm" onclick="getAiSummary()">
+                                <i class="fas fa-magic"></i> AI 重點摘要
+                            </button>
+                        </div>
+                        
+                        <div id="ai-summary-box" class="alert alert-warning d-none shadow-sm">
+                            <h5 class="alert-heading"><i class="fas fa-robot"></i> AI 摘要結果：</h5>
+                            <p id="ai-summary-content" class="mb-0"></p>
+                        </div>
+
+                        <div class="chat-container shadow-sm">
+                            <div id="chat-box" class="chat-box d-flex flex-column">
+                                </div>
+                            <div class="p-3 bg-light border-top">
+                                <div class="input-group">
+                                    <input type="text" id="msg-input" class="form-control" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
+                                    <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> 送出</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-iep" class="d-none text-center p-5 bg-light rounded">
+                <i class="fas fa-tools fa-3x text-muted mb-3"></i>
+                <h4>IEP 功能開發中...</h4>
+            </div>
+            <div id="section-questions" class="d-none text-center p-5 bg-light rounded">
+                <i class="fas fa-tools fa-3x text-muted mb-3"></i>
+                <h4>提問卡功能開發中...</h4>
+            </div>
+
+        </div>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="client.js"></script>
 </body>
 </html>
