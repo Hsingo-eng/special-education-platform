@@ -82,7 +82,7 @@ body {
     align-self: flex-start;
     border: 1px solid #ffe0b2;
 }
-.msg-parent { 
+.msg-parents { 
     background-color: #d1e7dd; /* 淡綠色 */
     border-bottom-right-radius: 2px;
     align-self: flex-end; 
