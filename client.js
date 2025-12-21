@@ -111,7 +111,7 @@ function renderMessage(msg) {
     const chatBox = document.getElementById("chat-box");
     
     let cssClass = "msg-teacher";
-    if (msg.role === "parent") cssClass = "msg-parent";
+    if (msg.role === "parents") cssClass = "msg-parents";
     if (msg.role === "therapist") cssClass = "msg-therapist";
 
     const div = document.createElement("div");
@@ -258,7 +258,7 @@ async function fetchWithAuth(url, options = {}) {
 }
 
 function roleName(role) {
-    const map = { "teacher": "教師", "therapist": "治療師", "parent": "家長" };
+    const map = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
     return map[role] || role;
 }
 
