@@ -37,7 +37,7 @@ async function login() {
             Swal.fire({
                 icon: 'success',
                 title: '登入成功',
-                text: `歡迎回來，${roleName(currentUser.role)} ${currentUser.name}`,
+                text: `歡迎回來！，${roleName(currentUser.role)} ${currentUser.name}`,
                 timer: 1500,
                 showConfirmButton: false
             });
