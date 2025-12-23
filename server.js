@@ -23,34 +23,17 @@ const io = new Server(server, { cors: { origin: "*" } });
 
 // --- 設定 ---
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
-const KEY_PATH = path.join(__dirname, process.env.GOOGLE_KEY_FILE);
-const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-// Google Sheets 連線
-// --- Google Sheets 設定 (支援 Zeabur 雲端部署) ---
-const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 let auth;
 
-// 判斷：如果有 GOOGLE_CREDENTIALS 環境變數，就用變數 (雲端模式)
-// 否則：就去找檔案 (本機模式)
-if (process.env.GOOGLE_CREDENTIALS) {
-    console.log("正在使用雲端環境變數模式連線 Google Sheet...");
-    const credentials = JSON.parse(process.env.GOOGLE_CREDENTIALS);
-    auth = new google.auth.GoogleAuth({
-        credentials, // 直接傳入物件，不用讀檔案
-        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
-} else {
-    console.log("正在使用本機檔案模式連線 Google Sheet...");
-    const KEY_FILE = process.env.GOOGLE_KEY_FILE;
-    const KEY_PATH = path.join(__dirname, KEY_FILE);
-    auth = new google.auth.GoogleAuth({
-        keyFile: KEY_PATH,
-        scopes: ["https://www.googleapis.com/auth/spreadsheets"],
-    });
-}
+auth = new google.auth.GoogleAuth({
+    credentials: {
+        client_email: 'sheet-editor@platform-project-481912.iam.gserviceaccount.com',
+        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
+    },
+    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+});
 
 const sheets = google.sheets({ version: "v4", auth });
 
@@ -107,7 +90,7 @@ const updateRow = async (sheetName, id, updateData) => {
     });
     const rows = res.data.values;
     const headers = rows[0];
-    
+
     // 尋找 ID 所在的行 (假設 ID 都在第一欄)
     let rowIndex = -1;
     for (let i = 1; i < rows.length; i++) {
@@ -123,7 +106,7 @@ const updateRow = async (sheetName, id, updateData) => {
     // 先把舊資料轉成物件，再合併新資料
     let currentRowObj = {};
     headers.forEach((h, i) => currentRowObj[h] = rows[rowIndex - 1][i]);
-    
+
     const finalData = { ...currentRowObj, ...updateData };
     const rowArray = headers.map(h => finalData[h] || "");
 
@@ -167,12 +150,12 @@ const checkRole = (allowedRoles) => {
 // 1. 登入系統 (改為讀取 Google Sheet)
 app.post("/auth/login", async (req, res) => {
     const { username, password } = req.body;
-    
+
     // 從 Google Sheet 'users' 分頁讀取使用者清單
     const users = await getSheetData("users");
 
     // 這是抓鬼用的除錯訊息，會印在終端機
-    console.log("【除錯監控】從 Sheet 讀到的資料:", JSON.stringify(users, null, 2)); 
+    console.log("【除錯監控】從 Sheet 讀到的資料:", JSON.stringify(users, null, 2));
     console.log("【除錯監控】前端傳來的帳密:", username, password);
 
     // 比對帳號密碼
@@ -231,7 +214,7 @@ app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res
     try {
         const { id } = req.params;
         const { reply } = req.body; // 前端傳來的回覆內容
-        
+
         await updateRow("records", id, { teacher_reply: reply });
         io.emit("record_update", { msg: "老師已回覆紀錄" });
         res.json({ message: "回覆成功" });

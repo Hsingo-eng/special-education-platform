@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000";
+const API_URL = "http://special-education-platform.zeabur.app";
 const socket = io(API_URL);
 let currentUser = null;
 
