@@ -45,11 +45,7 @@
                 <p class="small opacity-75">檢視治療師日誌與回饋</p>
             </div>
             
-            <div class="card menu-card card-iep p-4 text-center role-restricted" data-deny="parents" onclick="showSection('iep')">
-                <i class="fas fa-folder-open fa-3x mb-3"></i>
-                <h4>IEP 個案資料</h4>
-                <p class="small opacity-75">個案計畫與檔案管理</p>
-            </div>
+            
 
             <div class="card menu-card card-message p-4 text-center" onclick="showSection('messages')">
                 <i class="fas fa-comments fa-3x mb-3"></i>
@@ -117,6 +113,8 @@
                     <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
         
                     <button class="btn btn-danger role-only shadow-sm" data-allow="teacher therapist" onclick="openIepUpload()">
+
+                    <button class="btn btn-danger role-only shadow-sm" data-allow="teacher" onclick="openIepUpload()">
                         <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
                     </button>
             </div>

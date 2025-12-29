@@ -319,7 +319,7 @@ app.get("/api/iep", verifyToken, async (req, res) => {
 });
 
 // 2. 上傳檔案 (upload.single('file') 是關鍵中介軟體)
-app.post("/api/iep", verifyToken, checkRole(['teacher', 'therapist']), upload.single('file'), async (req, res) => {
+app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'), async (req, res) => {
     try {
         const file = req.file; // 取得前端傳來的檔案
         if (!file) return res.status(400).json({ message: "未選擇檔案" });
