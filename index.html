@@ -37,96 +37,67 @@
     </div>
 
     <div id="dashboard-section" class="container mt-5 d-none">
+    
+    <div class="dashboard-menu">
         
-        <div class="dashboard-menu">
-            <div class="card menu-card card-record p-4 text-center role-restricted" data-deny="parents" onclick="showSection('records')">
-                <i class="fas fa-file-medical fa-3x mb-3"></i>
-                <h4>專業治療紀錄</h4>
-                <p class="small opacity-75">檢視治療師日誌與回饋</p>
-            </div>
-            
-            
-
-            <div class="card menu-card card-message p-4 text-center" onclick="showSection('messages')">
-                <i class="fas fa-comments fa-3x mb-3"></i>
-                <h4>親師留言板</h4>
-                <p class="small opacity-75">即時溝通以及AI摘要</p>
-            </div>
-
-            <div class="card menu-card card-question p-4 text-center" onclick="showSection('questions')">
-                <i class="fas fa-question-circle fa-3x mb-3"></i>
-                <h4>提問與回覆</h4>
-                <p class="small opacity-75">結構化問題追蹤</p>
-            </div>
-
-        <hr class="my-4">
-
-        <div id="content-area">
-            
-            <div id="section-records" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="text-secondary border-start border-5 border-success ps-3">治療紀錄列表</h3>
-                    <button class="btn btn-success role-only" data-allow="therapist" onclick="openRecordModal()">
-                        <i class="fas fa-plus"></i> 新增紀錄
-                    </button>
-                </div>
-                <div id="record-list" class="list-group">
-                    <div class="text-center text-muted py-5">
-                        <div class="spinner-border text-secondary" role="status"></div>
-                        <p>載入資料中...</p>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card menu-card card-iep p-4 text-center role-restricted" data-deny="parent" onclick="showSection('iep')">
-                </div>
-
-            <div class="card menu-card card-iep p-4 text-center" onclick="showSection('iep')">
-                <i class="fas fa-folder-open fa-3x mb-3"></i>
-                <h4>IEP 個案資料</h4>
-                <p class="small opacity-75">個案計畫與檔案管理</p>
-            </div>
-
-            <div id="section-messages" class="d-none animate-fade">
-                <div class="row">
-                    <div class="col-md-8 offset-md-2">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h3 class="text-secondary border-start border-5 border-info ps-3">親師交流區</h3>
-                            <button class="btn btn-warning text-dark shadow-sm" onclick="getAiSummary()">
-                                <i class="fas fa-magic"></i> AI 重點摘要
-                            </button>
-                        </div>
-                        
-                        <div id="ai-summary-box" class="alert alert-warning d-none shadow-sm">
-                            <h5 class="alert-heading"><i class="fas fa-robot"></i> AI 摘要結果：</h5>
-                            <p id="ai-summary-content" class="mb-0"></p>
-                        </div>
-
-                        <div class="chat-container shadow-sm">
-                            <div id="chat-box" class="chat-box d-flex flex-column">
-                                </div>
-                            <div class="p-3 bg-light border-top">
-                                <div class="input-group">
-                                    <input type="text" id="msg-input" class="form-control" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
-                                    <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> 送出</button>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div id="section-iep" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
+        <div class="card menu-card card-record p-4 text-center role-restricted" data-deny="parents" onclick="showSection('records')">
+            <i class="fas fa-file-medical fa-3x mb-3"></i>
+            <h4>專業治療紀錄</h4>
+            <p class="small opacity-75">檢視治療師日誌與回饋</p>
+        </div>
         
-                    <button class="btn btn-danger role-only shadow-sm" data-allow="teacher therapist" onclick="openIepUpload()">
+        <div class="card menu-card card-iep p-4 text-center" onclick="showSection('iep')">
+            <i class="fas fa-folder-open fa-3x mb-3"></i>
+            <h4>IEP 個案資料</h4>
+            <p class="small opacity-75">個案計畫與檔案管理</p>
+        </div>
 
-                    <button class="btn btn-danger role-only shadow-sm" data-allow="teacher" onclick="openIepUpload()">
-                        <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
-                    </button>
+        <div class="card menu-card card-message p-4 text-center" onclick="showSection('messages')">
+            <i class="fas fa-comments fa-3x mb-3"></i>
+            <h4>親師留言板</h4>
+            <p class="small opacity-75">即時溝通以及AI摘要</p>
+        </div>
+
+        <div class="card menu-card card-question p-4 text-center" onclick="showSection('questions')">
+            <i class="fas fa-question-circle fa-3x mb-3"></i>
+            <h4>提問與回覆</h4>
+            <p class="small opacity-75">結構化問題追蹤</p>
+        </div>
+
+    </div> <hr class="my-4">
+
+    <div id="content-area">
+        
+        <div id="section-records" class="d-none animate-fade">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-secondary border-start border-5 border-success ps-3">治療紀錄列表</h3>
+                <button class="btn btn-success role-only" data-allow="therapist" onclick="openRecordModal()">
+                    <i class="fas fa-plus"></i> 新增紀錄
+                </button>
+            </div>
+            <div id="record-list" class="list-group">
+                <div class="text-center text-muted py-5">
+                    <div class="spinner-border text-secondary" role="status"></div>
+                    <p>載入資料中...</p>
+                </div>
             </div>
         </div>
+
+        <div id="section-iep" class="d-none animate-fade">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
+                
+                <button class="btn btn-danger role-only shadow-sm" data-allow="teacher" onclick="openIepUpload()">
+                    <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
+                </button>
+            </div>
+        
+            <div id="iep-list" class="row g-4">
+                </div>
+        </div>
+
+        </div>
+</div>
 
     <div id="iep-list" class="row g-4">
         </div>

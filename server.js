@@ -57,7 +57,7 @@ const DRIVE_FOLDER_ID = "請把剛剛複製的資料夾ID貼在這裡"; // <--- 
 // 3. Multer 設定 (設定上傳限制 5MB)
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 5 * 1024 * 1024 }
+    limits: { fileSize: 15 * 1024 * 1024 } // 改成 15MB，應該足夠放大多數 PDF 了
 });
 
 // Google Gemini AI 連線
