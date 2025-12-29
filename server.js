@@ -31,11 +31,12 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 let auth;
 
 auth = new google.auth.GoogleAuth({
-    credentials: {
-        client_email: 'sheet-editor@platform-project-481912.iam.gserviceaccount.com',
-        private_key: process.env.GOOGLE_PRIVATE_KEY.replace(/\\n/g, '\n'),
-    },
-    scopes: ['https://www.googleapis.com/auth/spreadsheets']
+    credentials: process.env.GOOGLE_CREDENTIALS ? JSON.parse(process.env.GOOGLE_CREDENTIALS) : undefined,
+    keyFile: process.env.GOOGLE_CREDENTIALS ? undefined : process.env.GOOGLE_KEY_FILE,
+    scopes: [
+        'https://www.googleapis.com/auth/spreadsheets', // 原本只有這一行
+        'https://www.googleapis.com/auth/drive'         // 🟢 請補上這一行！(記得上一行結尾要加逗號)
+    ]
 });
 
 const sheets = google.sheets({ version: "v4", auth });
