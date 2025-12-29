@@ -112,10 +112,18 @@
                 </div>
             </div>
 
-            <div id="section-iep" class="d-none text-center p-5 bg-light rounded">
-                <i class="fas fa-tools fa-3x text-muted mb-3"></i>
-                <h4>IEP 功能開發中...</h4>
+            <div id="section-iep" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
+        
+                    <button class="btn btn-danger role-only shadow-sm" data-allow="teacher therapist" onclick="openIepUpload()">
+                        <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
+                    </button>
             </div>
+
+    <div id="iep-list" class="row g-4">
+        </div>
+</div>
             <div id="section-questions" class="d-none text-center p-5 bg-light rounded">
                 <i class="fas fa-tools fa-3x text-muted mb-3"></i>
                 <h4>提問卡功能開發中...</h4>
