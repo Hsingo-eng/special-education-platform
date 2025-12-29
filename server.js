@@ -1,3 +1,6 @@
+// 原有的 imports 下面加入：
+const multer = require("multer");
+const { Stream } = require("stream");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -36,6 +39,26 @@ auth = new google.auth.GoogleAuth({
 });
 
 const sheets = google.sheets({ version: "v4", auth });
+
+// --- Google Drive 與上傳設定 ---
+
+// 1. 擴充權限範圍 (重要！原本只有 spreadsheets，現在要加 drive)
+// 如果您原本的 auth 設定沒有包含 drive，請務必改成這樣：
+// (注意：這裡只是範例，請確認您的 auth 物件 scopes 陣列裡有這兩行)
+// scopes: [
+//    'https://www.googleapis.com/auth/spreadsheets',
+//    'https://www.googleapis.com/auth/drive'
+// ]
+
+// 2. Drive 設定
+const drive = google.drive({ version: "v3", auth });
+const DRIVE_FOLDER_ID = "請把剛剛複製的資料夾ID貼在這裡"; // <--- 這裡要改！
+
+// 3. Multer 設定 (設定上傳限制 5MB)
+const upload = multer({
+    storage: multer.memoryStorage(),
+    limits: { fileSize: 5 * 1024 * 1024 }
+});
 
 // Google Gemini AI 連線
 const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
@@ -282,6 +305,64 @@ app.get("/api/messages/summary", verifyToken, async (req, res) => {
     } catch (error) {
         console.error("AI 錯誤:", error);
         res.status(500).json({ message: "AI 總結失敗", error: error.message });
+    }
+});
+
+// ==========================================
+// 功能 3：IEP 檔案上傳功能
+// ==========================================
+
+// 1. 讀取 IEP 列表
+app.get("/api/iep", verifyToken, async (req, res) => {
+    const data = await getSheetData("iep_files");
+    res.json({ data });
+});
+
+// 2. 上傳檔案 (upload.single('file') 是關鍵中介軟體)
+app.post("/api/iep", verifyToken, checkRole(['teacher', 'therapist']), upload.single('file'), async (req, res) => {
+    try {
+        const file = req.file; // 取得前端傳來的檔案
+        if (!file) return res.status(400).json({ message: "未選擇檔案" });
+
+        console.log(`開始上傳: ${file.originalname}`);
+
+        // 步驟 A: 將檔案轉為串流 (Stream) 以便上傳 Drive
+        const bufferStream = new Stream.PassThrough();
+        bufferStream.end(file.buffer);
+
+        // 步驟 B: 呼叫 Google Drive API
+        const driveRes = await drive.files.create({
+            requestBody: {
+                name: file.originalname,
+                parents: [DRIVE_FOLDER_ID], // 指定上傳到哪個資料夾
+            },
+            media: {
+                mimeType: file.mimetype,
+                body: bufferStream,
+            },
+            fields: 'id, name, webViewLink', // 要求回傳 檔案ID 和 檢視連結
+        });
+
+        const { id, name, webViewLink } = driveRes.data;
+
+        // 步驟 C: 將檔案資訊記錄到 Google Sheet
+        const newRecord = {
+            id: `iep-${Date.now()}`,
+            filename: name,
+            drive_file_id: id,
+            uploaded_by: req.user.name,
+            role: req.user.role,
+            file_link: webViewLink,
+            upload_date: new Date().toISOString().split('T')[0],
+            comments: req.body.comments || ""
+        };
+
+        await appendRow("iep_files", newRecord);
+        res.json({ message: "上傳成功", data: newRecord });
+
+    } catch (error) {
+        console.error("上傳失敗:", error);
+        res.status(500).json({ message: "上傳失敗: " + error.message });
     }
 });
 

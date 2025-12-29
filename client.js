@@ -90,21 +90,25 @@ function showSection(sectionId) {
 
     if (sectionId === 'messages') loadMessages();
     if (sectionId === 'records') loadRecords();
+    if (sectionId === 'iep') loadIepFiles();
 }
 
 // --- 功能 A: 留言板 (包含 AI) ---
-async function loadMessages() {
-    try {
-        const res = await fetchWithAuth(`${API_URL}/api/messages`);
-        const json = await res.json();
-        const chatBox = document.getElementById("chat-box");
-        chatBox.innerHTML = ""; 
+// --- 工具: Fetch 封裝 (自動判斷是否為檔案上傳) ---
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem("token");
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        ...options.headers
+    };
 
-        if(json.data) {
-            json.data.forEach(msg => renderMessage(msg));
-            chatBox.scrollTop = chatBox.scrollHeight;
-        }
-    } catch (e) { console.error(e); }
+    // 關鍵修正：如果 body 是 FormData (檔案)，就不要手動加 Content-Type
+    // 瀏覽器會自動處理 boundary，加了反而會壞掉
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
+
+    return fetch(url, { ...options, headers });
 }
 
 function renderMessage(msg) {
@@ -272,3 +276,93 @@ socket.on("message_update", (msg) => {
         chatBox.scrollTop = chatBox.scrollHeight;
     }
 });
+
+// ==========================================
+// 功能 C: IEP 檔案管理
+// ==========================================
+
+// 1. 載入檔案列表
+async function loadIepFiles() {
+    const list = document.getElementById("iep-list");
+    list.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-danger"></div><p>載入檔案中...</p></div>';
+
+    try {
+        const res = await fetchWithAuth(`${API_URL}/api/iep`);
+        const json = await res.json();
+        list.innerHTML = "";
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = `<div class="col-12 text-center text-muted py-5"><i class="fas fa-folder-open fa-3x mb-3"></i><p>目前沒有 IEP 檔案</p></div>`;
+            return;
+        }
+
+        json.data.forEach(file => {
+            // 產生漂亮的檔案卡片
+            list.innerHTML += `
+                <div class="col-md-6 col-lg-4">
+                    <div class="card h-100 shadow-sm border-0">
+                        <div class="card-body">
+                            <div class="d-flex align-items-center mb-3">
+                                <div class="bg-light rounded-circle p-3 me-3 text-danger"><i class="fas fa-file-pdf fa-2x"></i></div>
+                                <div class="text-truncate" style="max-width: 150px;">
+                                    <h6 class="mb-0" title="${file.filename}">${file.filename}</h6>
+                                    <small class="text-muted">${file.upload_date}</small>
+                                </div>
+                            </div>
+                            <p class="small text-secondary">
+                                <i class="fas fa-user"></i> ${file.uploaded_by}<br>
+                                <i class="fas fa-comment"></i> ${file.comments || "無"}
+                            </p>
+                            <a href="${file.file_link}" target="_blank" class="btn btn-outline-danger w-100 btn-sm">檢視檔案</a>
+                        </div>
+                    </div>
+                </div>`;
+        });
+    } catch (err) {
+        console.error(err);
+        list.innerHTML = "<div class='alert alert-danger'>無法載入檔案</div>";
+    }
+}
+
+// 2. 開啟上傳視窗
+async function openIepUpload() {
+    // 使用 SweetAlert 顯示上傳表單
+    const { value: formValues } = await Swal.fire({
+        title: '上傳 IEP 檔案',
+        html: `
+            <input type="file" id="swal-file" class="form-control mb-3">
+            <input type="text" id="swal-comment" class="form-control" placeholder="備註 (選填)">
+        `,
+        showCancelButton: true,
+        confirmButtonText: '開始上傳',
+        preConfirm: () => {
+            const fileInput = document.getElementById('swal-file');
+            if (!fileInput.files.length) return Swal.showValidationMessage('請選擇檔案');
+            return { file: fileInput.files[0], comment: document.getElementById('swal-comment').value };
+        }
+    });
+
+    if (formValues) {
+        // 顯示 Loading
+        Swal.fire({ title: '檔案上傳中...', text: '請稍候，正在傳送至雲端', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        // 建立 FormData 物件
+        const formData = new FormData();
+        formData.append("file", formValues.file);
+        formData.append("comments", formValues.comment);
+
+        try {
+            const res = await fetchWithAuth(`${API_URL}/api/iep`, { method: "POST", body: formData });
+            
+            if (res.ok) {
+                Swal.fire("成功", "IEP 檔案已上傳！", "success");
+                loadIepFiles(); // 重新整理列表
+            } else {
+                const errData = await res.json();
+                throw new Error(errData.message);
+            }
+        } catch (error) {
+            Swal.fire("失敗", "上傳失敗：" + error.message, "error");
+        }
+    }
+}
