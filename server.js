@@ -22,7 +22,16 @@ app.use(express.json());
 
 // 設定 Socket.io
 const server = http.createServer(app);
-const io = new Server(server, { cors: { origin: "*" } });
+const io = new Server(server, {
+    cors: {
+        origin: [
+            "http://localhost:5500",       // 本機測試用
+            "http://127.0.0.1:5500",       // 本機測試用
+            "https://hsingo-eng.github.io" // GitHub Pages 網址
+        ],
+        methods: ["GET", "POST"]
+    }
+});
 
 // --- 設定 ---
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
