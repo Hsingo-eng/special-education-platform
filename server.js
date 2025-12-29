@@ -34,8 +34,8 @@ auth = new google.auth.GoogleAuth({
     credentials: process.env.GOOGLE_CREDENTIALS ? JSON.parse(process.env.GOOGLE_CREDENTIALS) : undefined,
     keyFile: process.env.GOOGLE_CREDENTIALS ? undefined : process.env.GOOGLE_KEY_FILE,
     scopes: [
-        'https://www.googleapis.com/auth/spreadsheets', // 原本只有這一行
-        'https://www.googleapis.com/auth/drive'         // 🟢 請補上這一行！(記得上一行結尾要加逗號)
+        'https://www.googleapis.com/auth/spreadsheets', 
+        'https://www.googleapis.com/auth/drive'         
     ]
 });
 
@@ -44,8 +44,6 @@ const sheets = google.sheets({ version: "v4", auth });
 // --- Google Drive 與上傳設定 ---
 
 // 1. 擴充權限範圍 (重要！原本只有 spreadsheets，現在要加 drive)
-// 如果您原本的 auth 設定沒有包含 drive，請務必改成這樣：
-// (注意：這裡只是範例，請確認您的 auth 物件 scopes 陣列裡有這兩行)
 // scopes: [
 //    'https://www.googleapis.com/auth/spreadsheets',
 //    'https://www.googleapis.com/auth/drive'
@@ -53,7 +51,7 @@ const sheets = google.sheets({ version: "v4", auth });
 
 // 2. Drive 設定
 const drive = google.drive({ version: "v3", auth });
-const DRIVE_FOLDER_ID = "請把剛剛複製的資料夾ID貼在這裡"; // <--- 這裡要改！
+const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; // <--- 這裡要改！
 
 // 3. Multer 設定 (設定上傳限制 5MB)
 const upload = multer({
