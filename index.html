@@ -86,17 +86,42 @@
         <div id="section-iep" class="d-none animate-fade">
             <div class="d-flex justify-content-between align-items-center mb-4">
                 <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
-                
                 <button class="btn btn-danger role-only shadow-sm" data-allow="teacher" onclick="openIepUpload()">
                     <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
                 </button>
             </div>
-        
             <div id="iep-list" class="row g-4">
                 </div>
         </div>
 
+        <div id="section-messages" class="d-none animate-fade">
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-secondary border-start border-5 border-primary ps-3">親師留言板</h3>
+                <button class="btn btn-outline-primary" onclick="getAiSummary()">
+                    <i class="fas fa-robot"></i> AI 重點摘要
+                </button>
+            </div>
+            <div id="ai-summary-box" class="alert alert-info d-none mb-3 shadow-sm">
+                <h5><i class="fas fa-magic"></i> Gemini AI 摘要：</h5>
+                <p id="ai-summary-content" class="mb-0 small"></p>
+            </div>
+            <div id="chat-box" class="border rounded p-3 mb-3 bg-light" style="height: 400px; overflow-y: auto;">
+                </div>
+            <div class="input-group">
+                <input type="text" id="msg-input" class="form-control" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
+                <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> 送出</button>
+            </div>
         </div>
+
+        <div id="section-questions" class="d-none animate-fade">
+            <h3 class="text-secondary border-start border-5 border-info ps-3 mb-4">提問與回覆</h3>
+            <div class="alert alert-light text-center border">
+                <i class="fas fa-tools text-muted mb-2"></i>
+                <p>此功能區域準備中</p>
+            </div>
+        </div>
+
+    </div>
 </div>
 
     <div id="iep-list" class="row g-4">
