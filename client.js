@@ -250,14 +250,22 @@ async function replyRecord(id) {
     }
 }
 
-// --- 工具: Fetch 封裝 (自動帶 Token) ---
+// --- 工具: Fetch 封裝 (已修正檔案上傳問題) ---
 async function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem("token");
+    
+    // 1. 基本 Header 只有 Authorization
     const headers = {
-        "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`,
         ...options.headers
     };
+
+    // 2. 關鍵判斷：只有當 body "不是" 檔案 (FormData) 時，才加入 json 設定
+    // 如果是檔案，瀏覽器會自動幫你加 Content-Type 並附上 boundary，千萬不能自己加！
+    if (!(options.body instanceof FormData)) {
+        headers["Content-Type"] = "application/json";
+    }
+
     return fetch(url, { ...options, headers });
 }
 
