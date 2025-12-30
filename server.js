@@ -326,6 +326,15 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
     }
 });
 
+app.get("/", (req, res) => {
+    res.send("特教平台後端伺服器運作中！🚀 請前往前端網頁進行操作。");
+});
+
+// --- 啟動 ---
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
+});
+
 // 啟動伺服器
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
