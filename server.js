@@ -1,6 +1,3 @@
-// 原有的 imports 下面加入：
-const multer = require("multer");
-const { Stream } = require("stream");
 const express = require("express");
 const cors = require("cors");
 const dotenv = require("dotenv");
@@ -9,8 +6,9 @@ const jwt = require("jsonwebtoken");
 const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
-const { GoogleGenerativeAI } = require("@google/generative-ai"); // 引入 AI 套件
-const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq";
+const { GoogleGenerativeAI } = require("@google/generative-ai");
+const multer = require("multer");
+const { Stream } = require("stream");
 
 // 載入環境變數
 dotenv.config();
@@ -37,33 +35,25 @@ const io = new Server(server, {
 // --- 設定 ---
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-
-let auth;
+// ✅ 這裡定義一次就好 (使用你提供的 ID)
+const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
 
 // --- 新版 OAuth2 驗證 (使用個人帳號空間) ---
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground" // Redirect URL
+    "https://developers.google.com/oauthplayground"
 );
 
 oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN
 });
 
-// 使用 oauth2Client 作為驗證方式
+// ✅ 建立服務 (整份檔案只宣告這一次！)
 const drive = google.drive({ version: "v3", auth: oauth2Client });
-const sheets = google.sheets({ version: "v4", auth: oauth2Client }); 
+const sheets = google.sheets({ version: "v4", auth: oauth2Client });
 
-// --- Google Drive 與上傳設定 ---
-
-// 1. 擴充權限範圍 (重要！原本只有 spreadsheets，現在要加 drive)
-// scopes: [
-//    'https://www.googleapis.com/auth/spreadsheets',
-//    'https://www.googleapis.com/auth/drive'
-// ]
-
-// 3. Multer 設定 (設定上傳限制 5MB)
+// Multer 設定 (設定上傳限制 15MB)
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 15 * 1024 * 1024 } 
@@ -152,21 +142,20 @@ const updateRow = async (sheetName, id, updateData) => {
     });
 };
 
-// --- 中介軟體 (Middleware)：保護 API 用 ---
+// --- 中介軟體 (Middleware) ---
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
-    const token = authHeader && authHeader.split(' ')[1]; // 格式通常是 "Bearer TOKEN"
+    const token = authHeader && authHeader.split(' ')[1];
 
     if (!token) return res.status(401).json({ message: "未登入" });
 
     jwt.verify(token, process.env.JWT_SECRET, (err, user) => {
         if (err) return res.status(403).json({ message: "憑證無效" });
-        req.user = user; // 把解密後的使用者資料 (含 role) 存入 req
+        req.user = user;
         next();
     });
 };
 
-// 檢查角色權限
 const checkRole = (allowedRoles) => {
     return (req, res, next) => {
         if (allowedRoles.includes(req.user.role)) {
@@ -179,26 +168,15 @@ const checkRole = (allowedRoles) => {
 
 // --- API 路由 ---
 
-// 1. 登入系統 (改為讀取 Google Sheet)
+// 1. 登入系統
 app.post("/auth/login", async (req, res) => {
     const { username, password } = req.body;
-
-    // 從 Google Sheet 'users' 分頁讀取使用者清單
     const users = await getSheetData("users");
-
-    // 這是抓鬼用的除錯訊息，會印在終端機
-    console.log("【除錯監控】從 Sheet 讀到的資料:", JSON.stringify(users, null, 2));
-    console.log("【除錯監控】前端傳來的帳密:", username, password);
-
-    // 比對帳號密碼
     const user = users.find(u => u.username === username && u.password === password);
 
     if (!user) {
-        console.log("【除錯監控】比對結果: 找不到使用者或密碼錯誤");
         return res.status(401).json({ message: "帳號或密碼錯誤" });
     }
-
-    console.log("【除錯監控】比對結果: 登入成功！使用者是", user.name);
 
     const token = jwt.sign(
         { username: user.username, role: user.role, name: user.name },
@@ -208,13 +186,8 @@ app.post("/auth/login", async (req, res) => {
     res.json({ token, user: { name: user.name, role: user.role } });
 });
 
-// ==========================================
-// 功能 1：專業紀錄 (Records)
-// ==========================================
-
-// 讀取紀錄 (教師、治療師可看全部) - *家長其實也可以看，但只能看自己的(這邊先簡化為全部)*
+// 2. 專業紀錄 API
 app.get("/api/records", verifyToken, async (req, res) => {
-    // 如果是家長，這裡可以做過濾邏輯，目前先假設家長不能看專業紀錄
     if (req.user.role === 'parents') {
         return res.status(403).json({ message: "家長權限無法查看專業治療紀錄" });
     }
@@ -222,7 +195,6 @@ app.get("/api/records", verifyToken, async (req, res) => {
     res.json({ data });
 });
 
-// 新增紀錄 (只有治療師)
 app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res) => {
     try {
         const newRecord = {
@@ -241,12 +213,10 @@ app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res)
     }
 });
 
-// 教師回覆 (只有教師)
 app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res) => {
     try {
         const { id } = req.params;
-        const { reply } = req.body; // 前端傳來的回覆內容
-
+        const { reply } = req.body; 
         await updateRow("records", id, { teacher_reply: reply });
         io.emit("record_update", { msg: "老師已回覆紀錄" });
         res.json({ message: "回覆成功" });
@@ -255,17 +225,12 @@ app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res
     }
 });
 
-// ==========================================
-// 功能 2：留言板 + AI (Messages)
-// ==========================================
-
-// 讀取留言
+// 3. 留言板 API
 app.get("/api/messages", verifyToken, async (req, res) => {
     const data = await getSheetData("messages");
     res.json({ data });
 });
 
-// 新增留言 (大家都可以)
 app.post("/api/messages", verifyToken, async (req, res) => {
     try {
         const newMsg = {
@@ -276,23 +241,19 @@ app.post("/api/messages", verifyToken, async (req, res) => {
             timestamp: new Date().toISOString()
         };
         await appendRow("messages", newMsg);
-        io.emit("message_update", newMsg); // 即時廣播
+        io.emit("message_update", newMsg); 
         res.json({ message: "留言成功" });
     } catch (e) {
         res.status(500).json({ message: e.message });
     }
 });
 
-// ✨ AI 總結功能 (亮點)
 app.get("/api/messages/summary", verifyToken, async (req, res) => {
     try {
-        // 1. 抓取最近 10 筆留言
         const allMessages = await getSheetData("messages");
-        const recentMsgs = allMessages.slice(-10); // 取最後 10 筆
-
+        const recentMsgs = allMessages.slice(-10);
         if (recentMsgs.length === 0) return res.json({ summary: "目前沒有留言可總結。" });
 
-        // 2. 組合給 AI 的提示詞 (Prompt)
         const promptText = recentMsgs.map(m => `${m.role} ${m.user_name} 說: ${m.message}`).join("\n");
         const finalPrompt = `
             請扮演一位專業的特教個案管理師。
@@ -303,58 +264,48 @@ app.get("/api/messages/summary", verifyToken, async (req, res) => {
             請幫我用條列式摘要以上溝通的重點 (100字以內)：
         `;
 
-        // 3. 呼叫 Gemini AI
         const model = genAI.getGenerativeModel({ model: "gemini-pro" });
         const result = await model.generateContent(finalPrompt);
         const response = await result.response;
         const text = response.text();
-
         res.json({ summary: text });
-
     } catch (error) {
         console.error("AI 錯誤:", error);
         res.status(500).json({ message: "AI 總結失敗", error: error.message });
     }
 });
 
-// ==========================================
-// 功能 3：IEP 檔案上傳功能
-// ==========================================
-
-// 1. 讀取 IEP 列表
+// 4. IEP 檔案上傳 API
 app.get("/api/iep", verifyToken, async (req, res) => {
     const data = await getSheetData("iep_files");
     res.json({ data });
 });
 
-// 2. 上傳檔案 (upload.single('file') 是關鍵中介軟體)
 app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'), async (req, res) => {
     try {
-        const file = req.file; // 取得前端傳來的檔案
+        const file = req.file; 
         if (!file) return res.status(400).json({ message: "未選擇檔案" });
 
         console.log(`開始上傳: ${file.originalname}`);
 
-        // 步驟 A: 將檔案轉為串流 (Stream) 以便上傳 Drive
         const bufferStream = new Stream.PassThrough();
         bufferStream.end(file.buffer);
 
-        // 步驟 B: 呼叫 Google Drive API
+        // 使用新版 OAuth2 Client 上傳
         const driveRes = await drive.files.create({
             requestBody: {
                 name: file.originalname,
-                parents: [DRIVE_FOLDER_ID], // 指定上傳到哪個資料夾
+                parents: [DRIVE_FOLDER_ID], // 確保這裡使用的是上面定義好的變數
             },
             media: {
                 mimeType: file.mimetype,
                 body: bufferStream,
             },
-            fields: 'id, name, webViewLink', // 要求回傳 檔案ID 和 檢視連結
+            fields: 'id, name, webViewLink', 
         });
 
         const { id, name, webViewLink } = driveRes.data;
 
-        // 步驟 C: 將檔案資訊記錄到 Google Sheet
         const newRecord = {
             id: `iep-${Date.now()}`,
             filename: name,
@@ -375,7 +326,7 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
     }
 });
 
-// --- 啟動 ---
+// 啟動伺服器
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
