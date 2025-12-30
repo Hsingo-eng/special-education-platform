@@ -10,6 +10,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const path = require("path");
 const { GoogleGenerativeAI } = require("@google/generative-ai"); // 引入 AI 套件
+const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq";
 
 // 載入環境變數
 dotenv.config();
