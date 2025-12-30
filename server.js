@@ -54,8 +54,6 @@ oauth2Client.setCredentials({
 const drive = google.drive({ version: "v3", auth: oauth2Client });
 const sheets = google.sheets({ version: "v4", auth: oauth2Client }); 
 
-const sheets = google.sheets({ version: "v4", auth });
-
 // --- Google Drive 與上傳設定 ---
 
 // 1. 擴充權限範圍 (重要！原本只有 spreadsheets，現在要加 drive)
@@ -63,10 +61,6 @@ const sheets = google.sheets({ version: "v4", auth });
 //    'https://www.googleapis.com/auth/spreadsheets',
 //    'https://www.googleapis.com/auth/drive'
 // ]
-
-// 2. Drive 設定
-const drive = google.drive({ version: "v3", auth });
-const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
 
 // 3. Multer 設定 (設定上傳限制 5MB)
 const upload = multer({
