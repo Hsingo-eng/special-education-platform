@@ -39,14 +39,20 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 
 let auth;
 
-auth = new google.auth.GoogleAuth({
-    credentials: process.env.GOOGLE_CREDENTIALS ? JSON.parse(process.env.GOOGLE_CREDENTIALS) : undefined,
-    keyFile: process.env.GOOGLE_CREDENTIALS ? undefined : process.env.GOOGLE_KEY_FILE,
-    scopes: [
-        'https://www.googleapis.com/auth/spreadsheets', 
-        'https://www.googleapis.com/auth/drive'         
-    ]
+// --- 新版 OAuth2 驗證 (使用個人帳號空間) ---
+const oauth2Client = new google.auth.OAuth2(
+    process.env.GOOGLE_CLIENT_ID,
+    process.env.GOOGLE_CLIENT_SECRET,
+    "https://developers.google.com/oauthplayground" // Redirect URL
+);
+
+oauth2Client.setCredentials({
+    refresh_token: process.env.GOOGLE_REFRESH_TOKEN
 });
+
+// 使用 oauth2Client 作為驗證方式
+const drive = google.drive({ version: "v3", auth: oauth2Client });
+const sheets = google.sheets({ version: "v4", auth: oauth2Client }); 
 
 const sheets = google.sheets({ version: "v4", auth });
 
@@ -60,12 +66,12 @@ const sheets = google.sheets({ version: "v4", auth });
 
 // 2. Drive 設定
 const drive = google.drive({ version: "v3", auth });
-const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; // <--- 這裡要改！
+const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
 
 // 3. Multer 設定 (設定上傳限制 5MB)
 const upload = multer({
     storage: multer.memoryStorage(),
-    limits: { fileSize: 15 * 1024 * 1024 } // 改成 15MB，應該足夠放大多數 PDF 了
+    limits: { fileSize: 15 * 1024 * 1024 } 
 });
 
 // Google Gemini AI 連線
