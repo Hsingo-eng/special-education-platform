@@ -311,3 +311,52 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
 server.listen(PORT, () => {
     console.log(`Server running on http://localhost:${PORT}`);
 });
+
+
+// 三方提問與回覆 (Questions)
+
+// 1. 讀取提問列表
+app.get("/api/questions", verifyToken, async (req, res) => {
+    const data = await getSheetData("questions");
+    res.json({ data });
+});
+
+// 2. 新增提問 (大家都可以問，不限制角色)
+app.post("/api/questions", verifyToken, async (req, res) => {
+    try {
+        const newQuestion = {
+            id: `q-${Date.now()}`,
+            date: new Date().toISOString().split('T')[0],
+            asker_name: req.user.name, // 自動抓取：提問者姓名
+            asker_role: req.user.role, // 自動抓取：提問者身分 (teacher/therapist/parents)
+            question: req.body.question,
+            replier_name: "",          // 一開始還沒人回，所以留空
+            reply: "",
+            status: "待回覆"
+        };
+        await appendRow("questions", newQuestion);
+        io.emit("question_update", { msg: `${req.user.name} 提出了一個新問題` });
+        res.json({ message: "提問成功", data: newQuestion });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// 3. 回覆提問 (大家都可以回)
+app.put("/api/questions/:id", verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { reply } = req.body;
+
+        await updateRow("questions", id, { 
+            reply: reply,
+            replier_name: req.user.name, // 自動抓取：回覆者姓名
+            status: "已回覆"
+        });
+        
+        io.emit("question_update", { msg: "有人回覆了問題" });
+        res.json({ message: "回覆成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
