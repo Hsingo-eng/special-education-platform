@@ -114,10 +114,18 @@
         </div>
 
         <div id="section-questions" class="d-none animate-fade">
-            <h3 class="text-secondary border-start border-5 border-info ps-3 mb-4">提問與回覆</h3>
-            <div class="alert alert-light text-center border">
-                <i class="fas fa-tools text-muted mb-2"></i>
-                <p>此功能區域準備中</p>
+            <div class="d-flex justify-content-between align-items-center mb-4">
+                <h3 class="text-secondary border-start border-5 border-info ps-3">提問與回覆</h3>
+                <button class="btn btn-info text-white shadow-sm" onclick="openQuestionModal()">
+                    <i class="fas fa-plus-circle"></i> 我要提問
+                </button>
+            </div>
+
+            <div id="questions-list" class="row g-3">
+                <div class="text-center text-muted py-5">
+                    <div class="spinner-border text-info" role="status"></div>
+                    <p>正在載入問題...</p>
+                </div>
             </div>
         </div>
 
@@ -125,13 +133,6 @@
 </div>
 
     <div id="iep-list" class="row g-4">
-        </div>
-</div>
-            <div id="section-questions" class="d-none text-center p-5 bg-light rounded">
-                <i class="fas fa-tools fa-3x text-muted mb-3"></i>
-                <h4>提問卡功能開發中...</h4>
-            </div>
-
         </div>
     </div>
 

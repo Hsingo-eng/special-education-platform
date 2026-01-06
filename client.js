@@ -374,3 +374,163 @@ async function openIepUpload() {
         }
     }
 }
+
+// 1. 載入問題列表
+async function loadQuestions() {
+    const list = document.getElementById("questions-list");
+    list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-info"></div></div>';
+
+    try {
+        const res = await fetch(`${API_URL}/api/questions`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        renderQuestions(json.data);
+    } catch (err) {
+        console.error(err);
+        list.innerHTML = '<p class="text-center text-danger">載入失敗</p>';
+    }
+}
+
+// 2. 渲染問題卡片 (顯示在畫面上)
+function renderQuestions(data) {
+    const list = document.getElementById("questions-list");
+    list.innerHTML = "";
+
+    if (!data || data.length === 0) {
+        list.innerHTML = '<div class="alert alert-light text-center w-100">目前沒有任何提問</div>';
+        return;
+    }
+
+    // 依照日期排序 (新的在上面)
+    data.reverse().forEach(q => {
+        // 設定身分標籤顏色
+        let roleBadge = '';
+        if (q.asker_role === 'teacher') roleBadge = '<span class="badge bg-primary">教師</span>';
+        else if (q.asker_role === 'therapist') roleBadge = '<span class="badge bg-success">治療師</span>';
+        else roleBadge = '<span class="badge bg-warning text-dark">家長</span>';
+
+        // 判斷狀態顏色
+        const statusColor = q.status === '已回覆' ? 'success' : 'secondary';
+
+        // 判斷是否有回覆
+        let replyHtml = '';
+        if (q.reply) {
+            // 有回覆：顯示回覆內容
+            replyHtml = `
+                <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
+                    <div class="d-flex justify-content-between">
+                        <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name} 的回覆：</small>
+                    </div>
+                    <p class="mb-0 mt-1 text-dark">${q.reply}</p>
+                </div>
+            `;
+        } else {
+            // 沒回覆：顯示回覆按鈕 (大家都可以按)
+            replyHtml = `
+                <div class="mt-3 text-end">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="replyQuestion('${q.id}')">
+                        <i class="fas fa-reply"></i> 點此回覆
+                    </button>
+                </div>
+            `;
+        }
+
+        const html = `
+            <div class="col-md-12">
+                <div class="card shadow-sm border-0 h-100">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <div>
+                                ${roleBadge} <span class="fw-bold ms-1">${q.asker_name}</span>
+                                <small class="text-muted ms-2"><i class="far fa-clock"></i> ${q.date}</small>
+                            </div>
+                            <span class="badge bg-${statusColor}-subtle text-${statusColor} border border-${statusColor}">${q.status}</span>
+                        </div>
+                        
+                        <h5 class="card-text mt-2 text-dark" style="white-space: pre-wrap;">${q.question}</h5>
+                        
+                        ${replyHtml}
+                    </div>
+                </div>
+            </div>
+        `;
+        list.innerHTML += html;
+    });
+}
+
+// 3. 開啟提問視窗
+function openQuestionModal() {
+    Swal.fire({
+        title: '我要提問',
+        input: 'textarea',
+        inputLabel: '請輸入您想詢問的問題或是觀察到的狀況',
+        inputPlaceholder: '例如：請問小明最近在家裡的情緒狀況如何？...',
+        showCancelButton: true,
+        confirmButtonText: '發布',
+        cancelButtonText: '取消',
+        confirmButtonColor: '#17a2b8',
+        showLoaderOnConfirm: true,
+        preConfirm: async (question) => {
+            if (!question) return Swal.showValidationMessage('請輸入內容');
+            
+            try {
+                const res = await fetch(`${API_URL}/api/questions`, {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ question: question })
+                });
+                if (!res.ok) throw new Error(res.statusText);
+                return await res.json();
+            } catch (error) {
+                Swal.showValidationMessage(`發布失敗: ${error}`);
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('成功', '您的提問已發布', 'success');
+            loadQuestions(); // 重新載入列表
+        }
+    });
+}
+
+// 4. 回覆問題
+function replyQuestion(id) {
+    Swal.fire({
+        title: '回覆問題',
+        input: 'textarea',
+        inputLabel: '請輸入您的回覆',
+        inputPlaceholder: '輸入內容...',
+        showCancelButton: true,
+        confirmButtonText: '送出回覆',
+        cancelButtonText: '取消',
+        confirmButtonColor: '#28a745',
+        showLoaderOnConfirm: true,
+        preConfirm: async (reply) => {
+            if (!reply) return Swal.showValidationMessage('請輸入內容');
+
+            try {
+                const res = await fetch(`${API_URL}/api/questions/${id}`, {
+                    method: "PUT",
+                    headers: {
+                        "Content-Type": "application/json",
+                        "Authorization": `Bearer ${token}`
+                    },
+                    body: JSON.stringify({ reply: reply })
+                });
+                if (!res.ok) throw new Error(res.statusText);
+                return await res.json();
+            } catch (error) {
+                Swal.showValidationMessage(`回覆失敗: ${error}`);
+            }
+        }
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('成功', '已送出回覆', 'success');
+            loadQuestions(); // 重新載入列表
+        }
+    });
+}
