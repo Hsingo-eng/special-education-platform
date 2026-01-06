@@ -87,6 +87,9 @@ function showSection(sectionId) {
     });
     // 顯示目標分頁
     document.getElementById(`section-${sectionId}`).classList.remove("d-none");
+    if (sectionId === 'questions') {
+        loadQuestions();
+    }
 
     if (sectionId === 'messages') loadMessages();
     if (sectionId === 'records') loadRecords();
