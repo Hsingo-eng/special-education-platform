@@ -382,6 +382,7 @@ async function openIepUpload() {
 async function loadQuestions() {
     const list = document.getElementById("questions-list");
     list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-info"></div></div>';
+    const token = localStorage.getItem('token');
 
     try {
         const res = await fetch(`${API_URL}/api/questions`, {
@@ -476,6 +477,7 @@ function openQuestionModal() {
         showLoaderOnConfirm: true,
         preConfirm: async (question) => {
             if (!question) return Swal.showValidationMessage('請輸入內容');
+            const token = localStorage.getItem('token');
             
             try {
                 const res = await fetch(`${API_URL}/api/questions`, {
@@ -514,6 +516,7 @@ function replyQuestion(id) {
         showLoaderOnConfirm: true,
         preConfirm: async (reply) => {
             if (!reply) return Swal.showValidationMessage('請輸入內容');
+            const token = localStorage.getItem('token');
 
             try {
                 const res = await fetch(`${API_URL}/api/questions/${id}`, {
