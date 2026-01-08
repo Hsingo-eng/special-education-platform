@@ -7,7 +7,7 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require("multer");
-const { Stream } = require("stream");
+const stream = require("stream"); // 修正引入方式
 
 // 載入環境變數
 dotenv.config();
@@ -27,14 +27,13 @@ const io = new Server(server, {
             "http://127.0.0.1:5500",       
             "https://hsingo-eng.github.io" 
         ],
-        methods: ["GET", "POST"]
+        methods: ["GET", "POST", "PUT"]
     }
 });
 
 // --- 設定 ---
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-// 請確認這個 ID 是正確的資料夾 ID
 const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
 
 // --- OAuth2 驗證 ---
@@ -79,7 +78,7 @@ const getSheetData = async (sheetName) => {
             return obj;
         });
     } catch (error) {
-        console.error(`讀取 ${sheetName} 失敗:`, error.message);
+        console.error(`❌ 讀取 ${sheetName} 失敗:`, error.message);
         return [];
     }
 };
@@ -160,37 +159,38 @@ const checkRole = (allowedRoles) => {
 
 // --- API 路由 ---
 
-// 首頁
+// 首頁 (確認存活)
 app.get("/", (req, res) => {
     res.send("特教平台後端伺服器運作中！🚀");
 });
 
-// 🟢 登入 (修正語法錯誤並加入偵探功能)
-app.post("/auth/login", async (req, res) => { // <--- 這裡一定要有 async
+// 🟢 登入 (含超級偵探 Log)
+app.post("/auth/login", async (req, res) => {
     const { username, password } = req.body;
 
     try {
-        // 1. 先抓取資料
+        console.log("🕵️‍♂️ [偵探] 收到登入請求:", username, password);
+
+        // 1. 嘗試讀取 Google Sheet
         const users = await getSheetData("users");
+        
+        console.log("🕵️‍♂️ [偵探] Google Sheet 讀取成功，筆數:", users.length);
+        if (users.length > 0) {
+            console.log("🕵️‍♂️ [偵探] 第一筆使用者資料範例:", JSON.stringify(users[0]));
+        } else {
+            console.log("⚠️ [警告] 讀取到的使用者列表是空的！請檢查 Google Sheet 內容或權限。");
+        }
 
-        // 🕵️‍♂️【超級偵探報告】強制印出伺服器看到的資料
-        console.log("========================================");
-        console.log("【偵探報告】前端嘗試登入:", `"${username}"`, `"${password}"`);
-        console.log("【偵探報告】Sheet 讀取總筆數:", users.length);
-        // 只印出前 3 筆避免 log 太多，但足夠我們檢查了
-        console.log("【偵探報告】Sheet 資料預覽:", JSON.stringify(users.slice(0, 3), null, 2));
-        console.log("========================================");
-
-        // 2. 比對帳號密碼
+        // 2. 比對
         const user = users.find(u => u.username === username && u.password === password);
 
         if (!user) {
-            console.log("【偵探報告】比對結果: ❌ 失敗 (找不到人或密碼錯)");
+            console.log("❌ [偵探] 比對失敗：找不到此帳號或密碼錯誤。");
             return res.status(401).json({ message: "帳號或密碼錯誤" });
         }
 
-        console.log("【偵探報告】比對結果: ✅ 成功！歡迎", user.name);
-        
+        console.log("✅ [偵探] 登入成功！使用者:", user.name);
+
         const token = jwt.sign(
             { username: user.username, role: user.role, name: user.name },
             process.env.JWT_SECRET,
@@ -199,12 +199,12 @@ app.post("/auth/login", async (req, res) => { // <--- 這裡一定要有 async
         res.json({ token, user: { name: user.name, role: user.role } });
 
     } catch (error) {
-        console.error("登入 API 發生嚴重錯誤:", error);
-        res.status(500).json({ message: "伺服器錯誤" });
+        console.error("💥 [嚴重錯誤] 登入 API 發生例外狀況:", error);
+        res.status(500).json({ message: "伺服器內部錯誤" });
     }
 });
 
-// 專業紀錄
+// 其他 API (紀錄、留言、IEP、提問)
 app.get("/api/records", verifyToken, async (req, res) => {
     if (req.user.role === 'parents') return res.status(403).json({ message: "家長權限無法查看" });
     const data = await getSheetData("records");
@@ -241,7 +241,6 @@ app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res
     }
 });
 
-// 留言板
 app.get("/api/messages", verifyToken, async (req, res) => {
     const data = await getSheetData("messages");
     res.json({ data });
@@ -283,7 +282,6 @@ app.get("/api/messages/summary", verifyToken, async (req, res) => {
     }
 });
 
-// IEP 檔案上傳
 app.get("/api/iep", verifyToken, async (req, res) => {
     const data = await getSheetData("iep_files");
     res.json({ data });
@@ -294,7 +292,7 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
         const file = req.file;
         if (!file) return res.status(400).json({ message: "未選擇檔案" });
 
-        const bufferStream = new Stream.PassThrough();
+        const bufferStream = new stream.PassThrough();
         bufferStream.end(file.buffer);
 
         const driveRes = await drive.files.create({
@@ -330,7 +328,6 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
     }
 });
 
-// 提問與回覆
 app.get("/api/questions", verifyToken, async (req, res) => {
     const data = await getSheetData("questions");
     res.json({ data });
