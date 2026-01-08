@@ -168,6 +168,35 @@ app.get("/", (req, res) => {
 // 登入
 app.post("/auth/login", async (req, res) => {
     const { username, password } = req.body;
+
+    // 1. 先抓取資料
+    const users = await getSheetData("users");
+
+    // 🟢 【超級偵探模式】強制印出伺服器看到的資料
+    console.log("========================================");
+    console.log("【偵探報告】前端嘗試登入:", username, password);
+    console.log("【偵探報告】Sheet 讀取結果(筆數):", users.length);
+    console.log("【偵探報告】Sheet 讀取內容:", JSON.stringify(users, null, 2));
+    console.log("========================================");
+
+    // 2. 比對帳號密碼
+    const user = users.find(u => u.username === username && u.password === password);
+
+    if (!user) {
+        console.log("【偵探報告】比對結果: ❌ 失敗"); // 讓我們知道是比對失敗
+        return res.status(401).json({ message: "帳號或密碼錯誤" });
+    }
+
+    // ... (後面成功登入的程式碼不用動)
+    console.log("【偵探報告】比對結果: ✅ 成功！歡迎", user.name);
+    
+    const token = jwt.sign(
+        { username: user.username, role: user.role, name: user.name },
+        process.env.JWT_SECRET,
+        { expiresIn: "7d" }
+    );
+    res.json({ token, user: { name: user.name, role: user.role } });
+});
     const users = await getSheetData("users");
     const user = users.find(u => u.username === username && u.password === password);
 
