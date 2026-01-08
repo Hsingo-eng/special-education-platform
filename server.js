@@ -23,9 +23,9 @@ const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
         origin: [
-            "http://localhost:5500",       // 本機測試用
-            "http://127.0.0.1:5500",       // 本機測試用
-            "https://hsingo-eng.github.io" // GitHub Pages 網址
+            "http://localhost:5500",       
+            "http://127.0.0.1:5500",       
+            "https://hsingo-eng.github.io" 
         ],
         methods: ["GET", "POST"]
     }
@@ -37,22 +37,22 @@ const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
 // 請確認這個 ID 是正確的資料夾 ID
 const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
 
-// --- OAuth2 驗證 (使用個人帳號空間) ---
+// --- OAuth2 驗證 ---
 const oauth2Client = new google.auth.OAuth2(
     process.env.GOOGLE_CLIENT_ID,
     process.env.GOOGLE_CLIENT_SECRET,
-    "https://developers.google.com/oauthplayground" // Redirect URL
+    "https://developers.google.com/oauthplayground"
 );
 
 oauth2Client.setCredentials({
     refresh_token: process.env.GOOGLE_REFRESH_TOKEN
 });
 
-// 建立服務 (整份檔案只宣告這一次！)
+// 建立服務
 const drive = google.drive({ version: "v3", auth: oauth2Client });
 const sheets = google.sheets({ version: "v4", auth: oauth2Client });
 
-// Multer 設定 (上傳限制 15MB)
+// Multer 設定
 const upload = multer({
     storage: multer.memoryStorage(),
     limits: { fileSize: 15 * 1024 * 1024 } 
@@ -160,54 +160,48 @@ const checkRole = (allowedRoles) => {
 
 // --- API 路由 ---
 
-// 首頁 (確認伺服器存活)
+// 首頁
 app.get("/", (req, res) => {
     res.send("特教平台後端伺服器運作中！🚀");
 });
 
-// 登入
-app.post("/auth/login", async (req, res) => {
+// 🟢 登入 (修正語法錯誤並加入偵探功能)
+app.post("/auth/login", async (req, res) => { // <--- 這裡一定要有 async
     const { username, password } = req.body;
 
-    // 1. 先抓取資料
-    const users = await getSheetData("users");
+    try {
+        // 1. 先抓取資料
+        const users = await getSheetData("users");
 
-    // 🟢 【超級偵探模式】強制印出伺服器看到的資料
-    console.log("========================================");
-    console.log("【偵探報告】前端嘗試登入:", username, password);
-    console.log("【偵探報告】Sheet 讀取結果(筆數):", users.length);
-    console.log("【偵探報告】Sheet 讀取內容:", JSON.stringify(users, null, 2));
-    console.log("========================================");
+        // 🕵️‍♂️【超級偵探報告】強制印出伺服器看到的資料
+        console.log("========================================");
+        console.log("【偵探報告】前端嘗試登入:", `"${username}"`, `"${password}"`);
+        console.log("【偵探報告】Sheet 讀取總筆數:", users.length);
+        // 只印出前 3 筆避免 log 太多，但足夠我們檢查了
+        console.log("【偵探報告】Sheet 資料預覽:", JSON.stringify(users.slice(0, 3), null, 2));
+        console.log("========================================");
 
-    // 2. 比對帳號密碼
-    const user = users.find(u => u.username === username && u.password === password);
+        // 2. 比對帳號密碼
+        const user = users.find(u => u.username === username && u.password === password);
 
-    if (!user) {
-        console.log("【偵探報告】比對結果: ❌ 失敗"); // 讓我們知道是比對失敗
-        return res.status(401).json({ message: "帳號或密碼錯誤" });
+        if (!user) {
+            console.log("【偵探報告】比對結果: ❌ 失敗 (找不到人或密碼錯)");
+            return res.status(401).json({ message: "帳號或密碼錯誤" });
+        }
+
+        console.log("【偵探報告】比對結果: ✅ 成功！歡迎", user.name);
+        
+        const token = jwt.sign(
+            { username: user.username, role: user.role, name: user.name },
+            process.env.JWT_SECRET,
+            { expiresIn: "7d" }
+        );
+        res.json({ token, user: { name: user.name, role: user.role } });
+
+    } catch (error) {
+        console.error("登入 API 發生嚴重錯誤:", error);
+        res.status(500).json({ message: "伺服器錯誤" });
     }
-
-    // ... (後面成功登入的程式碼不用動)
-    console.log("【偵探報告】比對結果: ✅ 成功！歡迎", user.name);
-    
-    const token = jwt.sign(
-        { username: user.username, role: user.role, name: user.name },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-    );
-    res.json({ token, user: { name: user.name, role: user.role } });
-});
-    const users = await getSheetData("users");
-    const user = users.find(u => u.username === username && u.password === password);
-
-    if (!user) return res.status(401).json({ message: "帳號或密碼錯誤" });
-
-    const token = jwt.sign(
-        { username: user.username, role: user.role, name: user.name },
-        process.env.JWT_SECRET,
-        { expiresIn: "7d" }
-    );
-    res.json({ token, user: { name: user.name, role: user.role } });
 });
 
 // 專業紀錄
@@ -336,30 +330,21 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
     }
 });
 
-// 啟動
-server.listen(PORT, () => {
-    console.log(`Server running on http://localhost:${PORT}`);
-});
-
-
-// 三方提問與回覆 (Questions)
-
-// 1. 讀取提問列表
+// 提問與回覆
 app.get("/api/questions", verifyToken, async (req, res) => {
     const data = await getSheetData("questions");
     res.json({ data });
 });
 
-// 2. 新增提問 (大家都可以問，不限制角色)
 app.post("/api/questions", verifyToken, async (req, res) => {
     try {
         const newQuestion = {
             id: `q-${Date.now()}`,
             date: new Date().toISOString().split('T')[0],
-            asker_name: req.user.name, // 自動抓取：提問者姓名
-            asker_role: req.user.role, // 自動抓取：提問者身分 (teacher/therapist/parents)
+            asker_name: req.user.name,
+            asker_role: req.user.role,
             question: req.body.question,
-            replier_name: "",          // 一開始還沒人回，所以留空
+            replier_name: "",
             reply: "",
             status: "待回覆"
         };
@@ -371,7 +356,6 @@ app.post("/api/questions", verifyToken, async (req, res) => {
     }
 });
 
-// 3. 回覆提問 (大家都可以回)
 app.put("/api/questions/:id", verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
@@ -379,7 +363,7 @@ app.put("/api/questions/:id", verifyToken, async (req, res) => {
 
         await updateRow("questions", id, { 
             reply: reply,
-            replier_name: req.user.name, // 自動抓取：回覆者姓名
+            replier_name: req.user.name,
             status: "已回覆"
         });
         
@@ -388,4 +372,9 @@ app.put("/api/questions/:id", verifyToken, async (req, res) => {
     } catch (e) {
         res.status(500).json({ message: e.message });
     }
+});
+
+// 啟動
+server.listen(PORT, () => {
+    console.log(`Server running on http://localhost:${PORT}`);
 });
