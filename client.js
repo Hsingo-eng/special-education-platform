@@ -18,6 +18,48 @@ async function login() {
     const username = document.getElementById("login-username").value.trim();
     const password = document.getElementById("login-password").value.trim();
 
+    // 🟢 抓鬼 1：看看這裡印出來的有沒有多餘空白？
+    console.log("正在嘗試登入，帳號:", `"${username}"`, "密碼:", `"${password}"`);
+
+    if(!username || !password) return Swal.fire("錯誤", "請輸入帳號密碼", "warning");
+
+    try {
+        const res = await fetch(`${API_URL}/auth/login`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify({ username, password })
+        });
+        
+        const data = await res.json();
+
+        // 🟢 抓鬼 2：看看伺服器到底回傳什麼錯誤訊息？
+        console.log("伺服器回應狀態:", res.status);
+        console.log("伺服器回應資料:", data);
+        
+        if (res.ok) {
+            // ... (原本的成功邏輯不用改) ...
+             localStorage.setItem("token", data.token);
+             localStorage.setItem("user", JSON.stringify(data.user));
+             currentUser = data.user;
+             
+             Swal.fire({
+                 icon: 'success',
+                 title: '登入成功',
+                 text: `歡迎回來！，${roleName(currentUser.role)} ${currentUser.name}`,
+                 timer: 1500,
+                 showConfirmButton: false
+             });
+             showDashboard();
+        } else {
+            // 這裡會顯示伺服器說的錯誤原因
+            Swal.fire("登入失敗", data.message, "error");
+        }
+    } catch (err) {
+        console.error(err);
+        Swal.fire("錯誤", "無法連線到伺服器", "error");
+    }
+}
+
     if(!username || !password) return Swal.fire("錯誤", "請輸入帳號密碼", "warning");
 
     try {
@@ -95,15 +137,6 @@ function showSection(sectionId) {
     if (sectionId === 'records') loadRecords();
     if (sectionId === 'iep') loadIepFiles();
 }
-
-// --- 功能 A: 留言板 (包含 AI) ---
-// --- 工具: Fetch 封裝 (自動判斷是否為檔案上傳) ---
-async function fetchWithAuth(url, options = {}) {
-    const token = localStorage.getItem("token");
-    const headers = {
-        "Authorization": `Bearer ${token}`,
-        ...options.headers
-    };
 
     // 關鍵修正：如果 body 是 FormData (檔案)，就不要手動加 Content-Type
     // 瀏覽器會自動處理 boundary，加了反而會壞掉
