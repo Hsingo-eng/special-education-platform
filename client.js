@@ -13,12 +13,12 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 });
 
-// --- 2. 登入功能 ---
+// --- 2. 登入功能 (包含除錯紀錄) ---
 async function login() {
     const username = document.getElementById("login-username").value.trim();
     const password = document.getElementById("login-password").value.trim();
 
-    // 🟢 抓鬼 1：看看這裡印出來的有沒有多餘空白？
+    // 🟢 抓鬼專用：印出輸入的帳密 (請看控制台)
     console.log("正在嘗試登入，帳號:", `"${username}"`, "密碼:", `"${password}"`);
 
     if(!username || !password) return Swal.fire("錯誤", "請輸入帳號密碼", "warning");
@@ -31,45 +31,10 @@ async function login() {
         });
         
         const data = await res.json();
-
-        // 🟢 抓鬼 2：看看伺服器到底回傳什麼錯誤訊息？
+        
+        // 🟢 抓鬼專用：印出伺服器回應
         console.log("伺服器回應狀態:", res.status);
         console.log("伺服器回應資料:", data);
-        
-        if (res.ok) {
-            // ... (原本的成功邏輯不用改) ...
-             localStorage.setItem("token", data.token);
-             localStorage.setItem("user", JSON.stringify(data.user));
-             currentUser = data.user;
-             
-             Swal.fire({
-                 icon: 'success',
-                 title: '登入成功',
-                 text: `歡迎回來！，${roleName(currentUser.role)} ${currentUser.name}`,
-                 timer: 1500,
-                 showConfirmButton: false
-             });
-             showDashboard();
-        } else {
-            // 這裡會顯示伺服器說的錯誤原因
-            Swal.fire("登入失敗", data.message, "error");
-        }
-    } catch (err) {
-        console.error(err);
-        Swal.fire("錯誤", "無法連線到伺服器", "error");
-    }
-}
-
-    if(!username || !password) return Swal.fire("錯誤", "請輸入帳號密碼", "warning");
-
-    try {
-        const res = await fetch(`${API_URL}/auth/login`, {
-            method: "POST",
-            headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
-        });
-        
-        const data = await res.json();
         
         if (res.ok) {
             localStorage.setItem("token", data.token);
@@ -79,7 +44,7 @@ async function login() {
             Swal.fire({
                 icon: 'success',
                 title: '登入成功',
-                text: `歡迎回來！，${roleName(currentUser.role)} ${currentUser.name}`,
+                text: `歡迎回來！${roleName(currentUser.role)} ${currentUser.name}`,
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -125,26 +90,74 @@ function showDashboard() {
 function showSection(sectionId) {
     // 隱藏所有分頁
     ["records", "iep", "messages", "questions"].forEach(id => {
-        document.getElementById(`section-${id}`).classList.add("d-none");
+        const el = document.getElementById(`section-${id}`);
+        if(el) el.classList.add("d-none");
     });
     // 顯示目標分頁
-    document.getElementById(`section-${sectionId}`).classList.remove("d-none");
-    if (sectionId === 'questions') {
-        loadQuestions();
-    }
+    const target = document.getElementById(`section-${sectionId}`);
+    if(target) target.classList.remove("d-none");
 
+    if (sectionId === 'questions') loadQuestions();
     if (sectionId === 'messages') loadMessages();
     if (sectionId === 'records') loadRecords();
     if (sectionId === 'iep') loadIepFiles();
 }
 
-    // 關鍵修正：如果 body 是 FormData (檔案)，就不要手動加 Content-Type
-    // 瀏覽器會自動處理 boundary，加了反而會壞掉
+// --- 工具: Fetch 封裝 (已修正檔案上傳問題，並刪除重複定義) ---
+async function fetchWithAuth(url, options = {}) {
+    const token = localStorage.getItem("token");
+    
+    // 1. 基本 Header 只有 Authorization
+    const headers = {
+        "Authorization": `Bearer ${token}`,
+        ...options.headers
+    };
+
+    // 2. 關鍵判斷：只有當 body "不是" 檔案 (FormData) 時，才加入 json 設定
     if (!(options.body instanceof FormData)) {
         headers["Content-Type"] = "application/json";
     }
 
     return fetch(url, { ...options, headers });
+}
+
+function roleName(role) {
+    const map = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
+    return map[role] || role;
+}
+
+// --- Socket 即時監聽 ---
+socket.on("message_update", (msg) => {
+    const msgSection = document.getElementById("section-messages");
+    if (msgSection && !msgSection.classList.contains("d-none")) {
+        renderMessage(msg);
+        const chatBox = document.getElementById("chat-box");
+        if(chatBox) chatBox.scrollTop = chatBox.scrollHeight;
+    }
+});
+
+// ==========================================
+// 功能 A: 留言板 (包含 AI)
+// ==========================================
+
+async function loadMessages() {
+    const chatBox = document.getElementById("chat-box");
+    chatBox.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div></div>';
+    
+    try {
+        const res = await fetchWithAuth(`${API_URL}/api/messages`);
+        const json = await res.json();
+        chatBox.innerHTML = "";
+        
+        if (!json.data || json.data.length === 0) {
+            chatBox.innerHTML = "<div class='text-center text-muted'>目前沒有留言</div>";
+            return;
+        }
+        json.data.forEach(msg => renderMessage(msg));
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (err) {
+        console.error(err);
+    }
 }
 
 function renderMessage(msg) {
@@ -180,7 +193,6 @@ function handleEnter(e) {
     if (e.key === 'Enter') sendMessage();
 }
 
-// AI 摘要功能
 async function getAiSummary() {
     Swal.fire({ 
         title: "AI 正在閱讀對話紀錄...", 
@@ -202,7 +214,10 @@ async function getAiSummary() {
     }
 }
 
-// --- 功能 B: 專業紀錄 ---
+// ==========================================
+// 功能 B: 專業紀錄
+// ==========================================
+
 async function loadRecords() {
     const list = document.getElementById("record-list");
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
@@ -224,7 +239,6 @@ async function loadRecords() {
         }
 
         json.data.forEach(rec => {
-            // 老師的回覆區塊
             const replyHtml = rec.teacher_reply 
                 ? `<div class="mt-3 p-3 bg-light border-start border-4 border-primary rounded">
                     <strong>👩‍🏫 老師回覆：</strong> ${rec.teacher_reply}
@@ -286,46 +300,10 @@ async function replyRecord(id) {
     }
 }
 
-// --- 工具: Fetch 封裝 (已修正檔案上傳問題) ---
-async function fetchWithAuth(url, options = {}) {
-    const token = localStorage.getItem("token");
-    
-    // 1. 基本 Header 只有 Authorization
-    const headers = {
-        "Authorization": `Bearer ${token}`,
-        ...options.headers
-    };
-
-    // 2. 關鍵判斷：只有當 body "不是" 檔案 (FormData) 時，才加入 json 設定
-    // 如果是檔案，瀏覽器會自動幫你加 Content-Type 並附上 boundary，千萬不能自己加！
-    if (!(options.body instanceof FormData)) {
-        headers["Content-Type"] = "application/json";
-    }
-
-    return fetch(url, { ...options, headers });
-}
-
-function roleName(role) {
-    const map = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
-    return map[role] || role;
-}
-
-// --- Socket 即時監聽 ---
-socket.on("message_update", (msg) => {
-    // 只有當使用者正在看留言板時，才自動更新畫面
-    const msgSection = document.getElementById("section-messages");
-    if (!msgSection.classList.contains("d-none")) {
-        renderMessage(msg);
-        const chatBox = document.getElementById("chat-box");
-        chatBox.scrollTop = chatBox.scrollHeight;
-    }
-});
-
 // ==========================================
 // 功能 C: IEP 檔案管理
 // ==========================================
 
-// 1. 載入檔案列表
 async function loadIepFiles() {
     const list = document.getElementById("iep-list");
     list.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border text-danger"></div><p>載入檔案中...</p></div>';
@@ -341,7 +319,6 @@ async function loadIepFiles() {
         }
 
         json.data.forEach(file => {
-            // 產生漂亮的檔案卡片
             list.innerHTML += `
                 <div class="col-md-6 col-lg-4">
                     <div class="card h-100 shadow-sm border-0">
@@ -368,9 +345,7 @@ async function loadIepFiles() {
     }
 }
 
-// 2. 開啟上傳視窗
 async function openIepUpload() {
-    // 使用 SweetAlert 顯示上傳表單
     const { value: formValues } = await Swal.fire({
         title: '上傳 IEP 檔案',
         html: `
@@ -387,10 +362,8 @@ async function openIepUpload() {
     });
 
     if (formValues) {
-        // 顯示 Loading
         Swal.fire({ title: '檔案上傳中...', text: '請稍候，正在傳送至雲端', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
 
-        // 建立 FormData 物件
         const formData = new FormData();
         formData.append("file", formValues.file);
         formData.append("comments", formValues.comment);
@@ -400,7 +373,7 @@ async function openIepUpload() {
             
             if (res.ok) {
                 Swal.fire("成功", "IEP 檔案已上傳！", "success");
-                loadIepFiles(); // 重新整理列表
+                loadIepFiles();
             } else {
                 const errData = await res.json();
                 throw new Error(errData.message);
@@ -411,16 +384,17 @@ async function openIepUpload() {
     }
 }
 
-// 1. 載入問題列表
+// ==========================================
+// 功能 D: 提問與回覆
+// ==========================================
+
 async function loadQuestions() {
     const list = document.getElementById("questions-list");
     list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-info"></div></div>';
-    const token = localStorage.getItem('token');
-
+    
+    // 這裡使用 fetchWithAuth，它會自動處理 token
     try {
-        const res = await fetch(`${API_URL}/api/questions`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await fetchWithAuth(`${API_URL}/api/questions`);
         const json = await res.json();
         renderQuestions(json.data);
     } catch (err) {
@@ -429,7 +403,6 @@ async function loadQuestions() {
     }
 }
 
-// 2. 渲染問題卡片 (顯示在畫面上)
 function renderQuestions(data) {
     const list = document.getElementById("questions-list");
     list.innerHTML = "";
@@ -439,21 +412,16 @@ function renderQuestions(data) {
         return;
     }
 
-    // 依照日期排序 (新的在上面)
     data.reverse().forEach(q => {
-        // 設定身分標籤顏色
         let roleBadge = '';
         if (q.asker_role === 'teacher') roleBadge = '<span class="badge bg-primary">教師</span>';
         else if (q.asker_role === 'therapist') roleBadge = '<span class="badge bg-success">治療師</span>';
         else roleBadge = '<span class="badge bg-warning text-dark">家長</span>';
 
-        // 判斷狀態顏色
         const statusColor = q.status === '已回覆' ? 'success' : 'secondary';
 
-        // 判斷是否有回覆
         let replyHtml = '';
         if (q.reply) {
-            // 有回覆：顯示回覆內容
             replyHtml = `
                 <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
                     <div class="d-flex justify-content-between">
@@ -463,7 +431,6 @@ function renderQuestions(data) {
                 </div>
             `;
         } else {
-            // 沒回覆：顯示回覆按鈕 (大家都可以按)
             replyHtml = `
                 <div class="mt-3 text-end">
                     <button class="btn btn-outline-secondary btn-sm" onclick="replyQuestion('${q.id}')">
@@ -484,9 +451,7 @@ function renderQuestions(data) {
                             </div>
                             <span class="badge bg-${statusColor}-subtle text-${statusColor} border border-${statusColor}">${q.status}</span>
                         </div>
-                        
                         <h5 class="card-text mt-2 text-dark" style="white-space: pre-wrap;">${q.question}</h5>
-                        
                         ${replyHtml}
                     </div>
                 </div>
@@ -496,7 +461,6 @@ function renderQuestions(data) {
     });
 }
 
-// 3. 開啟提問視窗
 function openQuestionModal() {
     Swal.fire({
         title: '我要提問',
@@ -510,15 +474,11 @@ function openQuestionModal() {
         showLoaderOnConfirm: true,
         preConfirm: async (question) => {
             if (!question) return Swal.showValidationMessage('請輸入內容');
-            const token = localStorage.getItem('token');
             
             try {
-                const res = await fetch(`${API_URL}/api/questions`, {
+                // 使用 fetchWithAuth，不用自己抓 token
+                const res = await fetchWithAuth(`${API_URL}/api/questions`, {
                     method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
                     body: JSON.stringify({ question: question })
                 });
                 if (!res.ok) throw new Error(res.statusText);
@@ -530,12 +490,11 @@ function openQuestionModal() {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.fire('成功', '您的提問已發布', 'success');
-            loadQuestions(); // 重新載入列表
+            loadQuestions();
         }
     });
 }
 
-// 4. 回覆問題
 function replyQuestion(id) {
     Swal.fire({
         title: '回覆問題',
@@ -544,20 +503,14 @@ function replyQuestion(id) {
         inputPlaceholder: '輸入內容...',
         showCancelButton: true,
         confirmButtonText: '送出回覆',
-        cancelButtonText: '取消',
         confirmButtonColor: '#28a745',
         showLoaderOnConfirm: true,
         preConfirm: async (reply) => {
             if (!reply) return Swal.showValidationMessage('請輸入內容');
-            const token = localStorage.getItem('token');
 
             try {
-                const res = await fetch(`${API_URL}/api/questions/${id}`, {
+                const res = await fetchWithAuth(`${API_URL}/api/questions/${id}`, {
                     method: "PUT",
-                    headers: {
-                        "Content-Type": "application/json",
-                        "Authorization": `Bearer ${token}`
-                    },
                     body: JSON.stringify({ reply: reply })
                 });
                 if (!res.ok) throw new Error(res.statusText);
@@ -569,7 +522,7 @@ function replyQuestion(id) {
     }).then((result) => {
         if (result.isConfirmed) {
             Swal.fire('成功', '已送出回覆', 'success');
-            loadQuestions(); // 重新載入列表
+            loadQuestions();
         }
     });
 }
