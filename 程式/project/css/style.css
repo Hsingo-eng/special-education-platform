@@ -1,0 +1,51 @@
+h1{
+    color: rebeccapurple;
+    font-size: 24px;
+    background-color: lightcyan;
+    border-bottom:5px dotted darkgray;
+    border-left:5px dotted darkolivegreen;
+    text-align: center;
+}
+img{
+    border: 12px solid gray;
+}
+
+a:hover{
+    color:brown;
+    font-size:24px;
+}
+a:active{
+    color:lightsalmon;
+}
+
+a:{
+    color: lightseagreen;
+    width: 50px;
+    height: 50px;
+}
+
+.style1{
+    color:darkblue;
+    font-size: 18px;
+    line-height:1.5;
+    text-indent:32px;
+
+}
+
+.style2{
+    font-family:verdana;
+    text-decoration:line-through;
+}
+
+p{
+    font-family:verdana;
+    font-size:18px;
+    text-align:left;
+    letter-spacing: 2px;
+    line-height:1.5;
+}
+
+span{
+    color:lightgreen;
+}
+
