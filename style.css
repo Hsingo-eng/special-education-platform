@@ -1,98 +1,207 @@
+/* =========================================
+   1. 全站基礎設定 (Base Styles)
+   ========================================= */
 body {
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
-    background-color: #f0f2f5;
+    font-family: "Noto Sans TC", "Microsoft JhengHei", 'Segoe UI', sans-serif;
+    background-color: #f9fbfd; /* 極淡的藍灰色背景，比純白更有質感 */
+    color: #4a5568; /* 深灰色字體，閱讀更舒適 */
+    line-height: 1.6;
 }
 
-/* 登入區塊卡片化 */
+/* =========================================
+   2. 導覽列 (Navbar)
+   ========================================= */
+.navbar {
+    background-color: #ffffff !important;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* 極淡的陰影，營造懸浮感 */
+    padding-top: 15px;
+    padding-bottom: 15px;
+}
+
+.navbar-brand {
+    font-weight: 700;
+    color: #2d3748 !important;
+    letter-spacing: 1px;
+    font-size: 1.25rem;
+}
+
+/* =========================================
+   3. 登入區塊 (Login Section)
+   ========================================= */
 #login-section {
     max-width: 400px;
     margin: 80px auto;
     padding: 40px;
     background: white;
-    border-radius: 15px;
-    box-shadow: 0 10px 25px rgba(0,0,0,0.1);
+    border-radius: 24px; /* 與主選單一致的大圓角 */
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* 柔和的陰影 */
+    border: 1px solid rgba(0,0,0,0.02); /* 極細微的邊框增加層次 */
 }
 
-/* 功能按鈕卡片 */
+/* =========================================
+   4. 主選單儀表板 (Dashboard Menu)
+   ========================================= */
+/* 如果您使用 Bootstrap 的 row/col 系統，這裡主要控制間距 */
 .dashboard-menu {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 25px;
     margin-bottom: 30px;
 }
 
+/* --- 核心：清新色塊卡片設計 --- */
 .menu-card {
-    cursor: pointer;
+    border: none !important;
+    border-radius: 24px !important; /* 超大圓角，像鵝卵石 */
+    padding: 30px 20px !important;
     transition: all 0.3s ease;
-    border: none;
-    color: white;
-    border-radius: 12px;
-    overflow: hidden;
     position: relative;
+    overflow: hidden;
+    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+    cursor: pointer; /* 讓滑鼠變手指 */
 }
 
+/* 滑鼠懸停效果：上浮 + 陰影加深 */
 .menu-card:hover {
-    transform: translateY(-8px);
-    box-shadow: 0 8px 15px rgba(0,0,0,0.2);
+    transform: translateY(-5px);
+    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
 }
 
-/* 卡片顏色設計 */
-.card-record { background: linear-gradient(135deg, #00b09b, #96c93d); }
-.card-iep { background: linear-gradient(135deg, #ff9966, #ff5e62); }
-.card-message { background: linear-gradient(135deg, #36d1dc, #5b86e5); }
-.card-question { background: linear-gradient(135deg, #8e2de2, #4a00e0); }
+/* 卡片內的文字與圖示微調 */
+.menu-card h6 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    margin-top: 5px;
+}
 
-/* 聊天室樣式 */
+/* --- 個別卡片的色系設定 (日系清新漸層) --- */
+
+/* (1) 治療紀錄 - 薄荷綠 */
+.card-record {
+    background: linear-gradient(135deg, #e0f7fa 0%, #b2dfdb 100%);
+}
+.card-record i {
+    color: #00695c !important;
+    background: rgba(255, 255, 255, 0.6); /* 半透明白底 */
+    padding: 15px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+.card-record h6 {
+    color: #004d40;
+}
+
+/* (2) IEP 資料 - 蜜桃橘 */
+.card-iep {
+    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+}
+.card-iep i {
+    color: #e65100 !important;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 15px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+.card-iep h6 {
+    color: #bf360c;
+}
+
+/* (3) 留言板 - 天空藍 */
+.card-message {
+    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+}
+.card-message i {
+    color: #1565c0 !important;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 15px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+.card-message h6 {
+    color: #0d47a1;
+}
+
+/* (4) 提問回覆 - 薰衣草紫 */
+.card-question {
+    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+}
+.card-question i {
+    color: #6a1b9a !important;
+    background: rgba(255, 255, 255, 0.6);
+    padding: 15px;
+    border-radius: 50%;
+    margin-bottom: 15px;
+}
+.card-question h6 {
+    color: #4a148c;
+}
+
+/* =========================================
+   5. 裝飾元素 (UI Elements)
+   ========================================= */
+.badge {
+    border-radius: 50px;
+    padding: 6px 12px;
+    font-weight: 500;
+    font-size: 0.85rem;
+}
+
+/* =========================================
+   6. 聊天室樣式 (Chat Room)
+   ========================================= */
 .chat-container {
-    height: 450px;
-    border: 1px solid #e0e0e0;
-    border-radius: 10px;
+    height: 500px; /*稍微加高一點*/
+    border: none; /* 去掉邊框，改用陰影 */
+    border-radius: 20px;
     background: #fff;
     display: flex;
     flex-direction: column;
+    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    overflow: hidden;
 }
 
 .chat-box {
     flex: 1;
     overflow-y: auto;
-    padding: 20px;
-    background-color: #f9f9f9;
+    padding: 25px;
+    background-color: #f8f9fa; /* 淺灰背景 */
 }
 
 .message-item {
-    margin-bottom: 15px;
-    padding: 12px 18px;
-    border-radius: 18px;
-    max-width: 75%;
+    margin-bottom: 18px;
+    padding: 12px 20px;
+    border-radius: 20px;
+    max-width: 80%;
     position: relative;
     font-size: 0.95rem;
-    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+    line-height: 1.5;
 }
 
-/* 不同角色的對話框顏色 */
+/* 角色對話框顏色 */
 .msg-teacher { 
     background-color: #ffffff; 
-    border-bottom-left-radius: 2px;
+    border-bottom-left-radius: 4px; /* 對話氣泡角 */
     align-self: flex-start;
-    border: 1px solid #e0e0e0;
+    color: #444;
 }
 .msg-therapist { 
-    background-color: #fff8e1; /* 淡黃色 */
-    border-bottom-left-radius: 2px;
+    background-color: #fff9c4; /* 更柔和的黃 */
+    border-bottom-left-radius: 4px;
     align-self: flex-start;
-    border: 1px solid #ffe0b2;
+    color: #5d4037;
 }
 .msg-parents { 
-    background-color: #d1e7dd; /* 淡綠色 */
-    border-bottom-right-radius: 2px;
+    background-color: #dbeafe; /* 配合藍色系的柔和藍 */
+    border-bottom-right-radius: 4px;
     align-self: flex-end; 
-    margin-left: auto; /* 靠右 */
+    margin-left: auto;
+    color: #1e3a8a;
 }
 
 .msg-role-label {
     font-size: 0.75rem;
-    color: #666;
-    margin-bottom: 4px;
+    color: #8898aa;
+    margin-bottom: 6px;
     display: block;
-    font-weight: bold;
+    font-weight: 600;
+    padding-left: 5px;
 }
