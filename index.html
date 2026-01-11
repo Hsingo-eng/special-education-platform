@@ -39,54 +39,49 @@
 
     <div id="dashboard-section" class="container mt-5 d-none">
     
-    <div class="dashboard-menu row g-2 mb-4">
+    <div class="dashboard-menu row g-3 mb-4">
         
-        <div class="col-6">
-            <div class="card menu-card card-record h-100 p-3 text-center role-restricted shadow-sm" 
+        <div class="col-6"> <div class="card menu-card card-record h-100 p-3 text-center role-restricted shadow-sm border-0" 
                  data-deny="parents" onclick="showSection('records')">
                 <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
                     <i class="fas fa-file-medical fa-2x mb-2 text-success"></i>
-                    <h6 class="fw-bold mb-0">治療紀錄</h6>
-                    <small class="text-muted d-none d-sm-block mt-1">檢視日誌與回饋</small>
+                    <h6 class="fw-bold mb-0 text-secondary">治療紀錄</h6>
                 </div>
             </div>
         </div>
         
         <div class="col-6">
-            <div class="card menu-card card-iep h-100 p-3 text-center shadow-sm" 
+            <div class="card menu-card card-iep h-100 p-3 text-center shadow-sm border-0" 
                  onclick="showSection('iep')">
                 <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
                     <i class="fas fa-folder-open fa-2x mb-2 text-danger"></i>
-                    <h6 class="fw-bold mb-0">IEP 資料</h6>
-                    <small class="text-muted d-none d-sm-block mt-1">個案計畫管理</small>
+                    <h6 class="fw-bold mb-0 text-secondary">IEP 資料</h6>
                 </div>
             </div>
         </div>
 
         <div class="col-6">
-            <div class="card menu-card card-message h-100 p-3 text-center shadow-sm" 
+            <div class="card menu-card card-message h-100 p-3 text-center shadow-sm border-0" 
                  onclick="showSection('messages')">
                 <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
                     <i class="fas fa-comments fa-2x mb-2 text-primary"></i>
-                    <h6 class="fw-bold mb-0">留言板</h6>
-                    <small class="text-muted d-none d-sm-block mt-1">即時溝通 AI 摘要</small>
+                    <h6 class="fw-bold mb-0 text-secondary">留言板</h6>
                 </div>
             </div>
         </div>
 
         <div class="col-6">
-            <div class="card menu-card card-question h-100 p-3 text-center shadow-sm" 
+            <div class="card menu-card card-question h-100 p-3 text-center shadow-sm border-0" 
                  onclick="showSection('questions')">
                 <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
                     <i class="fas fa-question-circle fa-2x mb-2 text-info"></i>
-                    <h6 class="fw-bold mb-0">提問回覆</h6>
-                    <small class="text-muted d-none d-sm-block mt-1">結構化問題追蹤</small>
+                    <h6 class="fw-bold mb-0 text-secondary">提問回覆</h6>
                 </div>
             </div>
         </div>
 
     </div>
-
+    
     <div id="content-area">
         
         <div id="section-records" class="d-none animate-fade">
