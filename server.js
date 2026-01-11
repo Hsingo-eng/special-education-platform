@@ -340,6 +340,7 @@ app.post("/api/questions", verifyToken, async (req, res) => {
             date: new Date().toISOString().split('T')[0],
             asker_name: req.user.name,
             asker_role: req.user.role,
+            target_role: req.body.target_role,
             question: req.body.question,
             replier_name: "",
             reply: "",
