@@ -403,6 +403,7 @@ async function loadQuestions() {
     }
 }
 
+// 2. 渲染問題卡片 (顯示在畫面上) - 已新增 @對象 功能
 function renderQuestions(data) {
     const list = document.getElementById("questions-list");
     list.innerHTML = "";
@@ -413,13 +414,27 @@ function renderQuestions(data) {
     }
 
     data.reverse().forEach(q => {
+        // --- 1. 處理發問者身分 ---
         let roleBadge = '';
         if (q.asker_role === 'teacher') roleBadge = '<span class="badge bg-primary">教師</span>';
         else if (q.asker_role === 'therapist') roleBadge = '<span class="badge bg-success">治療師</span>';
         else roleBadge = '<span class="badge bg-warning text-dark">家長</span>';
 
+        // --- 2.新增：處理「被提問對象」標籤 (@xxx) ---
+        let targetHtml = '';
+        if (q.target_role) {
+            const roles = q.target_role.split(','); // 把 "teacher,parents" 切割開來
+            const nameMap = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
+            
+            targetHtml = roles.map(r => {
+                return `<span class="badge rounded-pill bg-secondary bg-opacity-75 text-white me-1" style="font-size: 0.8em;">@${nameMap[r] || r}</span>`;
+            }).join('');
+        }
+
+        // --- 3. 處理狀態顏色 ---
         const statusColor = q.status === '已回覆' ? 'success' : 'secondary';
 
+        // --- 4. 處理回覆內容 ---
         let replyHtml = '';
         if (q.reply) {
             replyHtml = `
@@ -440,6 +455,7 @@ function renderQuestions(data) {
             `;
         }
 
+        // --- 5. 組合 HTML ---
         const html = `
             <div class="col-md-12">
                 <div class="card shadow-sm border-0 h-100">
@@ -451,7 +467,11 @@ function renderQuestions(data) {
                             </div>
                             <span class="badge bg-${statusColor}-subtle text-${statusColor} border border-${statusColor}">${q.status}</span>
                         </div>
+                        
+                        <div class="mb-2">${targetHtml}</div>
+
                         <h5 class="card-text mt-2 text-dark" style="white-space: pre-wrap;">${q.question}</h5>
+                        
                         ${replyHtml}
                     </div>
                 </div>
@@ -461,38 +481,71 @@ function renderQuestions(data) {
     });
 }
 
-function openQuestionModal() {
-    Swal.fire({
+// 3. 開啟提問視窗 (已新增：勾選對象功能)
+async function openQuestionModal() {
+    const { value: formValues } = await Swal.fire({
         title: '我要提問',
-        input: 'textarea',
-        inputLabel: '請輸入您想詢問的問題或是觀察到的狀況',
-        inputPlaceholder: '例如：請問小明最近在家裡的情緒狀況如何？...',
+        // 這裡改用 html 來放入「複選框」和「輸入框」
+        html: `
+            <div class="text-start mb-2 fw-bold text-secondary">請問您想詢問的對象是？(可複選)</div>
+            <div class="d-flex gap-3 mb-3 justify-content-center">
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="target-teacher" value="teacher">
+                    <label class="form-check-label" for="target-teacher">教師</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="target-therapist" value="therapist">
+                    <label class="form-check-label" for="target-therapist">治療師</label>
+                </div>
+                <div class="form-check">
+                    <input class="form-check-input" type="checkbox" id="target-parents" value="parents">
+                    <label class="form-check-label" for="target-parents">家長</label>
+                </div>
+            </div>
+            <textarea id="swal-question" class="form-control" rows="4" placeholder="請輸入您的問題..."></textarea>
+        `,
         showCancelButton: true,
         confirmButtonText: '發布',
         cancelButtonText: '取消',
         confirmButtonColor: '#17a2b8',
-        showLoaderOnConfirm: true,
-        preConfirm: async (question) => {
-            if (!question) return Swal.showValidationMessage('請輸入內容');
+        preConfirm: () => {
+            // 1. 抓取問題內容
+            const question = document.getElementById('swal-question').value;
             
-            try {
-                // 使用 fetchWithAuth，不用自己抓 token
-                const res = await fetchWithAuth(`${API_URL}/api/questions`, {
-                    method: "POST",
-                    body: JSON.stringify({ question: question })
-                });
-                if (!res.ok) throw new Error(res.statusText);
-                return await res.json();
-            } catch (error) {
-                Swal.showValidationMessage(`發布失敗: ${error}`);
-            }
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire('成功', '您的提問已發布', 'success');
-            loadQuestions();
+            // 2. 抓取勾選的對象
+            const targets = [];
+            if (document.getElementById('target-teacher').checked) targets.push('teacher');
+            if (document.getElementById('target-therapist').checked) targets.push('therapist');
+            if (document.getElementById('target-parents').checked) targets.push('parents');
+
+            if (!question) return Swal.showValidationMessage('請輸入問題內容');
+            if (targets.length === 0) return Swal.showValidationMessage('請至少選擇一個詢問對象');
+
+            // 回傳給下面的 then 使用
+            return { question: question, target_role: targets.join(',') };
         }
     });
+
+    if (formValues) {
+        try {
+            // 使用 fetchWithAuth 發送資料 (包含 target_role)
+            const res = await fetchWithAuth(`${API_URL}/api/questions`, {
+                method: "POST",
+                body: JSON.stringify({ 
+                    question: formValues.question,
+                    target_role: formValues.target_role 
+                })
+            });
+            
+            if (!res.ok) throw new Error(res.statusText);
+            
+            Swal.fire('成功', '您的提問已發布', 'success');
+            loadQuestions();
+            
+        } catch (error) {
+            Swal.fire('發布失敗', error.message, 'error');
+        }
+    }
 }
 
 function replyQuestion(id) {
