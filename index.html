@@ -39,33 +39,53 @@
 
     <div id="dashboard-section" class="container mt-5 d-none">
     
-    <div class="dashboard-menu">
+    <div class="dashboard-menu row g-2 mb-4">
         
-        <div class="card menu-card card-record p-4 text-center role-restricted" data-deny="parents" onclick="showSection('records')">
-            <i class="fas fa-file-medical fa-3x mb-3"></i>
-            <h4>專業治療紀錄</h4>
-            <p class="small opacity-75">治療紀錄與建議</p>
+        <div class="col-6">
+            <div class="card menu-card card-record h-100 p-3 text-center role-restricted shadow-sm" 
+                 data-deny="parents" onclick="showSection('records')">
+                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-file-medical fa-2x mb-2 text-success"></i>
+                    <h6 class="fw-bold mb-0">治療紀錄</h6>
+                    <small class="text-muted d-none d-sm-block mt-1">檢視日誌與回饋</small>
+                </div>
+            </div>
         </div>
         
-        <div class="card menu-card card-iep p-4 text-center" onclick="showSection('iep')">
-            <i class="fas fa-folder-open fa-3x mb-3"></i>
-            <h4>IEP 個案資料</h4>
-            <p class="small opacity-75">個案計畫與檔案管理</p>
+        <div class="col-6">
+            <div class="card menu-card card-iep h-100 p-3 text-center shadow-sm" 
+                 onclick="showSection('iep')">
+                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-folder-open fa-2x mb-2 text-danger"></i>
+                    <h6 class="fw-bold mb-0">IEP 資料</h6>
+                    <small class="text-muted d-none d-sm-block mt-1">個案計畫管理</small>
+                </div>
+            </div>
         </div>
 
-        <div class="card menu-card card-message p-4 text-center" onclick="showSection('messages')">
-            <i class="fas fa-comments fa-3x mb-3"></i>
-            <h4>留言板</h4>
-            <p class="small opacity-75">即時溝通以及AI摘要</p>
+        <div class="col-6">
+            <div class="card menu-card card-message h-100 p-3 text-center shadow-sm" 
+                 onclick="showSection('messages')">
+                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-comments fa-2x mb-2 text-primary"></i>
+                    <h6 class="fw-bold mb-0">留言板</h6>
+                    <small class="text-muted d-none d-sm-block mt-1">即時溝通 AI 摘要</small>
+                </div>
+            </div>
         </div>
 
-        <div class="card menu-card card-question p-4 text-center" onclick="showSection('questions')">
-            <i class="fas fa-question-circle fa-3x mb-3"></i>
-            <h4>提問與回覆</h4>
-            <p class="small opacity-75">特定情境的提問及回覆</p>
+        <div class="col-6">
+            <div class="card menu-card card-question h-100 p-3 text-center shadow-sm" 
+                 onclick="showSection('questions')">
+                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                    <i class="fas fa-question-circle fa-2x mb-2 text-info"></i>
+                    <h6 class="fw-bold mb-0">提問回覆</h6>
+                    <small class="text-muted d-none d-sm-block mt-1">結構化問題追蹤</small>
+                </div>
+            </div>
         </div>
 
-    </div> <hr class="my-4">
+    </div>
 
     <div id="content-area">
         
