@@ -1,207 +1,268 @@
 /* =========================================
-   1. 全站基礎設定 (Base Styles)
+   1. 核心變數設定 (So Matcha Palette)
+   ========================================= */
+:root {
+    /* 參考圖吸取的色碼 */
+    --c-blue: #3971b8;    /* Celtic Blue (主色) */
+    --c-green: #c8d69b;   /* Tea Green (輔色) */
+    --c-yellow: #f6e6a5;  /* Vanilla (輔色) */
+    --c-brown: #343b1b;   /* Drab Dark Brown (深色文字/邊框) */
+    --c-ivory: #fbfcee;   /* Ivory (溫暖背景) */
+    --c-white: #ffffff;
+    
+    /* 導角設定：胖胖的圓角 */
+    --radius-box: 20px;   
+    --radius-btn: 12px;
+}
+
+/* =========================================
+   2. 全站基礎 (Typography & Layout)
    ========================================= */
 body {
-    font-family: "Noto Sans TC", "Microsoft JhengHei", 'Segoe UI', sans-serif;
-    background-color: #f9fbfd; /* 極淡的藍灰色背景，比純白更有質感 */
-    color: #4a5568; /* 深灰色字體，閱讀更舒適 */
+    font-family: 'Fredoka', 'Noto Sans TC', sans-serif; /* 使用圓潤字體 */
+    background-color: var(--c-ivory); /* 溫暖的象牙白底 */
+    color: var(--c-brown); /* 字體不用全黑，改用深褐 */
     line-height: 1.6;
 }
 
+/* 標題加強圓潤感 */
+h1, h2, h3, h4, h5, h6, .navbar-brand {
+    font-weight: 700;
+    letter-spacing: 0.5px;
+}
+
 /* =========================================
-   2. 導覽列 (Navbar)
+   3. 導覽列 (Navbar) - 藍色色塊風格
    ========================================= */
 .navbar {
-    background-color: #ffffff !important;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.03); /* 極淡的陰影，營造懸浮感 */
-    padding-top: 15px;
-    padding-bottom: 15px;
+    background-color: var(--c-blue) !important;
+    padding: 15px 0;
+    box-shadow: 0 4px 0px rgba(52, 59, 27, 0.1); /* 微厚度的陰影 */
 }
 
 .navbar-brand {
+    color: var(--c-ivory) !important; /* 白字 */
+    font-size: 1.5rem;
+}
+
+/* 登出按鈕：做成白色小方塊 */
+#btn-logout {
+    background-color: var(--c-ivory);
+    color: var(--c-blue);
+    border: none;
     font-weight: 700;
-    color: #2d3748 !important;
-    letter-spacing: 1px;
-    font-size: 1.25rem;
+    box-shadow: 0 3px 0px rgba(0,0,0,0.1);
+}
+#btn-logout:hover {
+    transform: translateY(2px); /* 按壓效果 */
+    box-shadow: 0 1px 0px rgba(0,0,0,0.1);
 }
 
 /* =========================================
-   3. 登入區塊 (Login Section)
+   4. 登入區塊 (Login) - 乾淨的卡片
    ========================================= */
 #login-section {
     max-width: 400px;
-    margin: 80px auto;
+    margin: 60px auto;
     padding: 40px;
-    background: white;
-    border-radius: 24px; /* 與主選單一致的大圓角 */
-    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05); /* 柔和的陰影 */
-    border: 1px solid rgba(0,0,0,0.02); /* 極細微的邊框增加層次 */
+    background-color: var(--c-white);
+    border-radius: var(--radius-box);
+    /* 雙層陰影：營造可愛的層次感 */
+    box-shadow: 
+        6px 6px 0px var(--c-green), 
+        12px 12px 0px var(--c-yellow);
+    border: 2px solid var(--c-brown); /* 加個深色框更有漫畫感 */
 }
 
-/* =========================================
-   4. 主選單儀表板 (Dashboard Menu)
-   ========================================= */
-/* 如果您使用 Bootstrap 的 row/col 系統，這裡主要控制間距 */
-.dashboard-menu {
+#login-section h2 {
+    color: var(--c-blue);
+    text-align: center;
     margin-bottom: 30px;
 }
 
-/* --- 核心：清新色塊卡片設計 --- */
+/* 輸入框 */
+.form-control {
+    background-color: var(--c-ivory);
+    border: 2px solid #e0e0e0;
+    border-radius: var(--radius-btn);
+    padding: 12px;
+    font-weight: 600;
+    color: var(--c-brown);
+}
+.form-control:focus {
+    background-color: var(--c-white);
+    border-color: var(--c-blue);
+    box-shadow: 0 0 0 3px rgba(57, 113, 184, 0.2);
+}
+
+/* 登入按鈕 - 藍色大方塊 */
+#login-section .btn-primary {
+    background-color: var(--c-blue);
+    border: none;
+    width: 100%;
+    padding: 12px;
+    font-size: 1.2rem;
+    box-shadow: 0 4px 0px #2a558c; /* 深藍色立體邊 */
+    margin-top: 10px;
+}
+#login-section .btn-primary:hover {
+    background-color: #4a82c9;
+    transform: translateY(2px);
+    box-shadow: 0 2px 0px #2a558c;
+}
+
+/* =========================================
+   5. 主選單 (Dashboard) - 圖示化色塊按鈕
+   ========================================= */
+.dashboard-menu {
+    margin-top: 40px;
+    margin-bottom: 50px;
+}
+
+/* 卡片基礎設定 */
 .menu-card {
     border: none !important;
-    border-radius: 24px !important; /* 超大圓角，像鵝卵石 */
-    padding: 30px 20px !important;
-    transition: all 0.3s ease;
+    border-radius: var(--radius-box) !important;
+    padding: 25px 15px !important;
+    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
     position: relative;
-    overflow: hidden;
-    box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
-    cursor: pointer; /* 讓滑鼠變手指 */
+    cursor: pointer;
+    /* 這裡不需要邊框，用實心色塊 */
+    box-shadow: 0 6px 0px rgba(0,0,0,0.1); /* 立體感 */
+    height: 100%;
 }
 
-/* 滑鼠懸停效果：上浮 + 陰影加深 */
+/* 滑鼠互動：整張卡片往下壓 */
 .menu-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 15px 35px rgba(0, 0, 0, 0.1);
+    transform: translateY(4px);
+    box-shadow: 0 2px 0px rgba(0,0,0,0.1);
 }
 
-/* 卡片內的文字與圖示微調 */
+/* 圖示設定：超大、置中 */
+.menu-card i {
+    font-size: 3.5rem !important; /* 放大圖示 */
+    margin-bottom: 15px;
+    display: block;
+    /* 讓圖示有點透明度變化，融入背景 */
+    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1)); 
+}
+
+/* 文字設定 */
 .menu-card h6 {
-    font-size: 1.1rem;
+    font-size: 1.2rem;
     font-weight: 700;
-    letter-spacing: 0.5px;
-    margin-top: 5px;
+    margin: 0;
 }
 
-/* --- 個別卡片的色系設定 (日系清新漸層) --- */
+/* --- 個別卡片配色 (So Matcha 色盤應用) --- */
 
-/* (1) 治療紀錄 - 薄荷綠 */
+/* 1. 治療紀錄 - 藍色塊 (White Text) */
 .card-record {
-    background: linear-gradient(135deg, #e0f7fa 0%, #b2dfdb 100%);
+    background-color: var(--c-blue);
+    color: var(--c-white);
 }
-.card-record i {
-    color: #00695c !important;
-    background: rgba(255, 255, 255, 0.6); /* 半透明白底 */
-    padding: 15px;
-    border-radius: 50%;
-    margin-bottom: 15px;
-}
-.card-record h6 {
-    color: #004d40;
-}
+.card-record i { color: var(--c-ivory); }
 
-/* (2) IEP 資料 - 蜜桃橘 */
+/* 2. IEP 資料 - 黃色塊 (Brown Text) */
 .card-iep {
-    background: linear-gradient(135deg, #fff3e0 0%, #ffe0b2 100%);
+    background-color: var(--c-yellow);
+    color: var(--c-brown);
 }
-.card-iep i {
-    color: #e65100 !important;
-    background: rgba(255, 255, 255, 0.6);
-    padding: 15px;
-    border-radius: 50%;
-    margin-bottom: 15px;
-}
-.card-iep h6 {
-    color: #bf360c;
-}
+.card-iep i { color: #dcb045; /* 深一點的黃色圖示 */ }
 
-/* (3) 留言板 - 天空藍 */
+/* 3. 留言板 - 綠色塊 (Brown Text) */
 .card-message {
-    background: linear-gradient(135deg, #e3f2fd 0%, #bbdefb 100%);
+    background-color: var(--c-green);
+    color: var(--c-brown);
 }
-.card-message i {
-    color: #1565c0 !important;
-    background: rgba(255, 255, 255, 0.6);
-    padding: 15px;
-    border-radius: 50%;
-    margin-bottom: 15px;
-}
-.card-message h6 {
-    color: #0d47a1;
-}
+.card-message i { color: #5a6e2e; /* 深綠圖示 */ }
 
-/* (4) 提問回覆 - 薰衣草紫 */
+/* 4. 提問回覆 - 深褐塊 (White Text) */
+/* 使用深褐色來平衡畫面，讓視覺有重點 */
 .card-question {
-    background: linear-gradient(135deg, #f3e5f5 0%, #e1bee7 100%);
+    background-color: var(--c-brown);
+    color: var(--c-white);
 }
-.card-question i {
-    color: #6a1b9a !important;
-    background: rgba(255, 255, 255, 0.6);
-    padding: 15px;
-    border-radius: 50%;
-    margin-bottom: 15px;
-}
-.card-question h6 {
-    color: #4a148c;
-}
+.card-question i { color: var(--c-green); }
 
 /* =========================================
-   5. 裝飾元素 (UI Elements)
+   6. 內容與功能區塊
    ========================================= */
+
+/* 通用按鈕樣式 - 方塊感 */
+.btn {
+    border-radius: var(--radius-btn);
+    font-weight: 700;
+    border: 2px solid transparent;
+    transition: all 0.2s;
+}
+
+/* 主要操作按鈕 (發問、送出) */
+.btn-primary, .btn-info {
+    background-color: var(--c-blue);
+    color: white;
+    box-shadow: 0 4px 0px #2a558c;
+}
+.btn-primary:hover {
+    transform: translateY(2px);
+    box-shadow: 0 2px 0px #2a558c;
+}
+
+/* 次要按鈕 */
+.btn-outline-secondary {
+    border: 2px solid #e0e0e0;
+    color: var(--c-brown);
+    background: white;
+}
+.btn-outline-secondary:hover {
+    border-color: var(--c-brown);
+    background: var(--c-ivory);
+}
+
+/* 列表卡片 (治療紀錄、留言) */
+.card, .list-group-item {
+    border: 2px solid #eee;
+    border-radius: var(--radius-box) !important;
+    background-color: var(--c-white);
+    margin-bottom: 20px;
+    box-shadow: 4px 4px 0px #eee; /* 硬陰影 */
+}
+
+/* 標籤 Badge */
 .badge {
-    border-radius: 50px;
-    padding: 6px 12px;
-    font-weight: 500;
-    font-size: 0.85rem;
+    padding: 8px 12px;
+    border-radius: 8px; /* 方圓角 */
+    font-size: 0.9rem;
 }
+.bg-primary { background-color: var(--c-blue) !important; }
+.bg-success { background-color: var(--c-green) !important; color: var(--c-brown) !important; }
+.bg-warning { background-color: var(--c-yellow) !important; color: var(--c-brown) !important; }
 
-/* =========================================
-   6. 聊天室樣式 (Chat Room)
-   ========================================= */
+/* 聊天室優化 */
 .chat-container {
-    height: 500px; /*稍微加高一點*/
-    border: none; /* 去掉邊框，改用陰影 */
-    border-radius: 20px;
-    background: #fff;
-    display: flex;
-    flex-direction: column;
-    box-shadow: 0 5px 15px rgba(0,0,0,0.05);
+    border: 2px solid var(--c-brown);
+    border-radius: var(--radius-box);
     overflow: hidden;
 }
-
 .chat-box {
-    flex: 1;
-    overflow-y: auto;
-    padding: 25px;
-    background-color: #f8f9fa; /* 淺灰背景 */
+    background-color: #fffef9;
 }
-
-.message-item {
-    margin-bottom: 18px;
-    padding: 12px 20px;
-    border-radius: 20px;
-    max-width: 80%;
-    position: relative;
-    font-size: 0.95rem;
-    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
-    line-height: 1.5;
+/* 對話框 - 實心色塊 */
+.msg-teacher {
+    background-color: var(--c-white);
+    border: 2px solid #eee;
+    color: var(--c-brown);
+    border-radius: 12px 12px 12px 0;
 }
-
-/* 角色對話框顏色 */
-.msg-teacher { 
-    background-color: #ffffff; 
-    border-bottom-left-radius: 4px; /* 對話氣泡角 */
-    align-self: flex-start;
-    color: #444;
+.msg-therapist {
+    background-color: var(--c-yellow);
+    border: 2px solid #ebdcb2;
+    color: var(--c-brown);
+    border-radius: 12px 12px 12px 0;
 }
-.msg-therapist { 
-    background-color: #fff9c4; /* 更柔和的黃 */
-    border-bottom-left-radius: 4px;
-    align-self: flex-start;
-    color: #5d4037;
-}
-.msg-parents { 
-    background-color: #dbeafe; /* 配合藍色系的柔和藍 */
-    border-bottom-right-radius: 4px;
-    align-self: flex-end; 
-    margin-left: auto;
-    color: #1e3a8a;
-}
-
-.msg-role-label {
-    font-size: 0.75rem;
-    color: #8898aa;
-    margin-bottom: 6px;
-    display: block;
-    font-weight: 600;
-    padding-left: 5px;
+.msg-parents {
+    background-color: var(--c-green); /* 綠色 */
+    border: 2px solid #b6c58d;
+    color: var(--c-brown);
+    border-radius: 12px 12px 0 12px;
 }
