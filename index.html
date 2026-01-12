@@ -8,166 +8,125 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="style.css">
+    
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link rel="icon" type="image/png" href="favicon.png">
     <link rel="apple-touch-icon" href="favicon.png">
-    
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark bg-dark d-none" id="main-nav">
+    <nav class="navbar navbar-expand-lg navbar-dark d-none" id="main-nav">
         <div class="container">
             <a class="navbar-brand" href="#"><i class="fas fa-hands-holding-child"></i> 特教溝通平台</a>
             <div class="d-flex align-items-center">
-                <span class="text-white me-3" id="nav-user-info"></span>
-                <button class="btn btn-outline-danger btn-sm" onclick="logout()">登出</button>
+                <span class="text-white me-3 fw-bold" id="nav-user-info"></span>
+                <button id="btn-logout" class="btn btn-sm" onclick="logout()">登出</button>
             </div>
         </div>
     </nav>
 
     <div id="login-section" class="container">
         <div class="text-center mb-4">
-            <h2 class="fw-bold text-primary"><i class="fas fa-shapes"></i> 歡迎使用</h2>
+            <h2 class="fw-bold"><i class="fas fa-shapes"></i> 歡迎使用</h2>
             <p class="text-muted">請輸入使用者的帳號密碼</p>
         </div>
         <div class="mb-3">
-            <label class="form-label">帳號</label>
+            <label class="form-label fw-bold">帳號</label>
             <input type="text" id="login-username" class="form-control form-control-lg" placeholder="請輸入帳號">
         </div>
         <div class="mb-3">
-            <label class="form-label">密碼</label>
+            <label class="form-label fw-bold">密碼</label>
             <input type="password" id="login-password" class="form-control form-control-lg" placeholder="請輸入密碼">
         </div>
-        <button class="btn btn-primary w-100 btn-lg" onclick="login()">登入系統</button>
+        <button class="btn btn-primary w-100 btn-lg fw-bold" onclick="login()">登入系統</button>
     </div>
 
-    <div id="dashboard-section" class="container mt-5 d-none">
+    <div id="dashboard-section" class="container mt-4 d-none">
     
-    <div id="calendar-section" class="card p-4 mb-4 shadow-sm border-0 d-none">
-        <div class="d-flex justify-content-between align-items-center mb-3">
-            <h4 class="fw-bold m-0"><i class="fas fa-calendar-alt text-primary me-2"></i>本月排程</h4>
-            <button id="btn-add-event" class="btn btn-primary btn-sm role-only" data-allow="teacher,therapist" onclick="openEventModal()">
-                <i class="fas fa-plus"></i> 新增行程
-            </button>
-        </div>
-        <div id="calendar"></div>
-    </div>
-
-    <div class="dashboard-menu row g-3 mb-4">
-        
-        <div class="col-6"> <div class="card menu-card card-record h-100 p-3 text-center role-restricted shadow-sm border-0" 
-                 data-deny="parents" onclick="showSection('records')">
-                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
-                    <i class="fas fa-file-medical fa-2x mb-2 text-success"></i>
-                    <h6 class="fw-bold mb-0 text-secondary">治療紀錄</h6>
-                </div>
-            </div>
-        </div>
-        
-        <div class="col-6">
-            <div class="card menu-card card-iep h-100 p-3 text-center shadow-sm border-0" 
-                 onclick="showSection('iep')">
-                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
-                    <i class="fas fa-folder-open fa-2x mb-2 text-danger"></i>
-                    <h6 class="fw-bold mb-0 text-secondary">IEP 資料</h6>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6">
-            <div class="card menu-card card-message h-100 p-3 text-center shadow-sm border-0" 
-                 onclick="showSection('messages')">
-                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
-                    <i class="fas fa-comments fa-2x mb-2 text-primary"></i>
-                    <h6 class="fw-bold mb-0 text-secondary">留言板</h6>
-                </div>
-            </div>
-        </div>
-
-        <div class="col-6">
-            <div class="card menu-card card-question h-100 p-3 text-center shadow-sm border-0" 
-                 onclick="showSection('questions')">
-                <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
-                    <i class="fas fa-question-circle fa-2x mb-2 text-info"></i>
-                    <h6 class="fw-bold mb-0 text-secondary">提問回覆</h6>
-                </div>
-            </div>
-        </div>
-
-    </div>
-
-    <div id="content-area">
-        
-        <div id="section-records" class="d-none animate-fade">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-secondary border-start border-5 border-success ps-3">治療紀錄列表</h3>
-                <button class="btn btn-success role-only" data-allow="therapist" onclick="openRecordModal()">
-                    <i class="fas fa-plus"></i> 新增紀錄
+        <div id="calendar-section" class="card p-4 mb-4 shadow-sm border-0 d-none">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h4 class="fw-bold m-0" style="color: var(--c-blue);">
+                    <i class="fas fa-calendar-alt me-2"></i>本月排程
+                </h4>
+                <button id="btn-add-event" class="btn btn-primary btn-sm role-only" 
+                        data-allow="teacher,therapist" 
+                        style="background-color: var(--c-blue); border: none;"
+                        onclick="openEventModal()">
+                    <i class="fas fa-plus"></i> 新增行程
                 </button>
             </div>
-            <div id="record-list" class="list-group">
-                <div class="text-center text-muted py-5">
-                    <div class="spinner-border text-secondary" role="status"></div>
-                    <p>載入資料中...</p>
+            <div id="calendar"></div>
+        </div>
+
+        <div class="dashboard-menu row g-3 mb-4">
+            
+            <div class="col-6"> 
+                <div class="card menu-card card-record h-100 p-3 text-center role-restricted shadow-sm border-0" 
+                     data-deny="parents" onclick="showSection('records')">
+                    <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fas fa-file-medical fa-2x mb-2"></i>
+                        <h6 class="fw-bold mb-0">治療紀錄</h6>
+                    </div>
                 </div>
             </div>
-        </div>
-
-        <div id="section-iep" class="d-none animate-fade">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
-                <button class="btn btn-danger role-only shadow-sm" data-allow="teacher" onclick="openIepUpload()">
-                    <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
-                </button>
-            </div>
-            <div id="iep-list" class="row g-4">
-                </div>
-        </div>
-
-        <div id="section-messages" class="d-none animate-fade">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-secondary border-start border-5 border-primary ps-3">留言板</h3>
-                <button class="btn btn-outline-primary" onclick="getAiSummary()">
-                    <i class="fas fa-robot"></i> AI 重點摘要
-                </button>
-            </div>
-            <div id="ai-summary-box" class="alert alert-info d-none mb-3 shadow-sm">
-                <h5><i class="fas fa-magic"></i> Gemini AI 摘要：</h5>
-                <p id="ai-summary-content" class="mb-0 small"></p>
-            </div>
-            <div id="chat-box" class="border rounded p-3 mb-3 bg-light" style="height: 400px; overflow-y: auto;">
-                </div>
-            <div class="input-group">
-                <input type="text" id="msg-input" class="form-control" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
-                <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> 送出</button>
-            </div>
-        </div>
-
-        <div id="section-questions" class="d-none animate-fade">
-            <div class="d-flex justify-content-between align-items-center mb-4">
-                <h3 class="text-secondary border-start border-5 border-info ps-3">提問與回覆</h3>
-                <button class="btn btn-info text-white shadow-sm" onclick="openQuestionModal()">
-                    <i class="fas fa-plus-circle"></i> 我要提問
-                </button>
-            </div>
-
-            <div id="questions-list" class="row g-3">
-                <div class="text-center text-muted py-5">
-                    <div class="spinner-border text-info" role="status"></div>
-                    <p>正在載入問題...</p>
+            
+            <div class="col-6">
+                <div class="card menu-card card-iep h-100 p-3 text-center shadow-sm border-0" 
+                     onclick="showSection('iep')">
+                    <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fas fa-folder-open fa-2x mb-2"></i>
+                        <h6 class="fw-bold mb-0">IEP 資料</h6>
+                    </div>
                 </div>
             </div>
+
+            <div class="col-6">
+                <div class="card menu-card card-message h-100 p-3 text-center shadow-sm border-0" 
+                     onclick="showSection('messages')">
+                    <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fas fa-comments fa-2x mb-2"></i>
+                        <h6 class="fw-bold mb-0">留言板</h6>
+                    </div>
+                </div>
+            </div>
+
+            <div class="col-6">
+                <div class="card menu-card card-question h-100 p-3 text-center shadow-sm border-0" 
+                     onclick="showSection('questions')">
+                    <div class="card-body p-0 d-flex flex-column justify-content-center align-items-center">
+                        <i class="fas fa-question-circle fa-2x mb-2"></i>
+                        <h6 class="fw-bold mb-0">提問回覆</h6>
+                    </div>
+                </div>
+            </div>
+
         </div>
 
-    </div>
-</div>
+        <div id="content-area">
+            
+            <div id="section-records" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-secondary border-start border-5 border-success ps-3">治療紀錄列表</h3>
+                    <button class="btn btn-success role-only" data-allow="therapist" onclick="openRecordModal()">
+                        <i class="fas fa-plus"></i> 新增紀錄
+                    </button>
+                </div>
+                <div id="record-list" class="list-group">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-secondary" role="status"></div>
+                        <p>載入資料中...</p>
+                    </div>
+                </div>
+            </div>
 
-    <div id="iep-list" class="row g-4">
-        </div>
-    </div>
+            <div id="section-iep" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-secondary border-start border-5 border-danger ps-3">IEP 個案資料</h3>
+                    <button class="btn btn-danger role-only shadow-sm" data-allow="teacher" onclick="openIepUpload()">
+                        <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
+                    </button>
+                </div>
+                <div id="iep-list" class="row g-4"></div>
+            </div>
 
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
-    <script src="client.js"></script>
-</body>
-</html>
+            <div id="section-messages
