@@ -621,7 +621,7 @@ function initCalendar() {
 
 async function openEventModal() {
     const { value: formValues } = await Swal.fire({
-        title: '新增行事曆',
+        title: '新增行事曆事件',
         html: `
             <input type="text" id="swal-evt-title" class="form-control mb-3" placeholder="事件標題 (如: IEP會議)">
             <input type="date" id="swal-evt-date" class="form-control mb-3">
