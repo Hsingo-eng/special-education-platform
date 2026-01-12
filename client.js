@@ -1,6 +1,7 @@
 const API_URL = "https://special-education-platform.zeabur.app";
 const socket = io(API_URL);
 let currentUser = null;
+let calendar = null; // 全域變數
 
 // --- 1. 網頁載入時檢查登入狀態 ---
 document.addEventListener("DOMContentLoaded", () => {
@@ -9,17 +10,15 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (token && userStr) {
         currentUser = JSON.parse(userStr);
-        showDashboard(); 
-        initCalendar();
+        showDashboard(); // 這裡會連動觸發 initCalendar
     }
 });
 
-// --- 2. 登入功能 (包含除錯紀錄) ---
+// --- 2. 登入功能 ---
 async function login() {
     const username = document.getElementById("login-username").value.trim();
     const password = document.getElementById("login-password").value.trim();
 
-    // 🟢 抓鬼專用：印出輸入的帳密 (請看控制台)
     console.log("正在嘗試登入，帳號:", `"${username}"`, "密碼:", `"${password}"`);
 
     if(!username || !password) return Swal.fire("錯誤", "請輸入帳號密碼", "warning");
@@ -32,10 +31,7 @@ async function login() {
         });
         
         const data = await res.json();
-        
-        // 🟢 抓鬼專用：印出伺服器回應
         console.log("伺服器回應狀態:", res.status);
-        console.log("伺服器回應資料:", data);
         
         if (res.ok) {
             localStorage.setItem("token", data.token);
@@ -49,7 +45,7 @@ async function login() {
                 timer: 1500,
                 showConfirmButton: false
             });
-            showDashboard();
+            showDashboard(); // 登入成功後，這裡會載入儀表板跟行事曆
         } else {
             Swal.fire("登入失敗", data.message, "error");
         }
@@ -80,12 +76,21 @@ function showDashboard() {
         }
     });
 
-    // 只有特定角色看得到的按鈕
+    // 只有特定角色看得到的按鈕 (例如新增行事曆)
     document.querySelectorAll(".role-only").forEach(el => {
-        if (el.dataset.allow !== currentUser.role) {
+        const allowedRoles = el.dataset.allow.split(',');
+        if (!allowedRoles.includes(currentUser.role)) {
             el.classList.add("d-none");
+        } else {
+            el.classList.remove("d-none");
         }
     });
+
+    // 🟢 重要：進入儀表板時，初始化行事曆
+    // 使用 setTimeout 確保畫面渲染完畢後再畫日曆，避免破圖
+    setTimeout(() => {
+        initCalendar();
+    }, 100);
 }
 
 function showSection(sectionId) {
@@ -104,17 +109,15 @@ function showSection(sectionId) {
     if (sectionId === 'iep') loadIepFiles();
 }
 
-// --- 工具: Fetch 封裝 (已修正檔案上傳問題，並刪除重複定義) ---
+// --- 工具: Fetch 封裝 ---
 async function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem("token");
     
-    // 1. 基本 Header 只有 Authorization
     const headers = {
         "Authorization": `Bearer ${token}`,
         ...options.headers
     };
 
-    // 2. 關鍵判斷：只有當 body "不是" 檔案 (FormData) 時，才加入 json 設定
     if (!(options.body instanceof FormData)) {
         headers["Content-Type"] = "application/json";
     }
@@ -164,20 +167,15 @@ async function loadMessages() {
 function renderMessage(msg) {
     const chatBox = document.getElementById("chat-box");
     
-    // 1. 判斷這則訊息是不是「我自己」發的
-    // 我們比對訊息裡的 user_name 和現在登入者的 name
+    // 判斷是否為自己發的
     const isMe = (msg.user_name === currentUser.name);
-
-    // 2. 決定對齊方向的 class (msg-self 靠右, msg-other 靠左)
     const alignClass = isMe ? "msg-self" : "msg-other";
 
-    // 3. 決定顏色的 class (保持原本的角色顏色)
     let colorClass = "msg-teacher";
     if (msg.role === "parents") colorClass = "msg-parents";
     if (msg.role === "therapist") colorClass = "msg-therapist";
 
     const div = document.createElement("div");
-    // 同時加上「對齊樣式」和「顏色樣式」
     div.className = `message-item ${alignClass} ${colorClass}`;
     
     const label = isMe ? "我" : `${roleName(msg.role)} - ${msg.user_name}`;
@@ -405,7 +403,6 @@ async function loadQuestions() {
     const list = document.getElementById("questions-list");
     list.innerHTML = '<div class="text-center py-5"><div class="spinner-border text-info"></div></div>';
     
-    // 這裡使用 fetchWithAuth，它會自動處理 token
     try {
         const res = await fetchWithAuth(`${API_URL}/api/questions`);
         const json = await res.json();
@@ -416,7 +413,6 @@ async function loadQuestions() {
     }
 }
 
-// 2. 渲染問題卡片 (顯示在畫面上) - 已新增 @對象 功能
 function renderQuestions(data) {
     const list = document.getElementById("questions-list");
     list.innerHTML = "";
@@ -427,27 +423,23 @@ function renderQuestions(data) {
     }
 
     data.reverse().forEach(q => {
-        // --- 1. 處理發問者身分 ---
         let roleBadge = '';
         if (q.asker_role === 'teacher') roleBadge = '<span class="badge bg-primary">教師</span>';
         else if (q.asker_role === 'therapist') roleBadge = '<span class="badge bg-success">治療師</span>';
         else roleBadge = '<span class="badge bg-warning text-dark">家長</span>';
 
-        // --- 2.新增：處理「被提問對象」標籤 (@xxx) ---
+        // 顯示 @對象
         let targetHtml = '';
         if (q.target_role) {
-            const roles = q.target_role.split(','); // 把 "teacher,parents" 切割開來
+            const roles = q.target_role.split(','); 
             const nameMap = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
-            
             targetHtml = roles.map(r => {
                 return `<span class="badge rounded-pill bg-secondary bg-opacity-75 text-white me-1" style="font-size: 0.8em;">@${nameMap[r] || r}</span>`;
             }).join('');
         }
 
-        // --- 3. 處理狀態顏色 ---
         const statusColor = q.status === '已回覆' ? 'success' : 'secondary';
 
-        // --- 4. 處理回覆內容 ---
         let replyHtml = '';
         if (q.reply) {
             replyHtml = `
@@ -468,7 +460,6 @@ function renderQuestions(data) {
             `;
         }
 
-        // --- 5. 組合 HTML ---
         const html = `
             <div class="col-md-12">
                 <div class="card shadow-sm border-0 h-100">
@@ -480,11 +471,8 @@ function renderQuestions(data) {
                             </div>
                             <span class="badge bg-${statusColor}-subtle text-${statusColor} border border-${statusColor}">${q.status}</span>
                         </div>
-                        
                         <div class="mb-2">${targetHtml}</div>
-
                         <h5 class="card-text mt-2 text-dark" style="white-space: pre-wrap;">${q.question}</h5>
-                        
                         ${replyHtml}
                     </div>
                 </div>
@@ -494,11 +482,9 @@ function renderQuestions(data) {
     });
 }
 
-// 3. 開啟提問視窗 (已新增：勾選對象功能)
 async function openQuestionModal() {
     const { value: formValues } = await Swal.fire({
         title: '我要提問',
-        // 這裡改用 html 來放入「複選框」和「輸入框」
         html: `
             <div class="text-start mb-2 fw-bold text-secondary">請問您想詢問的對象是？(可複選)</div>
             <div class="d-flex gap-3 mb-3 justify-content-center">
@@ -522,10 +508,7 @@ async function openQuestionModal() {
         cancelButtonText: '取消',
         confirmButtonColor: '#17a2b8',
         preConfirm: () => {
-            // 1. 抓取問題內容
             const question = document.getElementById('swal-question').value;
-            
-            // 2. 抓取勾選的對象
             const targets = [];
             if (document.getElementById('target-teacher').checked) targets.push('teacher');
             if (document.getElementById('target-therapist').checked) targets.push('therapist');
@@ -534,14 +517,12 @@ async function openQuestionModal() {
             if (!question) return Swal.showValidationMessage('請輸入問題內容');
             if (targets.length === 0) return Swal.showValidationMessage('請至少選擇一個詢問對象');
 
-            // 回傳給下面的 then 使用
             return { question: question, target_role: targets.join(',') };
         }
     });
 
     if (formValues) {
         try {
-            // 使用 fetchWithAuth 發送資料 (包含 target_role)
             const res = await fetchWithAuth(`${API_URL}/api/questions`, {
                 method: "POST",
                 body: JSON.stringify({ 
@@ -549,12 +530,9 @@ async function openQuestionModal() {
                     target_role: formValues.target_role 
                 })
             });
-            
             if (!res.ok) throw new Error(res.statusText);
-            
             Swal.fire('成功', '您的提問已發布', 'success');
             loadQuestions();
-            
         } catch (error) {
             Swal.fire('發布失敗', error.message, 'error');
         }
@@ -573,7 +551,6 @@ function replyQuestion(id) {
         showLoaderOnConfirm: true,
         preConfirm: async (reply) => {
             if (!reply) return Swal.showValidationMessage('請輸入內容');
-
             try {
                 const res = await fetchWithAuth(`${API_URL}/api/questions/${id}`, {
                     method: "PUT",
@@ -596,27 +573,28 @@ function replyQuestion(id) {
 // ==========================================
 // 功能 E: 行事曆 (FullCalendar)
 // ==========================================
-let calendar; // 全域變數
 
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
+    
+    // 如果找不到日曆元素 (可能還沒登入)，就直接返回
     if (!calendarEl) return;
 
-    // 顯示區塊
-    document.getElementById("calendar-section").classList.remove("d-none");
+    // 顯示日曆區塊
+    const calendarSection = document.getElementById("calendar-section");
+    if(calendarSection) calendarSection.classList.remove("d-none");
 
     calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth', // 月視圖
-        locale: 'zh-tw', // 中文
+        initialView: 'dayGridMonth',
+        locale: 'zh-tw',
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,listMonth' // 可切換列表
+            right: 'dayGridMonth,listMonth'
         },
-        height: 450, // 高度適中
+        height: 450,
         events: async function(info, successCallback, failureCallback) {
             try {
-                // 使用 fetchWithAuth 抓取後端資料
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
                 if(json.data) {
@@ -630,7 +608,6 @@ function initCalendar() {
             }
         },
         eventClick: function(info) {
-            // 點擊事件顯示詳情
             Swal.fire({
                 title: info.event.title,
                 text: info.event.extendedProps.description || "無備註",
@@ -641,7 +618,6 @@ function initCalendar() {
     });
     calendar.render();
 }
-
 
 async function openEventModal() {
     const { value: formValues } = await Swal.fire({
@@ -674,7 +650,7 @@ async function openEventModal() {
             });
             if(res.ok) {
                 Swal.fire("成功", "行程已加入 Google Calendar", "success");
-                calendar.refetchEvents(); // 重新抓取資料
+                calendar.refetchEvents(); 
             } else {
                 throw new Error("新增失敗");
             }
