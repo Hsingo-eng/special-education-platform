@@ -163,14 +163,26 @@ async function loadMessages() {
 function renderMessage(msg) {
     const chatBox = document.getElementById("chat-box");
     
-    let cssClass = "msg-teacher";
-    if (msg.role === "parents") cssClass = "msg-parents";
-    if (msg.role === "therapist") cssClass = "msg-therapist";
+    // 1. 判斷這則訊息是不是「我自己」發的
+    // 我們比對訊息裡的 user_name 和現在登入者的 name
+    const isMe = (msg.user_name === currentUser.name);
+
+    // 2. 決定對齊方向的 class (msg-self 靠右, msg-other 靠左)
+    const alignClass = isMe ? "msg-self" : "msg-other";
+
+    // 3. 決定顏色的 class (保持原本的角色顏色)
+    let colorClass = "msg-teacher";
+    if (msg.role === "parents") colorClass = "msg-parents";
+    if (msg.role === "therapist") colorClass = "msg-therapist";
 
     const div = document.createElement("div");
-    div.className = `message-item ${cssClass}`;
+    // 同時加上「對齊樣式」和「顏色樣式」
+    div.className = `message-item ${alignClass} ${colorClass}`;
+    
+    const label = isMe ? "我" : `${roleName(msg.role)} - ${msg.user_name}`;
+
     div.innerHTML = `
-        <span class="msg-role-label">${roleName(msg.role)} - ${msg.user_name}</span>
+        <span class="msg-role-label">${label}</span>
         <div>${msg.message}</div>
     `;
     chatBox.appendChild(div);

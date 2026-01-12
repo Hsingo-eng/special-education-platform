@@ -238,31 +238,85 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
 .bg-success { background-color: var(--c-green) !important; color: var(--c-brown) !important; }
 .bg-warning { background-color: var(--c-yellow) !important; color: var(--c-brown) !important; }
 
-/* 聊天室優化 */
+/* =========================================
+   6. 聊天室樣式 (Chat Room) - 左右分流版
+   ========================================= */
 .chat-container {
     border: 2px solid var(--c-brown);
     border-radius: var(--radius-box);
     overflow: hidden;
+    height: 450px;
+    display: flex;
+    flex-direction: column;
 }
+
 .chat-box {
-    background-color: #fffef9;
+    flex: 1;
+    overflow-y: auto;
+    padding: 20px;
+    background-color: #fffef9; /* 米白底 */
+    display: flex;
+    flex-direction: column; /* 讓訊息垂直排列 */
+    gap: 15px; /* 訊息之間的間距 */
 }
-/* 對話框 - 實心色塊 */
+
+/* 訊息氣泡基礎設定 */
+.message-item {
+    padding: 10px 16px;
+    max-width: 75%; /* 訊息不要太寬 */
+    position: relative;
+    font-size: 0.95rem;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.05);
+    word-wrap: break-word; /* 防止長字串破版 */
+}
+
+/* --- A. 位置設定 (靠左 vs 靠右) --- */
+
+/* 別人的訊息 (靠左) */
+.msg-other {
+    align-self: flex-start; /* 靠左對齊 */
+    margin-right: auto;
+    border-radius: 18px 18px 18px 2px; /* 左下角是尖的 */
+}
+
+/* 自己的訊息 (靠右) */
+.msg-self {
+    align-self: flex-end; /* 靠右對齊 */
+    margin-left: auto;
+    border-radius: 18px 18px 2px 18px; /* 右下角是尖的 */
+}
+
+/* 標籤文字對齊 */
+.msg-self .msg-role-label {
+    text-align: right;
+}
+
+/* --- B. 顏色設定 (So Matcha 配色) --- */
+/* 這裡只管顏色，不管位置 */
+
 .msg-teacher {
     background-color: var(--c-white);
     border: 2px solid #eee;
     color: var(--c-brown);
-    border-radius: 12px 12px 12px 0;
 }
+
 .msg-therapist {
     background-color: var(--c-yellow);
     border: 2px solid #ebdcb2;
     color: var(--c-brown);
-    border-radius: 12px 12px 12px 0;
 }
+
 .msg-parents {
-    background-color: var(--c-green); /* 綠色 */
+    background-color: var(--c-green);
     border: 2px solid #b6c58d;
     color: var(--c-brown);
-    border-radius: 12px 12px 0 12px;
+}
+
+/* 標籤小字 */
+.msg-role-label {
+    font-size: 0.75rem;
+    color: #8898aa;
+    margin-bottom: 4px;
+    display: block;
+    font-weight: 600;
 }
