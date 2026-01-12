@@ -9,7 +9,8 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (token && userStr) {
         currentUser = JSON.parse(userStr);
-        showDashboard(); // 如果有存過 Token，直接進主畫面
+        showDashboard(); 
+        initCalendar();
     }
 });
 
@@ -590,4 +591,95 @@ function replyQuestion(id) {
             loadQuestions();
         }
     });
+}
+
+// ==========================================
+// 功能 E: 行事曆 (FullCalendar)
+// ==========================================
+let calendar; // 全域變數
+
+function initCalendar() {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+
+    // 顯示區塊
+    document.getElementById("calendar-section").classList.remove("d-none");
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth', // 月視圖
+        locale: 'zh-tw', // 中文
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,listMonth' // 可切換列表
+        },
+        height: 450, // 高度適中
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                // 使用 fetchWithAuth 抓取後端資料
+                const res = await fetchWithAuth(`${API_URL}/api/calendar`);
+                const json = await res.json();
+                if(json.data) {
+                    successCallback(json.data);
+                } else {
+                    successCallback([]);
+                }
+            } catch (error) {
+                console.error(error);
+                failureCallback(error);
+            }
+        },
+        eventClick: function(info) {
+            // 點擊事件顯示詳情
+            Swal.fire({
+                title: info.event.title,
+                text: info.event.extendedProps.description || "無備註",
+                icon: 'info',
+                footer: `<small>時間: ${info.event.start.toLocaleString()}</small>`
+            });
+        }
+    });
+    calendar.render();
+}
+
+
+async function openEventModal() {
+    const { value: formValues } = await Swal.fire({
+        title: '新增行事曆',
+        html: `
+            <input type="text" id="swal-evt-title" class="form-control mb-3" placeholder="事件標題 (如: IEP會議)">
+            <input type="date" id="swal-evt-date" class="form-control mb-3">
+            <input type="time" id="swal-evt-time" class="form-control mb-3" value="09:00">
+            <input type="text" id="swal-evt-desc" class="form-control" placeholder="備註 (選填)">
+        `,
+        showCancelButton: true,
+        confirmButtonText: '新增',
+        preConfirm: () => {
+            return {
+                title: document.getElementById('swal-evt-title').value,
+                date: document.getElementById('swal-evt-date').value,
+                time: document.getElementById('swal-evt-time').value,
+                description: document.getElementById('swal-evt-desc').value
+            };
+        }
+    });
+
+    if (formValues) {
+        if(!formValues.title || !formValues.date) return Swal.fire("請填寫完整");
+
+        try {
+            const res = await fetchWithAuth(`${API_URL}/api/calendar`, {
+                method: "POST",
+                body: JSON.stringify(formValues)
+            });
+            if(res.ok) {
+                Swal.fire("成功", "行程已加入 Google Calendar", "success");
+                calendar.refetchEvents(); // 重新抓取資料
+            } else {
+                throw new Error("新增失敗");
+            }
+        } catch (err) {
+            Swal.fire("失敗", err.message, "error");
+        }
+    }
 }

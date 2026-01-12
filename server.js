@@ -7,7 +7,8 @@ const http = require("http");
 const { Server } = require("socket.io");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require("multer");
-const stream = require("stream"); // 修正引入方式
+const stream = require("stream");
+const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
 
 // 載入環境變數
 dotenv.config();
@@ -50,6 +51,7 @@ oauth2Client.setCredentials({
 // 建立服務
 const drive = google.drive({ version: "v3", auth: oauth2Client });
 const sheets = google.sheets({ version: "v4", auth: oauth2Client });
+const calendar = google.calendar({ version: "v3", auth: oauth2Client });
 
 // Multer 設定
 const upload = multer({
@@ -201,6 +203,62 @@ app.post("/auth/login", async (req, res) => {
     } catch (error) {
         console.error("💥 [嚴重錯誤] 登入 API 發生例外狀況:", error);
         res.status(500).json({ message: "伺服器內部錯誤" });
+    }
+});
+
+// --- 📅 行事曆 API ---
+
+// 1. 讀取活動
+app.get("/api/calendar", verifyToken, async (req, res) => {
+    try {
+        const response = await calendar.events.list({
+            calendarId: CALENDAR_ID,
+            timeMin: new Date().toISOString(), // 只抓還沒結束的
+            maxResults: 20,
+            singleEvents: true,
+            orderBy: 'startTime',
+        });
+        const events = response.data.items.map(event => ({
+            id: event.id,
+            title: event.summary,
+            start: event.start.dateTime || event.start.date, // 支援全天或特定時間
+            end: event.end.dateTime || event.end.date,
+            description: event.description
+        }));
+        res.json({ data: events });
+    } catch (error) {
+        console.error("讀取行事曆失敗:", error);
+        res.status(500).json({ message: "無法讀取行事曆" });
+    }
+});
+
+// 2. 新增活動 (限老師、治療師)
+app.post("/api/calendar", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
+    try {
+        const { title, date, time, description } = req.body;
+        
+        // 組合時間字串 (例如: "2024-01-20T10:00:00")
+        const startDateTime = `${date}T${time}:00`;
+        // 預設活動 1 小時
+        const endDate = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000); 
+        const endDateTime = endDate.toISOString().split('.')[0]; // 去掉毫秒
+
+        const event = {
+            summary: title,
+            description: `${description || ""} (由 ${req.user.name} 新增)`,
+            start: { dateTime: startDateTime, timeZone: 'Asia/Taipei' },
+            end: { dateTime: endDateTime, timeZone: 'Asia/Taipei' },
+        };
+
+        const response = await calendar.events.insert({
+            calendarId: CALENDAR_ID,
+            resource: event,
+        });
+
+        res.json({ message: "新增成功", data: response.data });
+    } catch (error) {
+        console.error("新增活動失敗:", error);
+        res.status(500).json({ message: "新增失敗: " + error.message });
     }
 });
 
