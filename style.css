@@ -320,3 +320,65 @@ h1, h2, h3, h4, h5, h6, .navbar-brand {
     display: block;
     font-weight: 600;
 }
+
+/* =========================================
+   7. 行事曆樣式 (FullCalendar) - So Matcha 風格
+   ========================================= */
+#calendar-section {
+    background-color: var(--c-white);
+    border: 2px solid var(--c-brown); /* 邊框 */
+    border-radius: var(--radius-box);
+    box-shadow: 6px 6px 0px rgba(0,0,0,0.1); /* 立體陰影 */
+}
+
+/* 標題工具列 */
+.fc-toolbar-title {
+    font-family: 'Fredoka', sans-serif !important;
+    font-size: 1.5rem !important;
+    color: var(--c-blue);
+}
+
+/* 按鈕樣式 (上個月、下個月) */
+.fc-button {
+    background-color: var(--c-blue) !important;
+    border: none !important;
+    border-radius: var(--radius-btn) !important;
+    font-weight: 700 !important;
+    box-shadow: 0 3px 0px #2a558c !important;
+    opacity: 1 !important;
+}
+.fc-button:hover {
+    transform: translateY(1px);
+    box-shadow: 0 1px 0px #2a558c !important;
+}
+.fc-button-active {
+    background-color: var(--c-brown) !important;
+    box-shadow: none !important;
+}
+
+/* 日曆格子 */
+.fc-daygrid-day {
+    border-color: #eee !important;
+}
+.fc-col-header-cell {
+    background-color: var(--c-yellow); /* 星期幾的背景 */
+    color: var(--c-brown);
+    padding: 10px 0 !important;
+}
+
+/* 事件膠囊 (Event Pill) */
+.fc-event {
+    background-color: var(--c-green) !important; /* 事件背景綠色 */
+    border: none !important;
+    border-radius: 5px;
+    padding: 2px 5px;
+    box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
+    cursor: pointer;
+}
+.fc-event-title {
+    color: var(--c-brown) !important; /* 事件文字深褐色 */
+    font-weight: 700;
+}
+.fc-day-today {
+    background-color: #fffde7 !important; /* 今天的背景淡黃 */
+}
