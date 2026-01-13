@@ -35,7 +35,7 @@ const io = new Server(server, {
 // --- 設定 ---
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const DRIVE_FOLDER_ID = "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
+const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
 
 // --- OAuth2 驗證 ---
 const oauth2Client = new google.auth.OAuth2(
@@ -213,6 +213,9 @@ app.get("/api/calendar", verifyToken, async (req, res) => {
     try {
         const response = await calendar.events.list({
             calendarId: CALENDAR_ID,
+            const startOfMonth = new Date();
+            startOfMonth.setDate(1); // 設定為本月 1 號
+            startOfMonth.setHours(0, 0, 0, 0); // 設定為 00:00:00
             timeMin: new Date().toISOString(), // 只抓還沒結束的
             maxResults: 20,
             singleEvents: true,
