@@ -129,4 +129,46 @@
                 <div id="iep-list" class="row g-4"></div>
             </div>
 
-            <div id="section-messages
+            <div id="section-messages" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-secondary border-start border-5 border-primary ps-3">留言板</h3>
+                    <button class="btn btn-outline-primary" onclick="getAiSummary()">
+                        <i class="fas fa-robot"></i> AI 重點摘要
+                    </button>
+                </div>
+                <div id="ai-summary-box" class="alert alert-info d-none mb-3 shadow-sm">
+                    <h5><i class="fas fa-magic"></i> Gemini AI 摘要：</h5>
+                    <p id="ai-summary-content" class="mb-0 small"></p>
+                </div>
+                
+                <div class="chat-container mb-3">
+                    <div id="chat-box" class="chat-box"></div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="msg-input" class="form-control" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
+                    <button class="btn btn-primary" onclick="sendMessage()"><i class="fas fa-paper-plane"></i> 送出</button>
+                </div>
+            </div>
+
+            <div id="section-questions" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="text-secondary border-start border-5 border-info ps-3">提問與回覆</h3>
+                    <button class="btn btn-info text-white shadow-sm" onclick="openQuestionModal()">
+                        <i class="fas fa-plus-circle"></i> 我要提問
+                    </button>
+                </div>
+
+                <div id="questions-list" class="row g-3">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-info" role="status"></div>
+                        <p>正在載入問題...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div> </div> <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    <script src="client.js"></script>
+</body>
+</html>
