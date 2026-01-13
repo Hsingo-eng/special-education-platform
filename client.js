@@ -10,7 +10,7 @@ document.addEventListener("DOMContentLoaded", () => {
     
     if (token && userStr) {
         currentUser = JSON.parse(userStr);
-        showDashboard(); // 這裡會連動觸發 initCalendar
+        showDashboard(); 
     }
 });
 
@@ -45,7 +45,7 @@ async function login() {
                 timer: 1500,
                 showConfirmButton: false
             });
-            showDashboard(); // 登入成功後，這裡會載入儀表板跟行事曆
+            showDashboard(); 
         } else {
             Swal.fire("登入失敗", data.message, "error");
         }
@@ -69,14 +69,14 @@ function showDashboard() {
     document.getElementById("nav-user-info").innerHTML = 
         `<i class="fas fa-user-circle"></i> ${currentUser.name} <span class="badge bg-secondary">${roleName(currentUser.role)}</span>`;
 
-    // 權限隱藏 (例如家長看不到專業紀錄)
+    // 權限隱藏
     document.querySelectorAll(".role-restricted").forEach(el => {
         if (el.dataset.deny === currentUser.role) {
             el.classList.add("d-none");
         }
     });
 
-    // 只有特定角色看得到的按鈕 (例如新增行事曆)
+    // 只有特定角色看得到的按鈕
     document.querySelectorAll(".role-only").forEach(el => {
         const allowedRoles = el.dataset.allow.split(',');
         if (!allowedRoles.includes(currentUser.role)) {
@@ -86,8 +86,7 @@ function showDashboard() {
         }
     });
 
-    // 🟢 重要：進入儀表板時，初始化行事曆
-    // 使用 setTimeout 確保畫面渲染完畢後再畫日曆，避免破圖
+    // 🟢 延遲初始化行事曆，確保畫面已渲染
     setTimeout(() => {
         initCalendar();
     }, 100);
@@ -141,7 +140,7 @@ socket.on("message_update", (msg) => {
 });
 
 // ==========================================
-// 功能 A: 留言板 (包含 AI)
+// 功能 A: 留言板
 // ==========================================
 
 async function loadMessages() {
@@ -167,7 +166,6 @@ async function loadMessages() {
 function renderMessage(msg) {
     const chatBox = document.getElementById("chat-box");
     
-    // 判斷是否為自己發的
     const isMe = (msg.user_name === currentUser.name);
     const alignClass = isMe ? "msg-self" : "msg-other";
 
@@ -428,7 +426,6 @@ function renderQuestions(data) {
         else if (q.asker_role === 'therapist') roleBadge = '<span class="badge bg-success">治療師</span>';
         else roleBadge = '<span class="badge bg-warning text-dark">家長</span>';
 
-        // 顯示 @對象
         let targetHtml = '';
         if (q.target_role) {
             const roles = q.target_role.split(','); 
