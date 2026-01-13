@@ -8,7 +8,6 @@ const { Server } = require("socket.io");
 const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require("multer");
 const stream = require("stream");
-const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
 
 // 載入環境變數
 dotenv.config();
@@ -23,19 +22,17 @@ app.use(express.json());
 const server = http.createServer(app);
 const io = new Server(server, {
     cors: {
-        origin: [
-            "http://localhost:5500",       
-            "http://127.0.0.1:5500",       
-            "https://hsingo-eng.github.io" 
-        ],
+        origin: "*", // 開發階段允許所有來源
         methods: ["GET", "POST", "PUT"]
     }
 });
 
 // --- 設定 ---
 const SHEET_ID = process.env.GOOGLE_SHEET_ID;
+const CALENDAR_ID = process.env.GOOGLE_CALENDAR_ID;
 const GEMINI_API_KEY = process.env.GEMINI_API_KEY;
-const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID;
+// 建議改用環境變數，這裡暫時保留
+const DRIVE_FOLDER_ID = process.env.GOOGLE_DRIVE_FOLDER_ID || "1EzFYhf4zzYslzJL3rcccQlLJTR7_Sguq"; 
 
 // --- OAuth2 驗證 ---
 const oauth2Client = new google.auth.OAuth2(
@@ -211,20 +208,22 @@ app.post("/auth/login", async (req, res) => {
 // 1. 讀取活動
 app.get("/api/calendar", verifyToken, async (req, res) => {
     try {
+        // 🟢 修正：先算好本月 1 號
+        const startOfMonth = new Date();
+        startOfMonth.setDate(1);
+        startOfMonth.setHours(0, 0, 0, 0);
+
         const response = await calendar.events.list({
             calendarId: CALENDAR_ID,
-            const startOfMonth = new Date();
-            startOfMonth.setDate(1); // 設定為本月 1 號
-            startOfMonth.setHours(0, 0, 0, 0); // 設定為 00:00:00
-            timeMin: new Date().toISOString(), // 只抓還沒結束的
-            maxResults: 20,
+            timeMin: startOfMonth.toISOString(), 
+            maxResults: 50,
             singleEvents: true,
             orderBy: 'startTime',
         });
         const events = response.data.items.map(event => ({
             id: event.id,
             title: event.summary,
-            start: event.start.dateTime || event.start.date, // 支援全天或特定時間
+            start: event.start.dateTime || event.start.date,
             end: event.end.dateTime || event.end.date,
             description: event.description
         }));
@@ -240,17 +239,22 @@ app.post("/api/calendar", verifyToken, checkRole(['teacher', 'therapist']), asyn
     try {
         const { title, date, time, description } = req.body;
         
-        // 組合時間字串 (例如: "2024-01-20T10:00:00")
-        const startDateTime = `${date}T${time}:00`;
-        // 預設活動 1 小時
-        const endDate = new Date(new Date(startDateTime).getTime() + 60 * 60 * 1000); 
-        const endDateTime = endDate.toISOString().split('.')[0]; // 去掉毫秒
-
+        // 組合時間字串
+        const startDateTime = `${date}T${time}:00+08:00`;
+        const startDateObj = new Date(startDateTime);
+        const endDateObj = new Date(startDateObj.getTime() + 60 * 60 * 1000); 
+        
         const event = {
             summary: title,
             description: `${description || ""} (由 ${req.user.name} 新增)`,
-            start: { dateTime: startDateTime, timeZone: 'Asia/Taipei' },
-            end: { dateTime: endDateTime, timeZone: 'Asia/Taipei' },
+            start: { 
+                dateTime: startDateTime, 
+                timeZone: 'Asia/Taipei' 
+            },
+            end: { 
+                dateTime: endDateObj.toISOString(), 
+                timeZone: 'Asia/Taipei' 
+            },
         };
 
         const response = await calendar.events.insert({
