@@ -572,6 +572,7 @@ function replyQuestion(id) {
 // ==========================================
 
 // --- 行事曆功能 ---
+// --- 行事曆功能 ---
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -580,27 +581,25 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
-        height: 500, // 稍微加高一點
+        // 🟢 修改需求 3: 高度自適應，不強制滾動
+        height: 'auto', 
+        contentHeight: 'auto',
         // 移除 headerToolbar 的預設樣式，依靠 CSS 覆寫
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
-            right: 'dayGridMonth,listMonth'
+            right: 'dayGridMonth' // 手機版移除 listMonth 比較簡潔
         },
         events: async function(info, successCallback, failureCallback) {
             try {
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
                 
-                // 🟢 在這裡處理顏色邏輯
                 const eventsWithColor = (json.data || []).map((evt, index) => {
-                    // 簡單的交錯邏輯：偶數橘色，奇數綠色
-                    // 或是您可以根據 evt.title 的內容來決定
                     const colorClass = (index % 2 === 0) ? 'evt-orange' : 'evt-green';
-                    
                     return {
                         ...evt,
-                        classNames: [colorClass] // FullCalendar 用這個屬性加 class
+                        classNames: [colorClass]
                     };
                 });
 
@@ -616,7 +615,7 @@ function initCalendar() {
                     title: info.event.title,
                     text: desc,
                     icon: 'info',
-                    confirmButtonColor: '#333' // 改成黑色按鈕配合主題
+                    confirmButtonColor: '#333'
                 });
             } else {
                 Swal.fire({
