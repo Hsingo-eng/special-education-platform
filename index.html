@@ -17,15 +17,15 @@
 <body>
 
     <nav class="container site-header d-none" id="main-nav">
-        <div class="logo"><i class="fas fa-hands-holding-child"></i> 特教溝通平台</div>
+        <div class="logo"><i class="fas fa-hands-holding-child"></i> PLATFORM.</div>
         <div class="d-flex align-items-center gap-3">
             <span class="status-badge" id="nav-user-info">User</span>
-            <button id="btn-logout" class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="logout()">登出</button>
+            <button id="btn-logout" class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="logout()">Logout</button>
         </div>
     </nav>
 
     <div id="login-section" class="container">
-        <div class="hero" style="min-height: 90vh; border: none;">
+        <div class="hero">
             <div class="hero-content">
                 <span class="section-label">Communication Platform</span>
                 <h1 class="display-text">
@@ -36,14 +36,14 @@
                     專為特教親師生設計的溝通橋樑。極簡、高效、專注於孩子的成長紀錄。
                 </p>
 
-                <div class="card border-0 shadow-sm p-4" style="max-width: 400px; background: rgba(255,255,255,0.9);">
+                <div class="card border-0 shadow-sm p-4" style="max-width: 400px; background: rgba(255,255,255,0.95);">
                     <div class="mb-3">
                         <label class="form-label fw-bold text-secondary small">USERNAME</label>
-                        <input type="text" id="login-username" class="form-control form-control-lg bg-light border-0" placeholder="請輸入帳號">
+                        <input type="text" id="login-username" class="form-control form-control-lg bg-light border-0" placeholder="teacher">
                     </div>
                     <div class="mb-4">
                         <label class="form-label fw-bold text-secondary small">PASSWORD</label>
-                        <input type="password" id="login-password" class="form-control form-control-lg bg-light border-0" placeholder="請輸入密碼">
+                        <input type="password" id="login-password" class="form-control form-control-lg bg-light border-0" placeholder="123456">
                     </div>
                     <button class="btn btn-primary w-100 btn-lg fw-bold rounded-pill" 
                             style="background-color: var(--accent-color); border: none;"
@@ -54,9 +54,11 @@
             </div>
             
             <div class="hero-image-wrapper d-none d-md-block">
-                <div class="hero-image-placeholder d-flex align-items-center justify-content-center text-muted">
+                <div class="hero-image-placeholder">
                     <span class="image-caption">PLATFORM VISUALIZATION</span>
-                    <i class="fas fa-shapes fa-5x opacity-25"></i>
+                    <div class="d-flex h-100 align-items-center justify-content-center">
+                         <i class="fas fa-shapes fa-5x opacity-25"></i>
+                    </div>
                 </div>
             </div>
         </div>
@@ -70,7 +72,7 @@
                     <span class="section-label">Schedule</span>
                     <h2 class="mb-0">本月排程</h2>
                 </div>
-                <button id="btn-add-event" class="btn btn-dark rounded-pill role-only" 
+                <button class="btn btn-dark rounded-pill role-only" 
                         data-allow="teacher,therapist" 
                         onclick="openEventModal()">
                     <i class="fas fa-plus"></i> New Event
@@ -85,30 +87,30 @@
             <div class="mb-4">
                 <span class="section-label">Features</span>
             </div>
-            <div class="concept-grid" style="border-top: 1px solid var(--line-color);">
+            <div class="concept-grid">
                 
-                <div class="concept-item role-restricted" data-deny="parents" onclick="showSection('records')" style="cursor: pointer;">
+                <div class="concept-item role-restricted" data-deny="parents" onclick="showSection('records')">
                     <div class="concept-number">01</div>
                     <h3><i class="fas fa-file-medical text-success me-2"></i>治療紀錄</h3>
-                    <p class="concept-desc">追蹤個案的治療進度與詳細紀錄，支援專業人員編輯與回覆。</p>
+                    <p class="concept-desc">追蹤個案的治療進度與詳細紀錄。</p>
                 </div>
                 
-                <div class="concept-item" onclick="showSection('iep')" style="cursor: pointer;">
+                <div class="concept-item" onclick="showSection('iep')">
                     <div class="concept-number">02</div>
                     <h3><i class="fas fa-folder-open text-danger me-2"></i>IEP 資料</h3>
-                    <p class="concept-desc">個別化教育計畫檔案管理，隨時檢閱學生的學習目標。</p>
+                    <p class="concept-desc">個別化教育計畫檔案管理。</p>
                 </div>
 
-                <div class="concept-item" onclick="showSection('messages')" style="cursor: pointer;">
+                <div class="concept-item" onclick="showSection('messages')">
                     <div class="concept-number">03</div>
                     <h3><i class="fas fa-comments text-primary me-2"></i>留言板</h3>
-                    <p class="concept-desc">親師溝通的即時橋樑，包含 Gemini AI 自動重點摘要功能。</p>
+                    <p class="concept-desc">親師溝通的即時橋樑與 AI 摘要。</p>
                 </div>
 
-                <div class="concept-item" onclick="showSection('questions')" style="cursor: pointer;">
+                <div class="concept-item" onclick="showSection('questions')">
                     <div class="concept-number">04</div>
                     <h3><i class="fas fa-question-circle text-info me-2"></i>提問回覆</h3>
-                    <p class="concept-desc">針對特定對象提出問題並獲得解答，建立良好的諮詢管道。</p>
+                    <p class="concept-desc">建立良好的諮詢與問答管道。</p>
                 </div>
             </div>
         </div>
@@ -138,3 +140,56 @@
                     </button>
                 </div>
                 <div id="iep-list" class="row g-4"></div>
+            </div>
+
+            <div id="section-messages" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="display-6 fw-bold">留言板</h3>
+                    <button class="btn btn-outline-primary rounded-pill" onclick="getAiSummary()">
+                        <i class="fas fa-robot"></i> AI 重點摘要
+                    </button>
+                </div>
+                <div id="ai-summary-box" class="alert alert-info d-none mb-3 shadow-sm border-0 bg-opacity-10">
+                    <h5 class="text-info"><i class="fas fa-magic"></i> Gemini AI 摘要：</h5>
+                    <p id="ai-summary-content" class="mb-0 small text-dark"></p>
+                </div>
+                
+                <div class="chat-container mb-3 bg-white border p-3 rounded" style="min-height: 400px;">
+                    <div id="chat-box" class="chat-box"></div>
+                </div>
+
+                <div class="input-group">
+                    <input type="text" id="msg-input" class="form-control form-control-lg border-0 bg-light" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
+                    <button class="btn btn-primary px-4" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
+                </div>
+            </div>
+
+            <div id="section-questions" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="display-6 fw-bold">提問與回覆</h3>
+                    <button class="btn btn-info text-white rounded-pill shadow-sm" onclick="openQuestionModal()">
+                        <i class="fas fa-plus-circle"></i> 我要提問
+                    </button>
+                </div>
+
+                <div id="questions-list" class="row g-3">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-info" role="status"></div>
+                        <p>正在載入問題...</p>
+                    </div>
+                </div>
+            </div>
+
+        </div> <footer class="site-footer mt-5">
+            <div class="footer-meta">
+                <span>SYSTEM: READY</span>
+                <span>DESIGN: EDITORIAL STYLE</span>
+            </div>
+        </footer>
+
+    </div> <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
+    
+    <script src="client.js"></script>
+</body>
+</html>

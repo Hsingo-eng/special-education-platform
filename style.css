@@ -1,75 +1,37 @@
-/* =========================================
-   1. Design System & Variables (設計系統變數)
-   ========================================= */
+/* Design System Variables */
 :root {
-    /* Color Palette */
-    --bg-color: #FAFAF9;       /* 紙張米白 */
-    --text-color: #1A1A1A;     /* 深墨灰 */
-    --accent-color: #2952FF;   /* 電光藍 (重點色) */
-    --line-color: #E0E0E0;     /* 結構線條 */
+    --bg-color: #FAFAF9;
+    --text-color: #1A1A1A;
+    --accent-color: #2952FF;
+    --line-color: #E0E0E0;
     --white: #FFFFFF;
     
-    /* Typography */
     --font-main: 'Helvetica Neue', Helvetica, Arial, 'Noto Sans TC', sans-serif;
-    --font-mono: 'Courier New', Courier, monospace; /* 增加數據感/工程感 */
+    --font-mono: 'Courier New', Courier, monospace;
     
-    /* Spacing */
     --container-padding: 5vw;
-    --section-gap: 8rem;
 }
 
-/* =========================================
-   2. Reset & Base Styles (基礎設定)
-   ========================================= */
-* {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-}
+/* Base Styles */
+* { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
     font-family: var(--font-main);
     line-height: 1.6;
-    -webkit-font-smoothing: antialiased;
     overflow-x: hidden;
 }
 
-a {
-    text-decoration: none;
-    color: inherit;
-    transition: 0.3s;
-}
-
-ul {
-    list-style: none;
-}
-
-img {
-    width: 100%;
-    display: block;
-    filter: grayscale(100%); /* 預設黑白 */
-    transition: filter 0.5s ease;
-}
-
-img:hover {
-    filter: grayscale(0%); /* 滑鼠移過變彩色 */
-}
-
-/* =========================================
-   3. Typography Classes (排版樣式)
-   ========================================= */
-/* 超大標題 (Hero 區) */
+/* Typography */
 .display-text {
-    font-size: clamp(3.5rem, 9vw, 7rem); /* RWD 字體大小 */
+    font-size: clamp(3.5rem, 9vw, 7rem);
     font-weight: 700;
     line-height: 0.95;
     letter-spacing: -0.03em;
     margin-bottom: 2rem;
 }
 
-/* 小標題 (章節標籤) */
 .section-label {
     font-size: 13px;
     text-transform: uppercase;
@@ -82,7 +44,6 @@ img:hover {
     padding-bottom: 4px;
 }
 
-/* 內文 */
 .body-text {
     font-size: 1.125rem;
     max-width: 600px;
@@ -96,12 +57,7 @@ img:hover {
     padding-left: 1.5rem;
 }
 
-/* 強調文字 */
-.highlight {
-    color: var(--accent-color);
-}
-
-/* 手繪圈選效果 (CSS 繪製) */
+/* Visual Elements */
 .circle-sketch {
     display: inline-block;
     position: relative;
@@ -117,33 +73,23 @@ img:hover {
     width: 120%;
     height: 115%;
     border: 2px solid var(--accent-color);
-    /* 利用不規則圓角模擬手繪感 */
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     z-index: -1;
     transform: rotate(-2deg);
     pointer-events: none;
 }
 
-/* =========================================
-   4. Layout Components (佈局組件)
-   ========================================= */
+/* Layout */
 .container {
     padding: 0 var(--container-padding);
     max-width: 1600px;
     margin: 0 auto;
 }
 
-.divider {
-    width: 100%;
-    height: 1px;
-    background-color: var(--line-color);
-    margin: 4rem 0;
-}
-
-/* Header / Navigation */
+/* Header */
 .site-header {
-    padding-top: 2.5rem;
-    padding-bottom: 2.5rem;
+    padding-top: 2rem;
+    padding-bottom: 2rem;
     display: flex;
     justify-content: space-between;
     align-items: center;
@@ -159,7 +105,7 @@ img:hover {
     font-family: var(--font-mono);
     color: var(--accent-color);
     border: 1px solid var(--accent-color);
-    padding: 6px 16px;
+    padding: 4px 12px;
     border-radius: 50px;
     font-size: 0.85rem;
     text-transform: uppercase;
@@ -169,7 +115,7 @@ img:hover {
 .hero {
     min-height: 85vh;
     display: grid;
-    grid-template-columns: 1.8fr 1fr; /* 左寬右窄 */
+    grid-template-columns: 1.8fr 1fr;
     align-items: center;
     gap: 5vw;
     border-left: 1px solid var(--line-color);
@@ -178,11 +124,12 @@ img:hover {
 }
 
 .hero-image-placeholder {
-    background-color: #E5E5E5;
+    background-color: #f0f0f0;
     height: 60vh;
     width: 100%;
     position: relative;
     overflow: hidden;
+    border-radius: 20px;
 }
 
 .image-caption {
@@ -194,38 +141,10 @@ img:hover {
     color: #666;
 }
 
-/* Intro Section (Sticky Layout) */
-.intro-grid {
-    display: grid;
-    grid-template-columns: 1fr 2fr; /* 左側標題，右側內文 */
-    gap: 4rem;
-    padding: 4rem 0;
-}
-
-.sticky-col {
-    position: sticky;
-    top: 3rem;
-    height: fit-content;
-    font-family: var(--font-mono);
-    color: #888;
-    font-size: 0.9rem;
-}
-
-.intro-heading {
-    font-size: clamp(2rem, 4vw, 3rem);
-    margin-bottom: 2rem;
-    line-height: 1.1;
-    font-weight: 600;
-}
-
-/* Process / Concept Section */
-.process-section {
-    margin-bottom: 4rem;
-}
-
+/* Concept Grid */
 .concept-grid {
     display: grid;
-    grid-template-columns: repeat(3, 1fr);
+    grid-template-columns: repeat(4, 1fr);
     border-top: 1px solid var(--line-color);
     border-bottom: 1px solid var(--line-color);
 }
@@ -235,19 +154,15 @@ img:hover {
     border-right: 1px solid var(--line-color);
     position: relative;
     transition: background-color 0.3s;
+    cursor: pointer;
 }
 
-.concept-item:last-child {
-    border-right: none;
-}
-
-.concept-item:hover {
-    background-color: var(--white);
-}
+.concept-item:last-child { border-right: none; }
+.concept-item:hover { background-color: var(--white); }
 
 .concept-number {
     font-size: 4rem;
-    color: #F0F0F0; /* 極淺灰 */
+    color: #F0F0F0;
     font-weight: 800;
     position: absolute;
     top: 1rem;
@@ -256,114 +171,56 @@ img:hover {
     line-height: 1;
 }
 
-.concept-item:hover .concept-number {
-    color: var(--accent-color);
-}
-
-.concept-item h3 {
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    position: relative; /* 確保文字在數字之上 */
-}
-
-.concept-desc {
-    font-size: 0.95rem;
-    color: #666;
-    line-height: 1.6;
-}
+.concept-item:hover .concept-number { color: var(--accent-color); }
 
 /* Footer */
 .site-footer {
-    padding: 8rem var(--container-padding) 4rem;
+    padding: 4rem var(--container-padding);
     background-color: var(--text-color);
     color: var(--white);
 }
 
-.footer-cta {
-    font-size: 1.2rem; 
-    margin-bottom: 2rem;
-    opacity: 0.7;
-}
-
-.footer-link {
-    font-size: clamp(3rem, 7vw, 6rem);
-    color: var(--white);
-    font-weight: 700;
-    line-height: 1;
-    display: inline-flex;
-    align-items: center;
-    gap: 1rem;
-    border-bottom: 2px solid transparent;
-}
-
-.footer-link:hover {
-    border-color: var(--accent-color);
-}
-
-.arrow-icon {
-    font-size: 0.8em;
-    color: var(--accent-color);
-    transform: rotate(45deg);
-    display: inline-block;
-    transition: transform 0.3s;
-}
-
-.footer-link:hover .arrow-icon {
-    transform: rotate(45deg) translate(10px, -10px);
-}
-
 .footer-meta {
-    margin-top: 6rem;
     display: flex;
     gap: 3rem;
     font-family: var(--font-mono);
     font-size: 0.9rem;
     opacity: 0.6;
-    border-top: 1px solid rgba(255,255,255,0.2);
-    padding-top: 2rem;
 }
 
-/* =========================================
-   5. Responsive Design (手機版適配)
-   ========================================= */
+/* Chat Box Styles */
+.chat-box {
+    height: 100%;
+    overflow-y: auto;
+}
+.message-item {
+    margin-bottom: 15px;
+    padding: 10px 15px;
+    border-radius: 15px;
+    max-width: 70%;
+    position: relative;
+}
+.msg-self {
+    background-color: #d1e7dd;
+    margin-left: auto;
+    border-bottom-right-radius: 2px;
+}
+.msg-other {
+    background-color: #fff;
+    border: 1px solid #e9ecef;
+    border-bottom-left-radius: 2px;
+}
+.msg-role-label {
+    font-size: 0.75rem;
+    color: #6c757d;
+    display: block;
+    margin-bottom: 4px;
+}
+
+/* RWD */
 @media (max-width: 900px) {
-    .hero {
-        grid-template-columns: 1fr;
-        padding: 2rem 0;
-        border: none;
-        gap: 2rem;
-    }
-    
-    .hero-image-placeholder {
-        height: 40vh;
-    }
-
-    .intro-grid {
-        grid-template-columns: 1fr;
-        gap: 2rem;
-    }
-    
-    .sticky-col {
-        position: static; /* 手機版取消黏性定位 */
-        margin-bottom: 1rem;
-    }
-
-    .concept-grid {
-        grid-template-columns: 1fr;
-    }
-    
-    .concept-item {
-        border-right: none;
-        border-bottom: 1px solid var(--line-color);
-        padding: 2rem 0;
-    }
-    
-    .concept-item:last-child {
-        border-bottom: none;
-    }
-    
-    .footer-meta {
-        flex-direction: column;
-        gap: 1rem;
-    }
+    .hero { grid-template-columns: 1fr; padding: 2rem 0; border: none; }
+    .concept-grid { grid-template-columns: 1fr; }
+    .concept-item { border-right: none; border-bottom: 1px solid var(--line-color); }
+    .display-text { font-size: 3.5rem; }
 }
