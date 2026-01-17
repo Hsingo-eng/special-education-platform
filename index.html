@@ -3,7 +3,8 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>特教溝通平台</title>
+    <title>特教溝通平台 | Communication Platform</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
@@ -12,46 +13,128 @@
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link rel="icon" type="image/png" href="favicon.png">
-    <link rel="apple-touch-icon" href="favicon.png">
 </head>
 <body>
 
-    <nav class="navbar navbar-expand-lg navbar-dark d-none" id="main-nav">
-        <div class="container">
-            <a class="navbar-brand" href="#"><i class="fas fa-hands-holding-child"></i> 特教溝通平台</a>
-            <div class="d-flex align-items-center">
-                <span class="text-white me-3 fw-bold" id="nav-user-info"></span>
-                <button id="btn-logout" class="btn btn-sm" onclick="logout()">登出</button>
-            </div>
+    <nav class="container site-header d-none" id="main-nav">
+        <div class="logo"><i class="fas fa-hands-holding-child"></i> 特教溝通平台</div>
+        <div class="d-flex align-items-center gap-3">
+            <span class="status-badge" id="nav-user-info">User</span>
+            <button id="btn-logout" class="btn btn-outline-dark btn-sm rounded-pill px-3" onclick="logout()">登出</button>
         </div>
     </nav>
 
     <div id="login-section" class="container">
-        <div class="text-center mb-4">
-            <h2 class="fw-bold"><i class="fas fa-shapes"></i> 歡迎使用</h2>
-            <p class="text-muted">請輸入使用者的帳號密碼</p>
+        <div class="hero" style="min-height: 90vh; border: none;">
+            <div class="hero-content">
+                <span class="section-label">Communication Platform</span>
+                <h1 class="display-text">
+                    Connecting <br>
+                    <span class="circle-sketch">Care</span> & Growth
+                </h1>
+                <p class="body-text highlight-border mb-5">
+                    專為特教親師生設計的溝通橋樑。極簡、高效、專注於孩子的成長紀錄。
+                </p>
+
+                <div class="card border-0 shadow-sm p-4" style="max-width: 400px; background: rgba(255,255,255,0.9);">
+                    <div class="mb-3">
+                        <label class="form-label fw-bold text-secondary small">USERNAME</label>
+                        <input type="text" id="login-username" class="form-control form-control-lg bg-light border-0" placeholder="請輸入帳號">
+                    </div>
+                    <div class="mb-4">
+                        <label class="form-label fw-bold text-secondary small">PASSWORD</label>
+                        <input type="password" id="login-password" class="form-control form-control-lg bg-light border-0" placeholder="請輸入密碼">
+                    </div>
+                    <button class="btn btn-primary w-100 btn-lg fw-bold rounded-pill" 
+                            style="background-color: var(--accent-color); border: none;"
+                            onclick="login()">
+                        Start Journey <i class="fas fa-arrow-right ms-2"></i>
+                    </button>
+                </div>
+            </div>
+            
+            <div class="hero-image-wrapper d-none d-md-block">
+                <div class="hero-image-placeholder d-flex align-items-center justify-content-center text-muted">
+                    <span class="image-caption">PLATFORM VISUALIZATION</span>
+                    <i class="fas fa-shapes fa-5x opacity-25"></i>
+                </div>
+            </div>
         </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold">帳號</label>
-            <input type="text" id="login-username" class="form-control form-control-lg" placeholder="請輸入帳號">
-        </div>
-        <div class="mb-3">
-            <label class="form-label fw-bold">密碼</label>
-            <input type="password" id="login-password" class="form-control form-control-lg" placeholder="請輸入密碼">
-        </div>
-        <button class="btn btn-primary w-100 btn-lg fw-bold" onclick="login()">登入系統</button>
     </div>
 
     <div id="dashboard-section" class="container mt-4 d-none">
     
-        <div id="calendar-section" class="card p-4 mb-4 shadow-sm border-0 d-none">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-                <h4 class="fw-bold m-0" style="color: var(--c-blue);">
-                    <i class="fas fa-calendar-alt me-2"></i>本月排程
-                </h4>
-                <button id="btn-add-event" class="btn btn-primary btn-sm role-only" 
+        <div id="calendar-section" class="mb-5 d-none">
+            <div class="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
+                <div>
+                    <span class="section-label">Schedule</span>
+                    <h2 class="mb-0">本月排程</h2>
+                </div>
+                <button id="btn-add-event" class="btn btn-dark rounded-pill role-only" 
                         data-allow="teacher,therapist" 
-                        style="background-color: var(--c-blue); border: none;"
                         onclick="openEventModal()">
-                    <i class="fas fa-plus"></i> 新增行程
+                    <i class="fas fa-plus"></i> New Event
                 </button>
+            </div>
+            <div class="p-4 bg-white shadow-sm" style="border-radius: 20px;">
+                <div id="calendar"></div>
+            </div>
+        </div>
+
+        <div class="process-section">
+            <div class="mb-4">
+                <span class="section-label">Features</span>
+            </div>
+            <div class="concept-grid" style="border-top: 1px solid var(--line-color);">
+                
+                <div class="concept-item role-restricted" data-deny="parents" onclick="showSection('records')" style="cursor: pointer;">
+                    <div class="concept-number">01</div>
+                    <h3><i class="fas fa-file-medical text-success me-2"></i>治療紀錄</h3>
+                    <p class="concept-desc">追蹤個案的治療進度與詳細紀錄，支援專業人員編輯與回覆。</p>
+                </div>
+                
+                <div class="concept-item" onclick="showSection('iep')" style="cursor: pointer;">
+                    <div class="concept-number">02</div>
+                    <h3><i class="fas fa-folder-open text-danger me-2"></i>IEP 資料</h3>
+                    <p class="concept-desc">個別化教育計畫檔案管理，隨時檢閱學生的學習目標。</p>
+                </div>
+
+                <div class="concept-item" onclick="showSection('messages')" style="cursor: pointer;">
+                    <div class="concept-number">03</div>
+                    <h3><i class="fas fa-comments text-primary me-2"></i>留言板</h3>
+                    <p class="concept-desc">親師溝通的即時橋樑，包含 Gemini AI 自動重點摘要功能。</p>
+                </div>
+
+                <div class="concept-item" onclick="showSection('questions')" style="cursor: pointer;">
+                    <div class="concept-number">04</div>
+                    <h3><i class="fas fa-question-circle text-info me-2"></i>提問回覆</h3>
+                    <p class="concept-desc">針對特定對象提出問題並獲得解答，建立良好的諮詢管道。</p>
+                </div>
+            </div>
+        </div>
+
+        <div id="content-area" class="pb-5">
+            
+            <div id="section-records" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="display-6 fw-bold">治療紀錄列表</h3>
+                    <button class="btn btn-success rounded-pill role-only" data-allow="therapist" onclick="openRecordModal()">
+                        <i class="fas fa-plus"></i> 新增紀錄
+                    </button>
+                </div>
+                <div id="record-list" class="list-group">
+                    <div class="text-center text-muted py-5">
+                        <div class="spinner-border text-secondary" role="status"></div>
+                        <p>載入資料中...</p>
+                    </div>
+                </div>
+            </div>
+
+            <div id="section-iep" class="d-none animate-fade">
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <h3 class="display-6 fw-bold">IEP 個案資料</h3>
+                    <button class="btn btn-danger rounded-pill shadow-sm role-only" data-allow="teacher" onclick="openIepUpload()">
+                        <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
+                    </button>
+                </div>
+                <div id="iep-list" class="row g-4"></div>
