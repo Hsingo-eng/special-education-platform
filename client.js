@@ -571,46 +571,64 @@ function replyQuestion(id) {
 // 功能 E: 行事曆 (FullCalendar)
 // ==========================================
 
+// --- 行事曆功能 ---
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
-    
-    // 如果找不到日曆元素 (可能還沒登入)，就直接返回
     if (!calendarEl) return;
-
-    // 顯示日曆區塊
-    const calendarSection = document.getElementById("calendar-section");
-    if(calendarSection) calendarSection.classList.remove("d-none");
+    document.getElementById("calendar-section").classList.remove("d-none");
 
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
+        height: 500, // 稍微加高一點
+        // 移除 headerToolbar 的預設樣式，依靠 CSS 覆寫
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,listMonth'
         },
-        height: 450,
         events: async function(info, successCallback, failureCallback) {
             try {
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
-                if(json.data) {
-                    successCallback(json.data);
-                } else {
-                    successCallback([]);
-                }
-            } catch (error) {
-                console.error(error);
-                failureCallback(error);
-            }
+                
+                // 🟢 在這裡處理顏色邏輯
+                const eventsWithColor = (json.data || []).map((evt, index) => {
+                    // 簡單的交錯邏輯：偶數橘色，奇數綠色
+                    // 或是您可以根據 evt.title 的內容來決定
+                    const colorClass = (index % 2 === 0) ? 'evt-orange' : 'evt-green';
+                    
+                    return {
+                        ...evt,
+                        classNames: [colorClass] // FullCalendar 用這個屬性加 class
+                    };
+                });
+
+                successCallback(eventsWithColor);
+            } catch (e) { failureCallback(e); }
         },
         eventClick: function(info) {
-            Swal.fire({
-                title: info.event.title,
-                text: info.event.extendedProps.description || "無備註",
-                icon: 'info',
-                footer: `<small>時間: ${info.event.start.toLocaleString()}</small>`
-            });
+            const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
+            const desc = info.event.extendedProps.description || "";
+            
+            if (!isOwner) {
+                Swal.fire({
+                    title: info.event.title,
+                    text: desc,
+                    icon: 'info',
+                    confirmButtonColor: '#333' // 改成黑色按鈕配合主題
+                });
+            } else {
+                Swal.fire({
+                    title: info.event.title,
+                    html: `<p class="text-muted">${desc}</p><br><div class="d-grid"><button id="btn-del" class="btn btn-outline-danger btn-sm">刪除此排程</button></div>`,
+                    showConfirmButton: false,
+                    showCloseButton: true,
+                    didOpen: () => {
+                        document.getElementById('btn-del').onclick = () => deleteEvent(info.event.id);
+                    }
+                });
+            }
         }
     });
     calendar.render();

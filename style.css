@@ -1,29 +1,40 @@
-/* Design System Variables */
+/* =========================================
+   1. Design System & Variables (設計系統)
+   ========================================= */
 :root {
-    --bg-color: #FAFAF9;
-    --text-color: #1A1A1A;
-    --accent-color: #2952FF;
-    --line-color: #E0E0E0;
+    /* Color Palette */
+    --bg-color: #FAFAF9;       /* 紙張米白 */
+    --text-color: #1A1A1A;     /* 深墨灰 */
+    --accent-color: #2952FF;   /* 電光藍 (重點色) */
+    --line-color: #E0E0E0;     /* 結構線條 */
     --white: #FFFFFF;
     
-    --font-main: 'Helvetica Neue', Helvetica, Arial, 'Noto Sans TC', sans-serif;
+    /* 📅 行事曆配色 */
+    --evt-orange: #F57C00;     /* 活力橘 */
+    --evt-green: #388E3C;      /* 自然綠 */
+    
+    /* Typography: 優先使用台北黑體，沒有則使用思源黑體 */
+    --font-main: 'Taipei Sans TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
     
     --container-padding: 5vw;
 }
 
-/* Base Styles */
+/* =========================================
+   2. Reset & Base Styles
+   ========================================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
     background-color: var(--bg-color);
     color: var(--text-color);
-    font-family: var(--font-main);
+    font-family: var(--font-main); /* 套用台北黑體 */
     line-height: 1.6;
     overflow-x: hidden;
+    font-weight: 400;
 }
 
-/* Typography */
+/* 標題與文字 */
 .display-text {
     font-size: clamp(3.5rem, 9vw, 7rem);
     font-weight: 700;
@@ -37,7 +48,7 @@ body {
     text-transform: uppercase;
     letter-spacing: 0.12em;
     color: var(--accent-color);
-    font-weight: 600;
+    font-weight: 700;
     margin-bottom: 1.5rem;
     display: inline-block;
     border-bottom: 1px solid var(--accent-color);
@@ -48,7 +59,7 @@ body {
     font-size: 1.125rem;
     max-width: 600px;
     text-align: justify;
-    color: #333;
+    color: #444;
 }
 
 .body-text.highlight-border {
@@ -57,7 +68,7 @@ body {
     padding-left: 1.5rem;
 }
 
-/* Visual Elements */
+/* 視覺裝飾 */
 .circle-sketch {
     display: inline-block;
     position: relative;
@@ -68,18 +79,13 @@ body {
 .circle-sketch::after {
     content: '';
     position: absolute;
-    left: -10%;
-    top: -5%;
-    width: 120%;
-    height: 115%;
+    left: -10%; top: -5%; width: 120%; height: 115%;
     border: 2px solid var(--accent-color);
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    z-index: -1;
-    transform: rotate(-2deg);
-    pointer-events: none;
+    z-index: -1; transform: rotate(-2deg); pointer-events: none;
 }
 
-/* Layout */
+/* 佈局容器 */
 .container {
     padding: 0 var(--container-padding);
     max-width: 1600px;
@@ -94,13 +100,7 @@ body {
     justify-content: space-between;
     align-items: center;
 }
-
-.logo {
-    font-weight: 800;
-    font-size: 1.5rem;
-    letter-spacing: -0.02em;
-}
-
+.logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; }
 .status-badge {
     font-family: var(--font-mono);
     color: var(--accent-color);
@@ -114,34 +114,23 @@ body {
 /* Hero Section */
 .hero {
     min-height: 85vh;
-    display: grid;
-    grid-template-columns: 1.8fr 1fr;
-    align-items: center;
-    gap: 5vw;
+    display: grid; grid-template-columns: 1.8fr 1fr;
+    align-items: center; gap: 5vw; padding: 4rem 2rem;
     border-left: 1px solid var(--line-color);
     border-right: 1px solid var(--line-color);
-    padding: 4rem 2rem;
 }
-
 .hero-image-placeholder {
-    background-color: #f0f0f0;
-    height: 60vh;
-    width: 100%;
-    position: relative;
-    overflow: hidden;
-    border-radius: 20px;
+    background-color: #f0f0f0; height: 60vh; width: 100%;
+    position: relative; overflow: hidden; border-radius: 4px;
 }
-
 .image-caption {
-    position: absolute;
-    top: 15px;
-    left: 15px;
-    font-family: var(--font-mono);
-    font-size: 12px;
-    color: #666;
+    position: absolute; top: 15px; left: 15px;
+    font-family: var(--font-mono); font-size: 12px; color: #666;
 }
 
-/* Concept Grid */
+/* =========================================
+   3. Grid Menu (解決數字重疊問題)
+   ========================================= */
 .concept-grid {
     display: grid;
     grid-template-columns: repeat(4, 1fr);
@@ -152,74 +141,148 @@ body {
 .concept-item {
     padding: 3rem 2rem;
     border-right: 1px solid var(--line-color);
-    position: relative;
+    position: relative; /* 讓內部絕對定位參考此處 */
     transition: background-color 0.3s;
     cursor: pointer;
+    overflow: hidden; /* 防止數字跑出去 */
 }
 
 .concept-item:last-child { border-right: none; }
 .concept-item:hover { background-color: var(--white); }
 
+/* 修正後的數字樣式：浮水印風格 */
 .concept-number {
-    font-size: 4rem;
-    color: #F0F0F0;
+    font-size: 6rem;
     font-weight: 800;
+    color: rgba(0, 0, 0, 0.03); /* 極淡的灰色，像浮水印 */
     position: absolute;
-    top: 1rem;
-    right: 2rem;
-    transition: color 0.3s;
+    top: -10px;
+    right: 10px;
     line-height: 1;
+    z-index: 0; /* 放在最底層 */
+    pointer-events: none; /* 不干擾點擊 */
+    font-family: var(--font-main);
 }
 
-.concept-item:hover .concept-number { color: var(--accent-color); }
-
-/* Footer */
-.site-footer {
-    padding: 4rem var(--container-padding);
-    background-color: var(--text-color);
-    color: var(--white);
-}
-
-.footer-meta {
-    display: flex;
-    gap: 3rem;
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-    opacity: 0.6;
-}
-
-/* Chat Box Styles */
-.chat-box {
-    height: 100%;
-    overflow-y: auto;
-}
-.message-item {
-    margin-bottom: 15px;
-    padding: 10px 15px;
-    border-radius: 15px;
-    max-width: 70%;
+/* 讓文字浮在數字上面 */
+.concept-item h3, 
+.concept-item p {
     position: relative;
+    z-index: 2; 
 }
-.msg-self {
-    background-color: #d1e7dd;
-    margin-left: auto;
-    border-bottom-right-radius: 2px;
+
+.concept-item h3 {
+    margin-bottom: 1rem;
+    font-weight: 600;
 }
-.msg-other {
-    background-color: #fff;
-    border: 1px solid #e9ecef;
-    border-bottom-left-radius: 2px;
+
+.concept-item:hover .concept-number {
+    color: rgba(41, 82, 255, 0.05); /* Hover 時微透藍色 */
 }
-.msg-role-label {
-    font-size: 0.75rem;
-    color: #6c757d;
-    display: block;
-    margin-bottom: 4px;
+
+/* =========================================
+   4. Calendar Styling (黑白灰 + 彩色事件)
+   ========================================= */
+#calendar-section {
+    background: transparent;
 }
+
+/* 覆寫 FullCalendar 變數，改為黑白灰 */
+:root {
+    --fc-border-color: #E0E0E0;
+    --fc-button-text-color: #1A1A1A;
+    --fc-button-bg-color: #FFFFFF;
+    --fc-button-border-color: #1A1A1A;
+    --fc-button-hover-bg-color: #F0F0F0;
+    --fc-button-hover-border-color: #1A1A1A;
+    --fc-button-active-bg-color: #1A1A1A;
+    --fc-button-active-border-color: #1A1A1A;
+    --fc-button-active-text-color: #FFFFFF;
+    --fc-today-bg-color: rgba(0,0,0,0.03);
+    --fc-page-bg-color: #FFFFFF;
+}
+
+/* 日曆外框 */
+.fc {
+    background: white;
+    padding: 20px;
+    border-radius: 4px;
+    border: 1px solid var(--line-color);
+    font-family: var(--font-main);
+}
+
+/* 標題工具列 */
+.fc-toolbar-title {
+    font-size: 1.5rem !important;
+    font-weight: 700;
+    color: var(--text-color);
+}
+
+/* 按鈕樣式 (黑框白底) */
+.fc-button-primary {
+    background-color: white !important;
+    border-color: #ddd !important;
+    color: #333 !important;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    font-size: 0.85rem !important;
+    box-shadow: none !important;
+}
+
+.fc-button-primary:hover {
+    background-color: #f5f5f5 !important;
+    border-color: #999 !important;
+}
+
+.fc-button-active {
+    background-color: #333 !important;
+    color: white !important;
+    border-color: #333 !important;
+}
+
+/* 移除預設的藍色事件背景 */
+.fc-event {
+    border: none !important;
+    box-shadow: 0 2px 5px rgba(0,0,0,0.05);
+    border-radius: 2px;
+    padding: 2px 4px;
+    font-size: 0.85rem;
+    font-weight: 500;
+}
+
+/* 橘色事件 (JS 會動態加入此 class) */
+.evt-orange {
+    background-color: var(--evt-orange) !important;
+    color: white !important;
+    border-left: 3px solid #BF360C !important;
+}
+
+/* 綠色事件 (JS 會動態加入此 class) */
+.evt-green {
+    background-color: var(--evt-green) !important;
+    color: white !important;
+    border-left: 3px solid #1B5E20 !important;
+}
+
+/* =========================================
+   5. Chat & Others
+   ========================================= */
+.chat-container { 
+    height: 400px; overflow-y: auto; background: #fff; padding: 20px; 
+    border-radius: 4px; border: 1px solid var(--line-color); 
+}
+.message-item { 
+    margin-bottom: 15px; padding: 10px 15px; border-radius: 8px; 
+    max-width: 75%; position: relative; font-size: 0.95rem;
+}
+.msg-self { background-color: #E3F2FD; margin-left: auto; color: #0D47A1; }
+.msg-other { background-color: #F5F5F5; color: #333; }
+.msg-role-label { font-size: 0.75rem; opacity: 0.6; display: block; margin-bottom: 4px; }
 
 /* RWD */
 @media (max-width: 900px) {
-    .hero { grid-template-columns: 1fr; padding: 2rem 0; border: none; }
+    .hero { grid-template-columns: 1fr; border: none; padding: 2rem 0; }
     .concept-grid { grid-template-columns: 1fr; }
     .concept-item { border-right: none; border-bottom: 1px solid var(--line-color); }
     .display-text { font-size: 3.5rem; }
