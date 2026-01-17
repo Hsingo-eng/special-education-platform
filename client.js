@@ -143,23 +143,50 @@ socket.on("message_update", (msg) => {
 // 功能 A: 留言板
 // ==========================================
 
+// --- 留言板 ---
 async function loadMessages() {
-    const chatBox = document.getElementById("chat-box");
-    chatBox.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-primary"></div></div>';
+    const box = document.getElementById("chat-box");
+    // 清空並顯示載入中
+    box.innerHTML = '<div class="text-center py-3 text-muted">載入中...</div>';
     
     try {
         const res = await fetchWithAuth(`${API_URL}/api/messages`);
         const json = await res.json();
-        chatBox.innerHTML = "";
+        box.innerHTML = "";
+
+        // 🟢 定義角色圖示 (Emoji)
+        const roleIcons = {
+            'teacher': '🐟',   // 魚
+            'therapist': '🐱', // 貓
+            'parents': '🐻'    // 熊
+        };
+
+        (json.data || []).forEach(msg => {
+            const isMe = (msg.user_name === currentUser.name);
+            const rowClass = isMe ? 'self' : 'other';
+            
+            // 取得對應的 Icon，如果找不到則預設為👤
+            const avatarIcon = roleIcons[msg.role] || '👤';
+            const roleLabel = roleName(msg.role);
+
+            // 🟢 新的 HTML 結構：頭像 + 對話框
+            const html = `
+                <div class="msg-row ${rowClass}">
+                    <div class="msg-avatar" title="${roleLabel}">${avatarIcon}</div>
+                    <div class="msg-bubble">
+                        <span class="msg-role">${msg.user_name} (${roleLabel})</span>
+                        ${msg.message}
+                    </div>
+                </div>
+            `;
+            
+            box.innerHTML += html;
+        });
         
-        if (!json.data || json.data.length === 0) {
-            chatBox.innerHTML = "<div class='text-center text-muted'>目前沒有留言</div>";
-            return;
-        }
-        json.data.forEach(msg => renderMessage(msg));
-        chatBox.scrollTop = chatBox.scrollHeight;
-    } catch (err) {
-        console.error(err);
+        box.scrollTop = box.scrollHeight;
+    } catch (e) {
+        console.error(e);
+        box.innerHTML = '<div class="text-center text-danger">載入失敗</div>';
     }
 }
 

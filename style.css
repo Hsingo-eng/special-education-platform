@@ -1,29 +1,23 @@
 /* =========================================
-   1. Design System & Variables (設計系統)
+   1. Design System & Variables
    ========================================= */
 :root {
-    /* Color Palette */
-    --bg-color: #FAFAF9;       /* 整體背景：米白 */
-    --hero-bg: #F4F4F5;        /* Hero 區塊背景：淺灰 */
-    --text-color: #1A1A1A;     /* 深墨灰 */
-    --accent-color: #2952FF;   /* 電光藍 (重點色) */
-    --line-color: #E0E0E0;     /* 結構線條 */
+    --bg-color: #FAFAF9;
+    --hero-bg: #F4F4F5;
+    --text-color: #1A1A1A;
+    --accent-color: #2952FF;
+    --line-color: #E0E0E0;
     --white: #FFFFFF;
     
-    /* 📅 行事曆配色 */
-    --evt-orange: #F57C00;     /* 活力橘 */
-    --evt-green: #388E3C;      /* 自然綠 */
+    --evt-orange: #F57C00;
+    --evt-green: #388E3C;
     
-    /* Typography */
     --font-main: 'Taipei Sans TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
     
     --container-padding: 5vw;
 }
 
-/* =========================================
-   2. Reset & Base Styles
-   ========================================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -35,7 +29,7 @@ body {
     font-weight: 400;
 }
 
-/* 標題與文字 */
+/* Typography */
 .display-text {
     font-size: clamp(3rem, 8vw, 6rem);
     font-weight: 700;
@@ -44,7 +38,6 @@ body {
     margin-bottom: 2rem;
 }
 
-/* 標籤樣式設計 (深灰底白字) */
 .section-label {
     font-size: 15px;
     text-transform: uppercase;
@@ -52,8 +45,6 @@ body {
     font-weight: 700;
     margin-bottom: 1.5rem;
     display: inline-block;
-    
-    /* Badge 風格 */
     background-color: #333;
     color: #fff;
     padding: 6px 16px;
@@ -61,252 +52,152 @@ body {
     border-bottom: none;
 }
 
-.body-text {
-    font-size: 1.125rem;
-    max-width: 600px;
-    text-align: justify;
-    color: #444;
-}
+.body-text { font-size: 1.125rem; max-width: 600px; text-align: justify; color: #444; }
+.body-text.highlight-border { margin-top: 2rem; border-left: 3px solid var(--accent-color); padding-left: 1.5rem; }
 
-.body-text.highlight-border {
-    margin-top: 2rem;
-    border-left: 3px solid var(--accent-color);
-    padding-left: 1.5rem;
-}
-
-/* 視覺裝飾 */
-.circle-sketch {
-    display: inline-block;
-    position: relative;
-    z-index: 1;
-    white-space: nowrap;
-}
-
+/* Visual Elements */
+.circle-sketch { display: inline-block; position: relative; z-index: 1; white-space: nowrap; }
 .circle-sketch::after {
-    content: '';
-    position: absolute;
-    left: -10%; top: -5%; width: 120%; height: 115%;
+    content: ''; position: absolute; left: -10%; top: -5%; width: 120%; height: 115%;
     border: 2px solid var(--accent-color);
     border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
     z-index: -1; transform: rotate(-2deg); pointer-events: none;
 }
 
-/* 佈局容器 */
-.container {
-    padding: 0 var(--container-padding);
-    max-width: 1600px;
-    margin: 0 auto;
-}
+/* Layout */
+.container { padding: 0 var(--container-padding); max-width: 1600px; margin: 0 auto; }
 
 /* Header */
-.site-header {
-    padding-top: 2rem;
-    padding-bottom: 2rem;
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-}
+.site-header { padding-top: 2rem; padding-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
 .logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; }
 .status-badge {
-    font-family: var(--font-mono);
-    color: var(--accent-color);
-    border: 1px solid var(--accent-color);
-    padding: 4px 12px;
-    border-radius: 50px;
-    font-size: 0.85rem;
-    text-transform: uppercase;
+    font-family: var(--font-mono); color: var(--accent-color); border: 1px solid var(--accent-color);
+    padding: 4px 12px; border-radius: 50px; font-size: 0.85rem; text-transform: uppercase;
 }
 
-/* Hero 灰色塊設計 */
+/* Hero */
 .hero {
-    min-height: 85vh;
-    display: grid; grid-template-columns: 1.8fr 1fr;
-    align-items: center; gap: 4rem; 
-    padding: 4rem;
-    
-    background-color: var(--hero-bg);
-    border-radius: 20px;
-    margin-bottom: 4rem;
+    min-height: 85vh; display: grid; grid-template-columns: 1.8fr 1fr; align-items: center; gap: 4rem; 
+    padding: 4rem; background-color: var(--hero-bg); border-radius: 20px; margin-bottom: 4rem;
 }
+.hero-image-placeholder { background-color: #E4E4E7; height: 60vh; width: 100%; position: relative; overflow: hidden; border-radius: 12px; }
+.image-caption { position: absolute; top: 15px; left: 15px; font-family: var(--font-mono); font-size: 12px; color: #666; }
 
-.hero-image-placeholder {
-    background-color: #E4E4E7; 
-    height: 60vh; width: 100%;
-    position: relative; overflow: hidden; border-radius: 12px;
-}
-.image-caption {
-    position: absolute; top: 15px; left: 15px;
-    font-family: var(--font-mono); font-size: 12px; color: #666;
-}
-
-/* =========================================
-   3. Grid Menu (功能選單)
-   ========================================= */
-.concept-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    border-top: 1px solid var(--line-color);
-    border-bottom: 1px solid var(--line-color);
-}
-
-.concept-item {
-    padding: 3rem 2rem;
-    border-right: 1px solid var(--line-color);
-    position: relative;
-    transition: background-color 0.3s;
-    cursor: pointer;
-    overflow: hidden;
-}
-
+/* Menu Grid */
+.concept-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-color); border-bottom: 1px solid var(--line-color); }
+.concept-item { padding: 3rem 2rem; border-right: 1px solid var(--line-color); position: relative; transition: background-color 0.3s; cursor: pointer; overflow: hidden; }
 .concept-item:last-child { border-right: none; }
 .concept-item:hover { background-color: var(--white); }
 
-/* 數字樣式：預設淺灰，Hover 變藍 */
 .concept-number {
-    font-size: 4rem; 
-    font-weight: 800;
-    color: #E0E0E0; 
-    position: absolute;
-    top: 1rem;
-    right: 1.5rem;
-    line-height: 1;
-    z-index: 0;
-    font-family: var(--font-main);
-    transition: color 0.3s ease;
+    font-size: 4rem; font-weight: 800; color: #E0E0E0; position: absolute; top: 1rem; right: 1.5rem;
+    line-height: 1; z-index: 0; font-family: var(--font-main); transition: color 0.3s ease;
+}
+.concept-item:hover .concept-number { color: var(--accent-color); opacity: 0.2; }
+.concept-item h3, .concept-item p { position: relative; z-index: 2; }
+.concept-item h3 { margin-bottom: 1rem; margin-top: 1.5rem; font-weight: 600; }
+
+/* Calendar */
+#calendar-section { background: transparent; }
+.fc { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--line-color); font-family: var(--font-main); }
+.fc a { text-decoration: none !important; color: #444 !important; }
+
+/* 🟢 行事曆週標題修正：深灰底白字 */
+.fc-col-header-cell { background-color: #333 !important; border: none !important; }
+.fc-col-header-cell-cushion { 
+    color: #ffffff !important; /* 強制白色 */
+    font-weight: 700; text-decoration: none !important; 
+    padding-top: 8px; padding-bottom: 8px; display: block; 
 }
 
-.concept-item:hover .concept-number {
-    color: var(--accent-color);
-    opacity: 0.2;
-}
-
-.concept-item h3, 
-.concept-item p {
-    position: relative;
-    z-index: 2; 
-}
-
-/* 🟢 修改重點：增加標題上方的間距 */
-.concept-item h3 { 
-    margin-bottom: 1rem; 
-    margin-top: 1.5rem; /* 增加這裡的距離 */
-    font-weight: 600; 
-}
-
-/* =========================================
-   4. Calendar Styling (行事曆優化)
-   ========================================= */
-#calendar-section {
-    background: transparent;
-}
-
-/* 日曆外框 */
-.fc {
-    background: white;
-    padding: 15px;
-    border-radius: 12px;
-    border: 1px solid var(--line-color);
-    font-family: var(--font-main);
-}
-
-/* 🟢 修改重點：星期幾的那一排 (Header) 改為深灰底白字 */
-.fc-col-header-cell {
-    background-color: #333 !important; /* 深灰底 */
-    border: none !important;
-}
-
-.fc-col-header-cell-cushion {
-    color: #fff !important; /* 白字 */
-    font-weight: 700;
-    text-decoration: none !important;
-    padding-top: 8px;
-    padding-bottom: 8px;
-    display: block;
-}
-
-/* 移除日期連結的底線與顏色 */
-.fc a {
-    text-decoration: none !important;
-    color: #444 !important; /* 深灰色 */
-}
-
-/* 日期數字 */
-.fc-daygrid-day-number {
-    font-size: 0.9rem;
-    font-weight: 500;
-    padding: 4px 8px !important;
-}
-
-/* 強制縮減單元格高度 */
-.fc-daygrid-day-frame {
-    min-height: 80px !important; 
-}
-
-.fc-toolbar-title {
-    font-size: 1.25rem !important;
-    font-weight: 700;
-    color: var(--text-color);
-}
-
-/* 按鈕樣式 */
-.fc-button-primary {
-    background-color: white !important;
-    border-color: #ddd !important;
-    color: #333 !important;
-    box-shadow: none !important;
-    text-transform: uppercase;
-    font-size: 0.75rem !important;
-}
-.fc-button-active {
-    background-color: #333 !important;
-    color: white !important;
-    border-color: #333 !important;
-}
-
-/* 事件樣式 */
-.fc-event {
-    border: none !important;
-    border-radius: 2px;
-    padding: 1px 4px;
-    font-size: 0.75rem; 
-    margin-top: 1px !important;
-}
+.fc-daygrid-day-number { font-size: 0.9rem; font-weight: 500; padding: 4px 8px !important; }
+.fc-daygrid-day-frame { min-height: 80px !important; }
+.fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; color: var(--text-color); }
+.fc-button-primary { background-color: white !important; border-color: #ddd !important; color: #333 !important; box-shadow: none !important; text-transform: uppercase; font-size: 0.75rem !important; }
+.fc-button-active { background-color: #333 !important; color: white !important; border-color: #333 !important; }
+.fc-event { border: none !important; border-radius: 2px; padding: 1px 4px; font-size: 0.75rem; margin-top: 1px !important; }
 .evt-orange { background-color: var(--evt-orange) !important; color: white !important; }
 .evt-green { background-color: var(--evt-green) !important; color: white !important; }
 
 /* =========================================
-   5. Chat & Others
+   5. Chat Layout (新版：包含頭像)
    ========================================= */
 .chat-container { 
     height: 400px; overflow-y: auto; background: #fff; padding: 20px; 
     border-radius: 4px; border: 1px solid var(--line-color); 
+    display: flex; flex-direction: column; gap: 15px; /* 訊息間距 */
 }
-.message-item { 
-    margin-bottom: 15px; padding: 10px 15px; border-radius: 8px; 
-    max-width: 75%; position: relative; font-size: 0.95rem;
+
+/* 訊息列：包含頭像和對話框 */
+.msg-row {
+    display: flex;
+    align-items: flex-end; /* 對齊底部 */
+    gap: 10px;
+    max-width: 80%;
 }
-.msg-self { background-color: #E3F2FD; margin-left: auto; color: #0D47A1; }
-.msg-other { background-color: #F5F5F5; color: #333; }
-.msg-role-label { font-size: 0.75rem; opacity: 0.6; display: block; margin-bottom: 4px; }
+
+/* 對話氣泡 */
+.msg-bubble {
+    padding: 12px 16px;
+    border-radius: 12px;
+    position: relative;
+    font-size: 0.95rem;
+    line-height: 1.5;
+}
+
+/* 頭像樣式 */
+.msg-avatar {
+    width: 40px;
+    height: 40px;
+    background: #f0f0f0;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem; /* Emoji 大小 */
+    flex-shrink: 0;
+    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+}
+
+/* 角色標籤 (在氣泡內) */
+.msg-role {
+    display: block;
+    font-size: 0.75rem;
+    margin-bottom: 4px;
+    opacity: 0.7;
+    font-weight: 600;
+}
+
+/* 🟢 別人 (左側) */
+.msg-row.other {
+    align-self: flex-start;
+}
+.msg-row.other .msg-bubble {
+    background-color: #F5F5F5;
+    color: #333;
+    border-bottom-left-radius: 2px;
+}
+
+/* 🟢 我自己 (右側 - 翻轉排列) */
+.msg-row.self {
+    align-self: flex-end;
+    flex-direction: row-reverse; /* 頭像在右邊 */
+}
+.msg-row.self .msg-bubble {
+    background-color: #E3F2FD;
+    color: #0D47A1;
+    border-bottom-right-radius: 2px;
+    text-align: right;
+}
 
 /* RWD */
 @media (max-width: 900px) {
     .container { padding: 0 4vw; }
-    
-    .hero { 
-        grid-template-columns: 1fr; 
-        padding: 2rem; 
-        gap: 2rem; 
-        margin-bottom: 2rem;
-    }
-    
+    .hero { grid-template-columns: 1fr; padding: 2rem; gap: 2rem; margin-bottom: 2rem; }
     .hero-image-placeholder { height: 30vh; }
-    
     .concept-grid { grid-template-columns: 1fr; }
     .concept-item { border-right: none; border-bottom: 1px solid var(--line-color); padding: 2rem 1.5rem; }
-    
     .display-text { font-size: 3rem; }
-    
     .fc-daygrid-day-frame { min-height: 50px !important; }
     .fc-toolbar-title { font-size: 1rem !important; }
     .fc-header-toolbar { flex-wrap: wrap; gap: 10px; }
