@@ -37,28 +37,28 @@ body {
 
 /* 標題與文字 */
 .display-text {
-    font-size: clamp(3rem, 8vw, 6rem); /* 稍微調小一點點以免太擁擠 */
+    font-size: clamp(3rem, 8vw, 6rem);
     font-weight: 700;
     line-height: 1;
     letter-spacing: -0.03em;
     margin-bottom: 2rem;
 }
 
-/* 🟢 修改需求 4: 標籤樣式設計 (深灰底白字) */
+/* 標籤樣式設計 (深灰底白字) */
 .section-label {
-    font-size: 15px; /* 原本13px + 2px */
+    font-size: 15px;
     text-transform: uppercase;
     letter-spacing: 0.1em;
     font-weight: 700;
     margin-bottom: 1.5rem;
     display: inline-block;
     
-    /* 新設計：Badge 風格 */
+    /* Badge 風格 */
     background-color: #333;
     color: #fff;
     padding: 6px 16px;
     border-radius: 4px;
-    border-bottom: none; /* 移除原本的底線 */
+    border-bottom: none;
 }
 
 .body-text {
@@ -117,21 +117,19 @@ body {
     text-transform: uppercase;
 }
 
-/* 🟢 修改需求 2: Hero 灰色塊設計 */
+/* Hero 灰色塊設計 */
 .hero {
     min-height: 85vh;
     display: grid; grid-template-columns: 1.8fr 1fr;
     align-items: center; gap: 4rem; 
     padding: 4rem;
     
-    /* 加入灰色塊背景設計 */
     background-color: var(--hero-bg);
-    border-radius: 20px; /* 圓角 */
-    margin-bottom: 4rem; /* 與下方隔開 */
+    border-radius: 20px;
+    margin-bottom: 4rem;
 }
 
 .hero-image-placeholder {
-    /* 圖片區塊改為更深的灰色，增加層次 */
     background-color: #E4E4E7; 
     height: 60vh; width: 100%;
     position: relative; overflow: hidden; border-radius: 12px;
@@ -163,29 +161,23 @@ body {
 .concept-item:last-child { border-right: none; }
 .concept-item:hover { background-color: var(--white); }
 
-/* 🟢 修改需求 1: 數字樣式調整 */
+/* 數字樣式：預設淺灰，Hover 變藍 */
 .concept-number {
-    font-size: 4rem; /* 縮小一點，避免覆蓋文字 */
+    font-size: 4rem; 
     font-weight: 800;
-    
-    /* 預設淺灰色 */
     color: #E0E0E0; 
-    
     position: absolute;
     top: 1rem;
     right: 1.5rem;
     line-height: 1;
     z-index: 0;
     font-family: var(--font-main);
-    
-    /* 加入顏色過渡動畫 */
     transition: color 0.3s ease;
 }
 
-/* 滑鼠移上去時，數字變藍色 */
 .concept-item:hover .concept-number {
     color: var(--accent-color);
-    opacity: 0.2; /* 稍微透明一點，還是保持浮水印感 */
+    opacity: 0.2;
 }
 
 .concept-item h3, 
@@ -193,7 +185,13 @@ body {
     position: relative;
     z-index: 2; 
 }
-.concept-item h3 { margin-bottom: 1rem; font-weight: 600; }
+
+/* 🟢 修改重點：增加標題上方的間距 */
+.concept-item h3 { 
+    margin-bottom: 1rem; 
+    margin-top: 1.5rem; /* 增加這裡的距離 */
+    font-weight: 600; 
+}
 
 /* =========================================
    4. Calendar Styling (行事曆優化)
@@ -202,13 +200,28 @@ body {
     background: transparent;
 }
 
-/* 🟢 修改需求 3: 行事曆樣式調整 */
+/* 日曆外框 */
 .fc {
     background: white;
-    padding: 15px; /* 減少內距 */
+    padding: 15px;
     border-radius: 12px;
     border: 1px solid var(--line-color);
     font-family: var(--font-main);
+}
+
+/* 🟢 修改重點：星期幾的那一排 (Header) 改為深灰底白字 */
+.fc-col-header-cell {
+    background-color: #333 !important; /* 深灰底 */
+    border: none !important;
+}
+
+.fc-col-header-cell-cushion {
+    color: #fff !important; /* 白字 */
+    font-weight: 700;
+    text-decoration: none !important;
+    padding-top: 8px;
+    padding-bottom: 8px;
+    display: block;
 }
 
 /* 移除日期連結的底線與顏色 */
@@ -217,20 +230,16 @@ body {
     color: #444 !important; /* 深灰色 */
 }
 
-.fc-col-header-cell-cushion {
-    font-weight: 700;
-    color: #333 !important;
-}
-
+/* 日期數字 */
 .fc-daygrid-day-number {
     font-size: 0.9rem;
     font-weight: 500;
     padding: 4px 8px !important;
 }
 
-/* 強制縮減單元格高度，避免滾動 */
+/* 強制縮減單元格高度 */
 .fc-daygrid-day-frame {
-    min-height: 80px !important; /* 電腦版高度限制 */
+    min-height: 80px !important; 
 }
 
 .fc-toolbar-title {
@@ -259,7 +268,7 @@ body {
     border: none !important;
     border-radius: 2px;
     padding: 1px 4px;
-    font-size: 0.75rem; /* 縮小字體 */
+    font-size: 0.75rem; 
     margin-top: 1px !important;
 }
 .evt-orange { background-color: var(--evt-orange) !important; color: white !important; }
@@ -286,7 +295,7 @@ body {
     
     .hero { 
         grid-template-columns: 1fr; 
-        padding: 2rem; /* 手機版內距縮小 */
+        padding: 2rem; 
         gap: 2rem; 
         margin-bottom: 2rem;
     }
