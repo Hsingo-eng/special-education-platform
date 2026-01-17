@@ -1,384 +1,369 @@
 /* =========================================
-   1. 核心變數設定 (So Matcha Palette)
+   1. Design System & Variables (設計系統變數)
    ========================================= */
 :root {
-    /* 參考圖吸取的色碼 */
-    --c-blue: #3971b8;    /* Celtic Blue (主色) */
-    --c-green: #c8d69b;   /* Tea Green (輔色) */
-    --c-yellow: #f6e6a5;  /* Vanilla (輔色) */
-    --c-brown: #343b1b;   /* Drab Dark Brown (深色文字/邊框) */
-    --c-ivory: #fbfcee;   /* Ivory (溫暖背景) */
-    --c-white: #ffffff;
+    /* Color Palette */
+    --bg-color: #FAFAF9;       /* 紙張米白 */
+    --text-color: #1A1A1A;     /* 深墨灰 */
+    --accent-color: #2952FF;   /* 電光藍 (重點色) */
+    --line-color: #E0E0E0;     /* 結構線條 */
+    --white: #FFFFFF;
     
-    /* 導角設定：胖胖的圓角 */
-    --radius-box: 20px;   
-    --radius-btn: 12px;
+    /* Typography */
+    --font-main: 'Helvetica Neue', Helvetica, Arial, 'Noto Sans TC', sans-serif;
+    --font-mono: 'Courier New', Courier, monospace; /* 增加數據感/工程感 */
+    
+    /* Spacing */
+    --container-padding: 5vw;
+    --section-gap: 8rem;
 }
 
 /* =========================================
-   2. 全站基礎 (Typography & Layout)
+   2. Reset & Base Styles (基礎設定)
    ========================================= */
+* {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+}
+
 body {
-    font-family: 'Fredoka', 'Noto Sans TC', sans-serif; /* 使用圓潤字體 */
-    background-color: var(--c-ivory); /* 溫暖的象牙白底 */
-    color: var(--c-brown); /* 字體不用全黑，改用深褐 */
+    background-color: var(--bg-color);
+    color: var(--text-color);
+    font-family: var(--font-main);
+    line-height: 1.6;
+    -webkit-font-smoothing: antialiased;
+    overflow-x: hidden;
+}
+
+a {
+    text-decoration: none;
+    color: inherit;
+    transition: 0.3s;
+}
+
+ul {
+    list-style: none;
+}
+
+img {
+    width: 100%;
+    display: block;
+    filter: grayscale(100%); /* 預設黑白 */
+    transition: filter 0.5s ease;
+}
+
+img:hover {
+    filter: grayscale(0%); /* 滑鼠移過變彩色 */
+}
+
+/* =========================================
+   3. Typography Classes (排版樣式)
+   ========================================= */
+/* 超大標題 (Hero 區) */
+.display-text {
+    font-size: clamp(3.5rem, 9vw, 7rem); /* RWD 字體大小 */
+    font-weight: 700;
+    line-height: 0.95;
+    letter-spacing: -0.03em;
+    margin-bottom: 2rem;
+}
+
+/* 小標題 (章節標籤) */
+.section-label {
+    font-size: 13px;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    color: var(--accent-color);
+    font-weight: 600;
+    margin-bottom: 1.5rem;
+    display: inline-block;
+    border-bottom: 1px solid var(--accent-color);
+    padding-bottom: 4px;
+}
+
+/* 內文 */
+.body-text {
+    font-size: 1.125rem;
+    max-width: 600px;
+    text-align: justify;
+    color: #333;
+}
+
+.body-text.highlight-border {
+    margin-top: 2rem;
+    border-left: 3px solid var(--accent-color);
+    padding-left: 1.5rem;
+}
+
+/* 強調文字 */
+.highlight {
+    color: var(--accent-color);
+}
+
+/* 手繪圈選效果 (CSS 繪製) */
+.circle-sketch {
+    display: inline-block;
+    position: relative;
+    z-index: 1;
+    white-space: nowrap;
+}
+
+.circle-sketch::after {
+    content: '';
+    position: absolute;
+    left: -10%;
+    top: -5%;
+    width: 120%;
+    height: 115%;
+    border: 2px solid var(--accent-color);
+    /* 利用不規則圓角模擬手繪感 */
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    z-index: -1;
+    transform: rotate(-2deg);
+    pointer-events: none;
+}
+
+/* =========================================
+   4. Layout Components (佈局組件)
+   ========================================= */
+.container {
+    padding: 0 var(--container-padding);
+    max-width: 1600px;
+    margin: 0 auto;
+}
+
+.divider {
+    width: 100%;
+    height: 1px;
+    background-color: var(--line-color);
+    margin: 4rem 0;
+}
+
+/* Header / Navigation */
+.site-header {
+    padding-top: 2.5rem;
+    padding-bottom: 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.logo {
+    font-weight: 800;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+}
+
+.status-badge {
+    font-family: var(--font-mono);
+    color: var(--accent-color);
+    border: 1px solid var(--accent-color);
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+}
+
+/* Hero Section */
+.hero {
+    min-height: 85vh;
+    display: grid;
+    grid-template-columns: 1.8fr 1fr; /* 左寬右窄 */
+    align-items: center;
+    gap: 5vw;
+    border-left: 1px solid var(--line-color);
+    border-right: 1px solid var(--line-color);
+    padding: 4rem 2rem;
+}
+
+.hero-image-placeholder {
+    background-color: #E5E5E5;
+    height: 60vh;
+    width: 100%;
+    position: relative;
+    overflow: hidden;
+}
+
+.image-caption {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    font-family: var(--font-mono);
+    font-size: 12px;
+    color: #666;
+}
+
+/* Intro Section (Sticky Layout) */
+.intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 2fr; /* 左側標題，右側內文 */
+    gap: 4rem;
+    padding: 4rem 0;
+}
+
+.sticky-col {
+    position: sticky;
+    top: 3rem;
+    height: fit-content;
+    font-family: var(--font-mono);
+    color: #888;
+    font-size: 0.9rem;
+}
+
+.intro-heading {
+    font-size: clamp(2rem, 4vw, 3rem);
+    margin-bottom: 2rem;
+    line-height: 1.1;
+    font-weight: 600;
+}
+
+/* Process / Concept Section */
+.process-section {
+    margin-bottom: 4rem;
+}
+
+.concept-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    border-top: 1px solid var(--line-color);
+    border-bottom: 1px solid var(--line-color);
+}
+
+.concept-item {
+    padding: 3rem 2rem;
+    border-right: 1px solid var(--line-color);
+    position: relative;
+    transition: background-color 0.3s;
+}
+
+.concept-item:last-child {
+    border-right: none;
+}
+
+.concept-item:hover {
+    background-color: var(--white);
+}
+
+.concept-number {
+    font-size: 4rem;
+    color: #F0F0F0; /* 極淺灰 */
+    font-weight: 800;
+    position: absolute;
+    top: 1rem;
+    right: 2rem;
+    transition: color 0.3s;
+    line-height: 1;
+}
+
+.concept-item:hover .concept-number {
+    color: var(--accent-color);
+}
+
+.concept-item h3 {
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    position: relative; /* 確保文字在數字之上 */
+}
+
+.concept-desc {
+    font-size: 0.95rem;
+    color: #666;
     line-height: 1.6;
 }
 
-/* 標題加強圓潤感 */
-h1, h2, h3, h4, h5, h6, .navbar-brand {
+/* Footer */
+.site-footer {
+    padding: 8rem var(--container-padding) 4rem;
+    background-color: var(--text-color);
+    color: var(--white);
+}
+
+.footer-cta {
+    font-size: 1.2rem; 
+    margin-bottom: 2rem;
+    opacity: 0.7;
+}
+
+.footer-link {
+    font-size: clamp(3rem, 7vw, 6rem);
+    color: var(--white);
     font-weight: 700;
-    letter-spacing: 0.5px;
+    line-height: 1;
+    display: inline-flex;
+    align-items: center;
+    gap: 1rem;
+    border-bottom: 2px solid transparent;
 }
 
-/* =========================================
-   3. 導覽列 (Navbar) - 藍色色塊風格
-   ========================================= */
-.navbar {
-    background-color: var(--c-blue) !important;
-    padding: 15px 0;
-    box-shadow: 0 4px 0px rgba(52, 59, 27, 0.1); /* 微厚度的陰影 */
+.footer-link:hover {
+    border-color: var(--accent-color);
 }
 
-.navbar-brand {
-    color: var(--c-ivory) !important; /* 白字 */
-    font-size: 1.5rem;
+.arrow-icon {
+    font-size: 0.8em;
+    color: var(--accent-color);
+    transform: rotate(45deg);
+    display: inline-block;
+    transition: transform 0.3s;
 }
 
-/* 登出按鈕：做成白色小方塊 */
-#btn-logout {
-    background-color: var(--c-ivory);
-    color: var(--c-blue);
-    border: none;
-    font-weight: 700;
-    box-shadow: 0 3px 0px rgba(0,0,0,0.1);
-}
-#btn-logout:hover {
-    transform: translateY(2px); /* 按壓效果 */
-    box-shadow: 0 1px 0px rgba(0,0,0,0.1);
+.footer-link:hover .arrow-icon {
+    transform: rotate(45deg) translate(10px, -10px);
 }
 
-/* =========================================
-   4. 登入區塊 (Login) - 乾淨的卡片
-   ========================================= */
-#login-section {
-    max-width: 400px;
-    margin: 60px auto;
-    padding: 40px;
-    background-color: var(--c-white);
-    border-radius: var(--radius-box);
-    /* 雙層陰影：營造可愛的層次感 */
-    box-shadow: 
-        6px 6px 0px var(--c-green), 
-        12px 12px 0px var(--c-yellow);
-    border: 2px solid var(--c-brown); /* 加個深色框更有漫畫感 */
-}
-
-#login-section h2 {
-    color: var(--c-blue);
-    text-align: center;
-    margin-bottom: 30px;
-}
-
-/* 輸入框 */
-.form-control {
-    background-color: var(--c-ivory);
-    border: 2px solid #e0e0e0;
-    border-radius: var(--radius-btn);
-    padding: 12px;
-    font-weight: 600;
-    color: var(--c-brown);
-}
-.form-control:focus {
-    background-color: var(--c-white);
-    border-color: var(--c-blue);
-    box-shadow: 0 0 0 3px rgba(57, 113, 184, 0.2);
-}
-
-/* 登入按鈕 - 藍色大方塊 */
-#login-section .btn-primary {
-    background-color: var(--c-blue);
-    border: none;
-    width: 100%;
-    padding: 12px;
-    font-size: 1.2rem;
-    box-shadow: 0 4px 0px #2a558c; /* 深藍色立體邊 */
-    margin-top: 10px;
-}
-#login-section .btn-primary:hover {
-    background-color: #4a82c9;
-    transform: translateY(2px);
-    box-shadow: 0 2px 0px #2a558c;
-}
-
-/* =========================================
-   5. 主選單 (Dashboard) - 圖示化色塊按鈕
-   ========================================= */
-.dashboard-menu {
-    margin-top: 40px;
-    margin-bottom: 50px;
-}
-
-/* 卡片基礎設定 */
-.menu-card {
-    border: none !important;
-    border-radius: var(--radius-box) !important;
-    padding: 25px 15px !important;
-    transition: all 0.2s cubic-bezier(0.25, 0.8, 0.25, 1);
-    position: relative;
-    cursor: pointer;
-    /* 這裡不需要邊框，用實心色塊 */
-    box-shadow: 0 6px 0px rgba(0,0,0,0.1); /* 立體感 */
-    height: 100%;
-}
-
-/* 滑鼠互動：整張卡片往下壓 */
-.menu-card:hover {
-    transform: translateY(4px);
-    box-shadow: 0 2px 0px rgba(0,0,0,0.1);
-}
-
-/* 圖示設定：超大、置中 */
-.menu-card i {
-    font-size: 3.5rem !important; /* 放大圖示 */
-    margin-bottom: 15px;
-    display: block;
-    /* 讓圖示有點透明度變化，融入背景 */
-    filter: drop-shadow(2px 2px 0px rgba(0,0,0,0.1)); 
-}
-
-/* 文字設定 */
-.menu-card h6 {
-    font-size: 1.2rem;
-    font-weight: 700;
-    margin: 0;
-}
-
-/* --- 個別卡片配色 (So Matcha 色盤應用) --- */
-
-/* 1. 治療紀錄 - 藍色塊 (White Text) */
-.card-record {
-    background-color: var(--c-blue);
-    color: var(--c-white);
-}
-.card-record i { color: var(--c-ivory); }
-
-/* 2. IEP 資料 - 黃色塊 (Brown Text) */
-.card-iep {
-    background-color: var(--c-yellow);
-    color: var(--c-brown);
-}
-.card-iep i { color: #dcb045; /* 深一點的黃色圖示 */ }
-
-/* 3. 留言板 - 綠色塊 (Brown Text) */
-.card-message {
-    background-color: var(--c-green);
-    color: var(--c-brown);
-}
-.card-message i { color: #5a6e2e; /* 深綠圖示 */ }
-
-/* 4. 提問回覆 - 深褐塊 (White Text) */
-/* 使用深褐色來平衡畫面，讓視覺有重點 */
-.card-question {
-    background-color: var(--c-brown);
-    color: var(--c-white);
-}
-.card-question i { color: var(--c-green); }
-
-/* =========================================
-   6. 內容與功能區塊
-   ========================================= */
-
-/* 通用按鈕樣式 - 方塊感 */
-.btn {
-    border-radius: var(--radius-btn);
-    font-weight: 700;
-    border: 2px solid transparent;
-    transition: all 0.2s;
-}
-
-/* 主要操作按鈕 (發問、送出) */
-.btn-primary, .btn-info {
-    background-color: var(--c-blue);
-    color: white;
-    box-shadow: 0 4px 0px #2a558c;
-}
-.btn-primary:hover {
-    transform: translateY(2px);
-    box-shadow: 0 2px 0px #2a558c;
-}
-
-/* 次要按鈕 */
-.btn-outline-secondary {
-    border: 2px solid #e0e0e0;
-    color: var(--c-brown);
-    background: white;
-}
-.btn-outline-secondary:hover {
-    border-color: var(--c-brown);
-    background: var(--c-ivory);
-}
-
-/* 列表卡片 (治療紀錄、留言) */
-.card, .list-group-item {
-    border: 2px solid #eee;
-    border-radius: var(--radius-box) !important;
-    background-color: var(--c-white);
-    margin-bottom: 20px;
-    box-shadow: 4px 4px 0px #eee; /* 硬陰影 */
-}
-
-/* 標籤 Badge */
-.badge {
-    padding: 8px 12px;
-    border-radius: 8px; /* 方圓角 */
+.footer-meta {
+    margin-top: 6rem;
+    display: flex;
+    gap: 3rem;
+    font-family: var(--font-mono);
     font-size: 0.9rem;
-}
-.bg-primary { background-color: var(--c-blue) !important; }
-.bg-success { background-color: var(--c-green) !important; color: var(--c-brown) !important; }
-.bg-warning { background-color: var(--c-yellow) !important; color: var(--c-brown) !important; }
-
-/* =========================================
-   6. 聊天室樣式 (Chat Room) - 左右分流版
-   ========================================= */
-.chat-container {
-    border: 2px solid var(--c-brown);
-    border-radius: var(--radius-box);
-    overflow: hidden;
-    height: 450px;
-    display: flex;
-    flex-direction: column;
-}
-
-.chat-box {
-    flex: 1;
-    overflow-y: auto;
-    padding: 20px;
-    background-color: #fffef9; /* 米白底 */
-    display: flex;
-    flex-direction: column; /* 讓訊息垂直排列 */
-    gap: 15px; /* 訊息之間的間距 */
-}
-
-/* 訊息氣泡基礎設定 */
-.message-item {
-    padding: 10px 16px;
-    max-width: 75%; /* 訊息不要太寬 */
-    position: relative;
-    font-size: 0.95rem;
-    box-shadow: 2px 2px 0px rgba(0,0,0,0.05);
-    word-wrap: break-word; /* 防止長字串破版 */
-}
-
-/* --- A. 位置設定 (靠左 vs 靠右) --- */
-
-/* 別人的訊息 (靠左) */
-.msg-other {
-    align-self: flex-start; /* 靠左對齊 */
-    margin-right: auto;
-    border-radius: 18px 18px 18px 2px; /* 左下角是尖的 */
-}
-
-/* 自己的訊息 (靠右) */
-.msg-self {
-    align-self: flex-end; /* 靠右對齊 */
-    margin-left: auto;
-    border-radius: 18px 18px 2px 18px; /* 右下角是尖的 */
-}
-
-/* 標籤文字對齊 */
-.msg-self .msg-role-label {
-    text-align: right;
-}
-
-/* --- B. 顏色設定 (So Matcha 配色) --- */
-/* 這裡只管顏色，不管位置 */
-
-.msg-teacher {
-    background-color: var(--c-white);
-    border: 2px solid #eee;
-    color: var(--c-brown);
-}
-
-.msg-therapist {
-    background-color: var(--c-yellow);
-    border: 2px solid #ebdcb2;
-    color: var(--c-brown);
-}
-
-.msg-parents {
-    background-color: var(--c-green);
-    border: 2px solid #b6c58d;
-    color: var(--c-brown);
-}
-
-/* 標籤小字 */
-.msg-role-label {
-    font-size: 0.75rem;
-    color: #8898aa;
-    margin-bottom: 4px;
-    display: block;
-    font-weight: 600;
+    opacity: 0.6;
+    border-top: 1px solid rgba(255,255,255,0.2);
+    padding-top: 2rem;
 }
 
 /* =========================================
-   7. 行事曆樣式 (FullCalendar) - So Matcha 風格
+   5. Responsive Design (手機版適配)
    ========================================= */
-#calendar-section {
-    background-color: var(--c-white);
-    border: 2px solid var(--c-brown); /* 邊框 */
-    border-radius: var(--radius-box);
-    box-shadow: 6px 6px 0px rgba(0,0,0,0.1); /* 立體陰影 */
-}
+@media (max-width: 900px) {
+    .hero {
+        grid-template-columns: 1fr;
+        padding: 2rem 0;
+        border: none;
+        gap: 2rem;
+    }
+    
+    .hero-image-placeholder {
+        height: 40vh;
+    }
 
-/* 標題工具列 */
-.fc-toolbar-title {
-    font-family: 'Fredoka', sans-serif !important;
-    font-size: 1.5rem !important;
-    color: var(--c-blue);
-}
+    .intro-grid {
+        grid-template-columns: 1fr;
+        gap: 2rem;
+    }
+    
+    .sticky-col {
+        position: static; /* 手機版取消黏性定位 */
+        margin-bottom: 1rem;
+    }
 
-/* 按鈕樣式 (上個月、下個月) */
-.fc-button {
-    background-color: var(--c-blue) !important;
-    border: none !important;
-    border-radius: var(--radius-btn) !important;
-    font-weight: 700 !important;
-    box-shadow: 0 3px 0px #2a558c !important;
-    opacity: 1 !important;
-}
-.fc-button:hover {
-    transform: translateY(1px);
-    box-shadow: 0 1px 0px #2a558c !important;
-}
-.fc-button-active {
-    background-color: var(--c-brown) !important;
-    box-shadow: none !important;
-}
-
-/* 日曆格子 */
-.fc-daygrid-day {
-    border-color: #eee !important;
-}
-.fc-col-header-cell {
-    background-color: var(--c-yellow); /* 星期幾的背景 */
-    color: var(--c-brown);
-    padding: 10px 0 !important;
-}
-
-/* 事件膠囊 (Event Pill) */
-.fc-event {
-    background-color: var(--c-green) !important; /* 事件背景綠色 */
-    border: none !important;
-    border-radius: 5px;
-    padding: 2px 5px;
-    box-shadow: 2px 2px 0px rgba(0,0,0,0.1);
-    cursor: pointer;
-}
-.fc-event-title {
-    color: var(--c-brown) !important; /* 事件文字深褐色 */
-    font-weight: 700;
-}
-.fc-day-today {
-    background-color: #fffde7 !important; /* 今天的背景淡黃 */
+    .concept-grid {
+        grid-template-columns: 1fr;
+    }
+    
+    .concept-item {
+        border-right: none;
+        border-bottom: 1px solid var(--line-color);
+        padding: 2rem 0;
+    }
+    
+    .concept-item:last-child {
+        border-bottom: none;
+    }
+    
+    .footer-meta {
+        flex-direction: column;
+        gap: 1rem;
+    }
 }
