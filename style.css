@@ -34,7 +34,7 @@ body {
 .display-text {
     font-size: clamp(3rem, 8vw, 6rem);
     font-weight: 700;
-    line-height: 1;
+    line-height: calc(1em + 2rem);
     letter-spacing: -0.03em;
     margin-bottom: 2rem;
 }
