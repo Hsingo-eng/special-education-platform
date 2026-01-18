@@ -79,12 +79,7 @@
                     <i class="fas fa-plus"></i> New Event
                 </button>
             </div>
-            <div class="p-4 bg-white shadow-sm" style="border-radius: 20px;">
-                <div id="calendar"></div>
-            </div>
-        </div>
-        <div class="process-section">
-</div>
+            
             <div class="p-4 bg-white shadow-sm" style="border-radius: 20px;">
                 <div id="calendar"></div>
             </div>
@@ -123,7 +118,6 @@
         </div>
 
         <div id="content-area" class="pb-5">
-            
             <div id="section-records" class="d-none animate-fade">
                 <div class="d-flex justify-content-between align-items-center mb-4">
                     <h3 class="display-6 fw-bold">治療紀錄列表</h3>
@@ -131,12 +125,7 @@
                         <i class="fas fa-plus"></i> 新增紀錄
                     </button>
                 </div>
-                <div id="record-list" class="list-group">
-                    <div class="text-center text-muted py-5">
-                        <div class="spinner-border text-secondary" role="status"></div>
-                        <p>載入資料中...</p>
-                    </div>
-                </div>
+                <div id="record-list" class="list-group"></div>
             </div>
 
             <div id="section-iep" class="d-none animate-fade">
@@ -160,11 +149,9 @@
                     <h5 class="text-info"><i class="fas fa-magic"></i> Gemini AI 摘要：</h5>
                     <p id="ai-summary-content" class="mb-0 small text-dark"></p>
                 </div>
-                
                 <div class="chat-container mb-3 bg-white border p-3 rounded" style="min-height: 400px;">
                     <div id="chat-box" class="chat-box"></div>
                 </div>
-
                 <div class="input-group">
                     <input type="text" id="msg-input" class="form-control form-control-lg border-0 bg-light" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
                     <button class="btn btn-primary px-4" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
@@ -178,13 +165,7 @@
                         <i class="fas fa-plus-circle"></i> 我要提問
                     </button>
                 </div>
-
-                <div id="questions-list" class="row g-3">
-                    <div class="text-center text-muted py-5">
-                        <div class="spinner-border text-info" role="status"></div>
-                        <p>正在載入問題...</p>
-                    </div>
-                </div>
+                <div id="questions-list" class="row g-3"></div>
             </div>
 
         </div> <footer class="site-footer mt-5">
@@ -193,6 +174,8 @@
                 <span>DESIGN: EDITORIAL STYLE</span>
             </div>
         </footer>
+
+    </div> 
 
     </div> <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
