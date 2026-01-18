@@ -6,12 +6,12 @@
     --hero-bg: #F4F4F5;
     --text-color: #1A1A1A;
     --accent-color: #2952FF;
-    --morandi-blue: #647D98;   /* 🟢 莫蘭迪藍 */
+    --morandi-blue: #647D98;   /* 莫蘭迪藍 */
     --line-color: #E0E0E0;
     --white: #FFFFFF;
     
     --evt-orange: #F57C00;
-    --evt-green: #388E3C;
+    --evt-green: #388E3C; /* 上線綠燈也用這個 */
     
     --font-main: 'Taipei Sans TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
@@ -53,16 +53,30 @@ body {
     border-bottom: none;
 }
 
-/* 🟢 修改需求 2: 身分顯示優化 (莫蘭迪藍、無底色) */
+/* 🟢 修改需求 2: 身分標籤 (莫蘭迪藍膠囊 + 綠燈) */
 .status-badge {
-    font-family: var(--font-main); /* 改回主字體，比較好讀 */
-    color: var(--morandi-blue);    /* 莫蘭迪藍 */
-    background: transparent;       /* 移除灰底 */
-    border: none;                  /* 移除邊框 */
-    padding: 0;
-    font-size: 1rem;
-    font-weight: 700;
-    letter-spacing: 0.05em;
+    font-family: var(--font-main);
+    color: var(--morandi-blue);
+    border: 1px solid var(--morandi-blue); /* 膠囊邊框 */
+    padding: 6px 16px; /* 增加內距，類似按鈕 */
+    border-radius: 50px; /* 圓角膠囊 */
+    font-size: 0.9rem;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    background: transparent;
+}
+
+/* 🟢 新增：綠色上線點點 */
+.status-badge::before {
+    content: '';
+    display: inline-block;
+    width: 8px;
+    height: 8px;
+    background-color: var(--evt-green);
+    border-radius: 50%;
+    margin-right: 10px; /* 與文字的距離 */
+    box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1); /* 微弱光暈 */
 }
 
 .body-text { font-size: 1.125rem; max-width: 600px; text-align: justify; color: #444; }
@@ -93,7 +107,31 @@ body {
 .image-caption { position: absolute; top: 15px; left: 15px; font-family: var(--font-mono); font-size: 12px; color: #666; }
 
 /* Menu Grid */
-.concept-grid { display: grid; grid-template-columns: repeat(4, 1fr); border-top: 1px solid var(--line-color); border-bottom: 1px solid var(--line-color); }
+
+/* 🟢 修正 1: 強制移除 Features 上方所有邊框與裝飾，並對齊左側 */
+.process-section { 
+    border-top: none !important;       /* 強制移除上邊框 */
+    background: transparent !important; /* 強制移除背景色 */
+    margin-top: 0 !important;          /* 移除上方間距 */
+    padding-top: 0 !important;         /* 移除上方內距 */
+    padding-left: 0 !important;        /* 確保靠左對齊 */
+    padding-right: 0 !important;
+}
+
+/* 確保標題容器也沒有多餘間距 */
+.process-section .mb-4 {
+    margin-bottom: 1.5rem !important;
+    padding: 0 !important;
+}
+
+.concept-grid { 
+    display: grid; 
+    grid-template-columns: repeat(4, 1fr); 
+    border-top: 1px solid var(--line-color); 
+    border-bottom: 1px solid var(--line-color); 
+}
+
+/* ... 以下 concept-item 等樣式保持不變，不用動 ... */
 .concept-item { padding: 3rem 2rem; border-right: 1px solid var(--line-color); position: relative; transition: background-color 0.3s; cursor: pointer; overflow: hidden; }
 .concept-item:last-child { border-right: none; }
 .concept-item:hover { background-color: var(--white); }
@@ -105,6 +143,11 @@ body {
 .concept-item:hover .concept-number { color: var(--accent-color); opacity: 0.2; }
 .concept-item h3, .concept-item p { position: relative; z-index: 2; }
 .concept-item h3 { margin-bottom: 1rem; margin-top: 1.5rem; font-weight: 600; }
+
+/* 🟢 修改需求 4: 內容區塊縮小左右邊距 */
+#content-area {
+    padding-inline: 2rem; /* 在原有 container padding 基礎上再內縮 */
+}
 
 /* Calendar */
 #calendar-section { background: transparent; }
@@ -119,9 +162,16 @@ body {
     padding-top: 8px; padding-bottom: 8px; display: block; 
 }
 
+/* 行事曆標題 (年月) 樣式 */
+.fc-toolbar-title { 
+    font-size: 1.5rem !important; 
+    font-weight: 700; 
+    color: var(--text-color);
+    margin-left: 1rem; /* 與月份選擇器拉開距離 */
+}
+
 .fc-daygrid-day-number { font-size: 0.9rem; font-weight: 500; padding: 4px 8px !important; color: #444 !important; text-decoration: none !important; }
 .fc-daygrid-day-frame { min-height: 80px !important; }
-.fc-toolbar-title { font-size: 1.25rem !important; font-weight: 700; color: var(--text-color); }
 .fc-button-primary { background-color: white !important; border-color: #ddd !important; color: #333 !important; box-shadow: none !important; text-transform: uppercase; font-size: 0.75rem !important; }
 .fc-button-active { background-color: #333 !important; color: white !important; border-color: #333 !important; }
 .fc-event { border: none !important; border-radius: 2px; padding: 1px 4px; font-size: 0.75rem; margin-top: 1px !important; }
@@ -134,6 +184,13 @@ body {
     border-radius: 4px; border: 1px solid var(--line-color); 
     display: flex; flex-direction: column; gap: 15px;
 }
+
+/* 🟢 修改需求 5: 輸入訊息框底色改為淺灰 */
+#msg-input {
+    background-color: #E9ECEF !important; /* 比原本的 bg-light 更深一點的灰 */
+    color: #333;
+}
+
 .msg-row { display: flex; align-items: flex-end; gap: 10px; max-width: 80%; }
 .msg-bubble { padding: 12px 16px; border-radius: 12px; position: relative; font-size: 0.95rem; line-height: 1.5; }
 
@@ -151,9 +208,7 @@ body {
 .msg-row.self { align-self: flex-end; flex-direction: row-reverse; }
 .msg-row.self .msg-bubble { background-color: #E3F2FD; color: #0D47A1; border-bottom-right-radius: 2px; text-align: right; }
 
-/* =========================================
-   RWD (Mobile Optimization)
-   ========================================= */
+/* RWD (Mobile Optimization) */
 @media (max-width: 900px) {
     .container { padding: 0 15px; }
     
@@ -161,42 +216,42 @@ body {
     .hero-image-placeholder { height: 30vh; }
     .display-text { font-size: 3rem; }
 
-    /* 🟢 修改需求 1: 手機版四個按鈕併排，縮小樣式 */
     .concept-grid { 
-        grid-template-columns: repeat(4, 1fr); /* 強制四欄 */
+        grid-template-columns: repeat(4, 1fr);
         gap: 0;
     }
     .concept-item { 
         border-right: none; 
         border-bottom: none; 
-        padding: 1rem 0.5rem; /* 大幅減少內距 */
+        padding: 1rem 0.5rem;
         display: flex;
         flex-direction: column;
         align-items: center;
         text-align: center;
     }
     
-    /* 手機版隱藏大數字與描述，避免擁擠 */
     .concept-number { display: none; }
     .concept-desc { display: none; }
     
     .concept-item h3 { 
         margin-top: 0.5rem; 
         margin-bottom: 0;
-        font-size: 0.85rem; /* 字體縮小 */
+        font-size: 0.85rem;
     }
-    .concept-item i { font-size: 1.5rem !important; } /* Icon 縮小 */
+    .concept-item i { font-size: 1.5rem !important; }
 
-    /* 🟢 修改需求 3: New Event 按鈕縮小 */
     #btn-add-event {
-        padding: 4px 10px; /* 減少 Padding */
+        padding: 4px 10px;
         font-size: 0.8rem;
     }
 
-    /* 行事曆 */
+    /* 行事曆手機版 */
     .fc { padding: 10px; } 
     .fc-daygrid-day-frame { min-height: auto !important; height: auto !important; padding-bottom: 5px; } 
     .fc-daygrid-day-number { padding: 2px 4px !important; font-size: 0.8rem; } 
-    .fc-toolbar-title { font-size: 1rem !important; }
-    .fc-header-toolbar { flex-wrap: wrap; gap: 10px; margin-bottom: 10px !important; }
+    .fc-toolbar-title { font-size: 1.2rem !important; margin-left: 0; margin-top: 10px; /* 手機版標題換行 */ }
+    .fc-header-toolbar { flex-wrap: wrap; gap: 5px; margin-bottom: 10px !important; justify-content: center; }
+
+    /* 手機版內容區邊距復原 */
+    #content-area { padding-inline: 0; }
 }

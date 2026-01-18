@@ -61,13 +61,17 @@ function logout() {
 }
 
 // --- 3. 畫面切換與權限控制 ---
+// --- 3. 畫面切換與權限控制 ---
 function showDashboard() {
     document.getElementById("login-section").classList.add("d-none");
     document.getElementById("dashboard-section").classList.remove("d-none");
     document.getElementById("main-nav").classList.remove("d-none");
     
-    document.getElementById("nav-user-info").innerText = `${roleName(currentUser.role)} ${currentUser.name}`;
+    // 🟢 修正 2: 只顯示「角色名稱」，移除 ${currentUser.name}
+    // 這樣就算名字也是「老師」，也不會重複出現
+    document.getElementById("nav-user-info").innerText = roleName(currentUser.role);
 
+    // 權限控制
     document.querySelectorAll(".role-restricted").forEach(el => {
         if (el.dataset.deny === currentUser.role) el.classList.add("d-none");
     });
