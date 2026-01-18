@@ -144,9 +144,9 @@ socket.on("message_update", (msg) => {
 // ==========================================
 
 // --- 留言板 ---
+// --- 留言板 ---
 async function loadMessages() {
     const box = document.getElementById("chat-box");
-    // 清空並顯示載入中
     box.innerHTML = '<div class="text-center py-3 text-muted">載入中...</div>';
     
     try {
@@ -154,25 +154,28 @@ async function loadMessages() {
         const json = await res.json();
         box.innerHTML = "";
 
-        // 🟢 定義角色圖示 (Emoji)
-        const roleIcons = {
-            'teacher': '🐟',   // 魚
-            'therapist': '🐱', // 貓
-            'parents': '🐻'    // 熊
+        const roleImages = {
+            'teacher': 'sticker1.png',   
+            'therapist': 'sticker2.png',
+            'parents': 'sticker3.png'
         };
+        // 預設圖片
+        const defaultImage = 'sticker1.png';
 
         (json.data || []).forEach(msg => {
             const isMe = (msg.user_name === currentUser.name);
             const rowClass = isMe ? 'self' : 'other';
             
-            // 取得對應的 Icon，如果找不到則預設為👤
-            const avatarIcon = roleIcons[msg.role] || '👤';
+            // 取得對應角色的圖片網址
+            const imageUrl = roleImages[msg.role] || defaultImage;
             const roleLabel = roleName(msg.role);
 
-            // 🟢 新的 HTML 結構：頭像 + 對話框
+            // 🟢 HTML 結構改為使用 <img> 標籤
             const html = `
                 <div class="msg-row ${rowClass}">
-                    <div class="msg-avatar" title="${roleLabel}">${avatarIcon}</div>
+                    <div class="msg-avatar" title="${roleLabel}">
+                        <img src="${imageUrl}" alt="${roleLabel}">
+                    </div>
                     <div class="msg-bubble">
                         <span class="msg-role">${msg.user_name} (${roleLabel})</span>
                         ${msg.message}
