@@ -1,24 +1,38 @@
 /* =========================================
-   1. Design System & Variables
+   1. Design System & Variables (設計系統)
    ========================================= */
 :root {
-    --bg-color: #FAFAF9;
-    --hero-bg: #F4F4F5;
-    --text-color: #1A1A1A;
-    --accent-color: #2952FF;   /* 藍色 */
-    --morandi-blue: #647D98;   /* 莫蘭迪藍 */
-    --line-color: #E0E0E0;
+    /* 基礎色調 */
+    --bg-color: #FAFAF9;       /* 整體背景：米白 */
+    --text-color: #1A1A1A;     /* 深墨灰 */
     --white: #FFFFFF;
     
+    /* 🔵 重點色系 */
+    --accent-color: #2952FF;   /* 功能按鈕藍 (Start, New Event) */
+    --morandi-blue: #647D98;   /* 身分標籤：莫蘭迪藍 */
+    
+    /* 🧩 Hero 拼圖主題配色 (專業冷色調) */
+    --hero-bg-gradient: linear-gradient(135deg, #F8FAFC 0%, #EFF6FF 100%);
+    --puzzle-dark: #334155;    /* 深藍灰 */
+    --puzzle-mid: #94A3B8;     /* 中性灰 */
+    --puzzle-light: #CBD5E1;   /* 淺灰 */
+    --puzzle-accent: #3B82F6;  /* 拼圖重點藍 */
+    
+    /* 結構與功能 */
+    --line-color: #E0E0E0;
     --evt-orange: #F57C00;
     --evt-green: #388E3C;
     
+    /* 字體 */
     --font-main: 'Taipei Sans TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
     
     --container-padding: 5vw;
 }
 
+/* =========================================
+   2. Reset & Base Styles
+   ========================================= */
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
@@ -30,15 +44,30 @@ body {
     font-weight: 400;
 }
 
-/* Typography */
+/* 標題與文字 */
 .display-text {
-    font-size: clamp(3rem, 8vw, 6rem);
+    font-size: clamp(2.5rem, 5vw, 4rem);
     font-weight: 700;
-    line-height: calc(1em + 2rem);
-    letter-spacing: -0.03em;
-    margin-bottom: 2rem;
+    line-height: 1.3; /* 標題行距 */
+    color: #1E293B;
+    margin-bottom: 1.5rem;
 }
 
+/* Hero 標題中的強調字 */
+.highlight-text {
+    color: var(--puzzle-accent);
+    position: relative;
+    display: inline-block;
+}
+.highlight-text::after {
+    content: '';
+    position: absolute;
+    bottom: 5px; left: 0; width: 100%; height: 8px;
+    background-color: rgba(59, 130, 246, 0.2);
+    z-index: -1; border-radius: 4px;
+}
+
+/* 小標籤 (Schedule, Features) */
 .section-label {
     font-size: 15px;
     text-transform: uppercase;
@@ -53,7 +82,7 @@ body {
     border-bottom: none;
 }
 
-/* 身分標籤 */
+/* 🟢 身分標籤 (莫蘭迪藍膠囊 + 綠燈) */
 .status-badge {
     font-family: var(--font-main);
     color: var(--morandi-blue);
@@ -62,24 +91,21 @@ body {
     border-radius: 50px;
     font-size: 0.9rem;
     font-weight: 600;
-    display: flex;
-    align-items: center;
+    display: flex; align-items: center;
     background: transparent;
 }
 .status-badge::before {
-    content: '';
-    display: inline-block;
+    content: ''; display: inline-block;
     width: 8px; height: 8px;
     background-color: var(--evt-green);
-    border-radius: 50%;
-    margin-right: 10px;
+    border-radius: 50%; margin-right: 10px;
     box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
 }
 
 .body-text { font-size: 1.125rem; max-width: 600px; text-align: justify; color: #444; }
 .body-text.highlight-border { margin-top: 2rem; border-left: 3px solid var(--accent-color); padding-left: 1.5rem; }
 
-/* Visual Elements */
+/* 視覺裝飾 (圈選) */
 .circle-sketch { display: inline-block; position: relative; z-index: 1; white-space: nowrap; }
 .circle-sketch::after {
     content: ''; position: absolute; left: -10%; top: -5%; width: 120%; height: 115%;
@@ -88,30 +114,88 @@ body {
     z-index: -1; transform: rotate(-2deg); pointer-events: none;
 }
 
-/* Layout */
+/* 佈局容器 */
 .container { padding: 0 var(--container-padding); max-width: 1600px; margin: 0 auto; }
 
 /* Header */
 .site-header { padding-top: 2rem; padding-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
 .logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; }
 
-/* Hero */
+/* =========================================
+   🟦 Hero Section (全新拼圖幾何設計)
+   ========================================= */
 .hero {
-    min-height: 85vh; display: grid; grid-template-columns: 1.8fr 1fr; align-items: center; gap: 4rem; 
-    padding: 4rem; background-color: var(--hero-bg); border-radius: 20px; margin-bottom: 4rem;
+    min-height: 450px;
+    display: grid; 
+    grid-template-columns: 1fr 1fr; /* 左右各半 */
+    align-items: center; 
+    gap: 4rem; 
+    padding: 4rem 5vw;
+    
+    background: var(--hero-bg-gradient);
+    border-radius: 24px;
+    margin-bottom: 4rem;
+    position: relative;
+    overflow: hidden;
+    border: 1px solid #E2E8F0;
 }
-.hero-image-placeholder { background-color: #E4E4E7; height: 60vh; width: 100%; position: relative; overflow: hidden; border-radius: 12px; }
-.image-caption { position: absolute; top: 15px; left: 15px; font-family: var(--font-mono); font-size: 12px; color: #666; }
 
-/* Menu Grid (Features) */
-/* 強制移除上方所有邊框與間距 */
+.hero-content { position: relative; z-index: 2; }
+
+/* 右側視覺區 */
+.hero-visual {
+    position: relative; height: 100%;
+    display: flex; justify-content: center; align-items: center;
+}
+
+/* 拼圖幾何容器 */
+.puzzle-container { position: relative; width: 400px; height: 300px; }
+
+/* 拼圖塊通用樣式 */
+.puzzle-piece {
+    position: absolute; border-radius: 20px;
+    box-shadow: 0 10px 30px -10px rgba(30, 41, 59, 0.15);
+    transition: transform 0.5s ease;
+}
+
+/* Hover 微互動 */
+.hero:hover .piece-1 { transform: translateY(-5px); }
+.hero:hover .piece-2 { transform: translateY(5px); }
+.hero:hover .piece-3 { transform: scale(1.05); }
+
+/* 個別拼圖塊 */
+.piece-1 { /* 深藍主塊 */
+    width: 180px; height: 180px; background-color: var(--puzzle-dark);
+    top: 20px; left: 40px; z-index: 2;
+    border-radius: 20px 20px 60px 20px;
+}
+.piece-2 { /* 淺灰連接塊 */
+    width: 160px; height: 160px; background-color: #E2E8F0;
+    border: 2px solid var(--white);
+    bottom: 20px; right: 40px; z-index: 1;
+    border-radius: 60px 20px 20px 20px;
+}
+.piece-3 { /* 亮藍重點塊 */
+    width: 100px; height: 100px; background-color: var(--puzzle-accent);
+    top: 50%; left: 50%; transform: translate(-50%, -50%);
+    z-index: 3; border-radius: 50%; border: 4px solid var(--white); opacity: 0.9;
+}
+/* 裝飾虛線 */
+.puzzle-line {
+    position: absolute; top: 10%; right: 10%; width: 80%; height: 80%;
+    border: 2px dashed #CBD5E1; border-radius: 30px;
+    z-index: 0; transform: rotate(-10deg);
+}
+
+/* =========================================
+   3. Menu Grid (Features)
+   ========================================= */
+/* 強制移除上方邊框與內距，確保對齊 */
 .process-section { 
     border-top: none !important; 
     background: transparent !important; 
     margin-top: 0 !important; 
-    padding-top: 0 !important;
-    padding-left: 0 !important; 
-    padding-right: 0 !important;
+    padding: 0 !important;
 }
 .process-section .mb-4 { margin-bottom: 1.5rem !important; padding: 0 !important; }
 
@@ -120,7 +204,10 @@ body {
     border-top: 1px solid var(--line-color); 
     border-bottom: 1px solid var(--line-color); 
 }
-.concept-item { padding: 3rem 2rem; border-right: 1px solid var(--line-color); position: relative; transition: background-color 0.3s; cursor: pointer; overflow: hidden; }
+.concept-item { 
+    padding: 3rem 2rem; border-right: 1px solid var(--line-color); 
+    position: relative; transition: background-color 0.3s; cursor: pointer; overflow: hidden; 
+}
 .concept-item:last-child { border-right: none; }
 .concept-item:hover { background-color: var(--white); }
 
@@ -132,37 +219,35 @@ body {
 .concept-item h3, .concept-item p { position: relative; z-index: 2; }
 .concept-item h3 { margin-bottom: 1rem; margin-top: 1.5rem; font-weight: 600; }
 
-/* 🟢 修改需求 4: 內容區塊與上方按鈕拉開距離 */
+/* 內容區：增加頂部間距，左右內縮 */
 #content-area {
     margin-top: 0; 
-    padding-top: 2rem; /* 增加頂部內距，拉開標題距離 */
-    padding-inline: 2rem; /* 左右內縮 */
+    padding-top: 2rem; 
+    padding-inline: 2rem; 
 }
 
-/* Calendar */
+/* =========================================
+   4. Calendar Styling (行事曆)
+   ========================================= */
 #calendar-section { background: transparent; }
 .fc { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--line-color); font-family: var(--font-main); }
 
-/* 🟢 修改需求 3: New Event 按鈕改為藍色 */
+/* New Event 按鈕 (藍色) */
 #btn-add-event {
-    background-color: var(--accent-color) !important; /* 強制藍色 */
-    border: none !important;
-    color: white !important;
+    background-color: var(--accent-color) !important;
+    border: none !important; color: white !important;
 }
 
-/* 行事曆標頭 */
+/* 行事曆標頭：深灰底白字 */
 .fc-col-header-cell { background-color: #333 !important; border: none !important; }
 .fc-col-header-cell-cushion, .fc-col-header-cell-cushion a { 
     color: #ffffff !important; font-weight: 700; text-decoration: none !important; 
     padding-top: 8px; padding-bottom: 8px; display: block; 
 }
 
-/* 行事曆標題文字 (年月) */
+/* 標題 (年月) */
 .fc-toolbar-title { 
-    font-size: 1.5rem !important; 
-    font-weight: 700; 
-    color: var(--text-color);
-    margin-left: 1rem; 
+    font-size: 1.5rem !important; font-weight: 700; color: var(--text-color); margin-left: 1rem; 
 }
 
 .fc-daygrid-day-number { font-size: 0.9rem; font-weight: 500; padding: 4px 8px !important; color: #444 !important; text-decoration: none !important; }
@@ -173,13 +258,15 @@ body {
 .evt-orange { background-color: var(--evt-orange) !important; color: white !important; }
 .evt-green { background-color: var(--evt-green) !important; color: white !important; }
 
-/* Chat Layout */
+/* =========================================
+   5. Chat Layout (留言板)
+   ========================================= */
 .chat-container { 
     height: 400px; overflow-y: auto; background: #fff; padding: 20px; 
     border-radius: 4px; border: 1px solid var(--line-color); 
     display: flex; flex-direction: column; gap: 15px;
 }
-/* 輸入框淺灰底色 */
+/* 輸入框：淺灰底 */
 #msg-input { background-color: #E9ECEF !important; color: #333; }
 
 .msg-row { display: flex; align-items: flex-end; gap: 10px; max-width: 80%; }
@@ -200,37 +287,49 @@ body {
    RWD (Mobile Optimization)
    ========================================= */
 @media (max-width: 900px) {
-    /* 🟢 修改需求 1: 手機版行事曆加寬 (縮小邊距至 4px) */
+    /* 🟢 手機版邊距極限縮小 (4px) */
     .container { padding: 0 4px; } 
     
-    .hero { grid-template-columns: 1fr; padding: 2rem 1rem; gap: 2rem; margin-bottom: 2rem; }
-    .hero-image-placeholder { height: 30vh; }
-    .display-text { font-size: 3rem; }
+    /* Hero 轉為垂直排列 */
+    .hero {
+        grid-template-columns: 1fr; 
+        text-align: center;
+        padding: 3rem 1.5rem; gap: 3rem; height: auto;
+    }
+    .hero-content { order: 1; }
+    .hero-visual { order: 2; height: 250px; }
+    .puzzle-container { transform: scale(0.8); } /* 縮小拼圖 */
+    
+    .display-text { font-size: 2.5rem; }
 
+    /* Features 四欄並排 */
     .concept-grid { grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid var(--line-color); }
     .concept-item { 
         border-right: 1px solid var(--line-color); border-bottom: none; 
-        padding: 2.5rem 0.2rem 1.5rem 0.2rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; 
+        padding: 2.5rem 0.2rem 1.5rem 0.2rem; /* 增加高度 */
+        display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; 
     }
     .concept-item:last-child { border-right: none; }
     
+    /* 數字回歸 (縮小) */
     .concept-number { 
         display: block; font-size: 1.5rem; top: 5px; right: 50%; transform: translateX(50%); color: #E0E0E0; 
     }
     .concept-item:active .concept-number, .concept-item:focus .concept-number { color: var(--accent-color); opacity: 0.5; }
-    .concept-desc { display: none; }
+    .concept-desc { display: none; } /* 隱藏描述 */
     .concept-item h3 { margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8rem; white-space: nowrap; }
     .concept-item i { font-size: 1.4rem !important; }
 
     #btn-add-event { padding: 4px 10px; font-size: 0.8rem; }
 
-    /* 行事曆優化 */
-    .fc { padding: 2px; } /* 極小內距 */
+    /* 行事曆微調 */
+    .fc { padding: 2px; } 
     .fc-col-header-cell-cushion { font-size: 13px !important; padding-top: 6px; padding-bottom: 6px; }
     .fc-daygrid-day-frame { min-height: auto !important; height: auto !important; padding-bottom: 5px; } 
     .fc-daygrid-day-number { padding: 2px 4px !important; font-size: 0.8rem; } 
     .fc-toolbar-title { font-size: 1.1rem !important; margin-left: 0; margin-top: 5px; }
     .fc-header-toolbar { flex-wrap: wrap; gap: 5px; margin-bottom: 10px !important; justify-content: center; }
 
+    /* 內容區重置內距 */
     #content-area { padding-inline: 0; }
 }
