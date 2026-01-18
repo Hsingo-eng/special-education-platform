@@ -66,30 +66,18 @@ function showDashboard() {
     document.getElementById("dashboard-section").classList.remove("d-none");
     document.getElementById("main-nav").classList.remove("d-none");
     
-    document.getElementById("nav-user-info").innerHTML = 
-        `<i class="fas fa-user-circle"></i> ${currentUser.name} <span class="badge bg-secondary">${roleName(currentUser.role)}</span>`;
+    document.getElementById("nav-user-info").innerText = `${roleName(currentUser.role)} ${currentUser.name}`;
 
-    // 權限隱藏
     document.querySelectorAll(".role-restricted").forEach(el => {
-        if (el.dataset.deny === currentUser.role) {
-            el.classList.add("d-none");
-        }
+        if (el.dataset.deny === currentUser.role) el.classList.add("d-none");
     });
-
-    // 只有特定角色看得到的按鈕
     document.querySelectorAll(".role-only").forEach(el => {
-        const allowedRoles = el.dataset.allow.split(',');
-        if (!allowedRoles.includes(currentUser.role)) {
-            el.classList.add("d-none");
-        } else {
-            el.classList.remove("d-none");
-        }
+        const allowed = el.dataset.allow.split(',');
+        if (!allowed.includes(currentUser.role)) el.classList.add("d-none");
+        else el.classList.remove("d-none");
     });
 
-    // 🟢 延遲初始化行事曆，確保畫面已渲染
-    setTimeout(() => {
-        initCalendar();
-    }, 100);
+    setTimeout(() => { initCalendar(); }, 100);
 }
 
 function showSection(sectionId) {
@@ -608,59 +596,66 @@ function initCalendar() {
     if (!calendarEl) return;
     document.getElementById("calendar-section").classList.remove("d-none");
 
+    // 取得月份選擇器 DOM
+    const monthPicker = document.getElementById('calendar-month-picker');
+
     calendar = new FullCalendar.Calendar(calendarEl, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
-        // 🟢 修改需求 3: 高度自適應，不強制滾動
-        height: 'auto', 
+        height: 'auto',
         contentHeight: 'auto',
-        // 移除 headerToolbar 的預設樣式，依靠 CSS 覆寫
         headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth' // 手機版移除 listMonth 比較簡潔
+            left: 'prev,next today', // 移除 title，我們有自己的月份選擇器了
+            center: '', 
+            right: 'dayGridMonth'
+        },
+        // 🟢 初始化時，將選擇器設為當前月份
+        datesSet: function(info) {
+            const current = info.view.currentStart;
+            const year = current.getFullYear();
+            const month = String(current.getMonth() + 1).padStart(2, '0');
+            if(monthPicker) monthPicker.value = `${year}-${month}`;
+            
+            // 更新標題 (如果你想保留標題文字，可以寫在這裡，或直接依賴 input 顯示)
         },
         events: async function(info, successCallback, failureCallback) {
-            try {
+             try {
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
-                
                 const eventsWithColor = (json.data || []).map((evt, index) => {
                     const colorClass = (index % 2 === 0) ? 'evt-orange' : 'evt-green';
-                    return {
-                        ...evt,
-                        classNames: [colorClass]
-                    };
+                    return { ...evt, classNames: [colorClass] };
                 });
-
                 successCallback(eventsWithColor);
             } catch (e) { failureCallback(e); }
         },
         eventClick: function(info) {
-            const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
-            const desc = info.event.extendedProps.description || "";
-            
-            if (!isOwner) {
-                Swal.fire({
-                    title: info.event.title,
-                    text: desc,
-                    icon: 'info',
-                    confirmButtonColor: '#333'
-                });
-            } else {
-                Swal.fire({
-                    title: info.event.title,
-                    html: `<p class="text-muted">${desc}</p><br><div class="d-grid"><button id="btn-del" class="btn btn-outline-danger btn-sm">刪除此排程</button></div>`,
-                    showConfirmButton: false,
-                    showCloseButton: true,
-                    didOpen: () => {
-                        document.getElementById('btn-del').onclick = () => deleteEvent(info.event.id);
-                    }
-                });
-            }
+             // ... (保持原本的 eventClick 邏輯)
+             const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
+             const desc = info.event.extendedProps.description || "";
+             if (!isOwner) {
+                 Swal.fire({ title: info.event.title, text: desc, icon: 'info', confirmButtonColor: '#333' });
+             } else {
+                 Swal.fire({
+                     title: info.event.title,
+                     html: `<p class="text-muted">${desc}</p><br><div class="d-grid"><button id="btn-del" class="btn btn-outline-danger btn-sm">刪除此排程</button></div>`,
+                     showConfirmButton: false, showCloseButton: true,
+                     didOpen: () => { document.getElementById('btn-del').onclick = () => deleteEvent(info.event.id); }
+                 });
+             }
         }
     });
+
     calendar.render();
+
+
+    if(monthPicker) {
+        monthPicker.addEventListener('change', function() {
+            if (this.value) {
+                calendar.gotoDate(this.value); // 讓行事曆跳轉到選擇的年月
+            }
+        });
+    }
 }
 
 async function openEventModal() {
