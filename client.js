@@ -592,15 +592,12 @@ function replyQuestion(id) {
 // ==========================================
 // 功能 E: 行事曆 (FullCalendar)
 // ==========================================
-
-// --- 行事曆功能 ---
 // --- 行事曆功能 ---
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
     document.getElementById("calendar-section").classList.remove("d-none");
 
-    // 取得月份選擇器 DOM
     const monthPicker = document.getElementById('calendar-month-picker');
 
     calendar = new FullCalendar.Calendar(calendarEl, {
@@ -609,18 +606,16 @@ function initCalendar() {
         height: 'auto',
         contentHeight: 'auto',
         headerToolbar: {
-            left: 'prev,next today', // 移除 title，我們有自己的月份選擇器了
-            center: '', 
+            left: 'prev,next today',
+            // 🟢 修改需求 2: 顯示中間的「標題 (Title)」，即 2026年1月
+            center: 'title', 
             right: 'dayGridMonth'
         },
-        // 🟢 初始化時，將選擇器設為當前月份
         datesSet: function(info) {
             const current = info.view.currentStart;
             const year = current.getFullYear();
             const month = String(current.getMonth() + 1).padStart(2, '0');
             if(monthPicker) monthPicker.value = `${year}-${month}`;
-            
-            // 更新標題 (如果你想保留標題文字，可以寫在這裡，或直接依賴 input 顯示)
         },
         events: async function(info, successCallback, failureCallback) {
              try {
@@ -634,7 +629,6 @@ function initCalendar() {
             } catch (e) { failureCallback(e); }
         },
         eventClick: function(info) {
-             // ... (保持原本的 eventClick 邏輯)
              const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
              const desc = info.event.extendedProps.description || "";
              if (!isOwner) {
@@ -652,6 +646,13 @@ function initCalendar() {
 
     calendar.render();
 
+    if(monthPicker) {
+        monthPicker.addEventListener('change', function() {
+            if (this.value) {
+                calendar.gotoDate(this.value);
+            }
+        });
+    }
 
     if(monthPicker) {
         monthPicker.addEventListener('change', function() {

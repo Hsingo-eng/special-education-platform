@@ -5,13 +5,13 @@
     --bg-color: #FAFAF9;
     --hero-bg: #F4F4F5;
     --text-color: #1A1A1A;
-    --accent-color: #2952FF;
+    --accent-color: #2952FF;   /* 藍色 */
     --morandi-blue: #647D98;   /* 莫蘭迪藍 */
     --line-color: #E0E0E0;
     --white: #FFFFFF;
     
     --evt-orange: #F57C00;
-    --evt-green: #388E3C; /* 上線綠燈也用這個 */
+    --evt-green: #388E3C;
     
     --font-main: 'Taipei Sans TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
@@ -53,30 +53,27 @@ body {
     border-bottom: none;
 }
 
-/* 🟢 修改需求 2: 身分標籤 (莫蘭迪藍膠囊 + 綠燈) */
+/* 身分標籤 */
 .status-badge {
     font-family: var(--font-main);
     color: var(--morandi-blue);
-    border: 1px solid var(--morandi-blue); /* 膠囊邊框 */
-    padding: 6px 16px; /* 增加內距，類似按鈕 */
-    border-radius: 50px; /* 圓角膠囊 */
+    border: 1px solid var(--morandi-blue);
+    padding: 6px 16px;
+    border-radius: 50px;
     font-size: 0.9rem;
     font-weight: 600;
     display: flex;
     align-items: center;
     background: transparent;
 }
-
-/* 🟢 新增：綠色上線點點 */
 .status-badge::before {
     content: '';
     display: inline-block;
-    width: 8px;
-    height: 8px;
+    width: 8px; height: 8px;
     background-color: var(--evt-green);
     border-radius: 50%;
-    margin-right: 10px; /* 與文字的距離 */
-    box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1); /* 微弱光暈 */
+    margin-right: 10px;
+    box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
 }
 
 .body-text { font-size: 1.125rem; max-width: 600px; text-align: justify; color: #444; }
@@ -106,32 +103,23 @@ body {
 .hero-image-placeholder { background-color: #E4E4E7; height: 60vh; width: 100%; position: relative; overflow: hidden; border-radius: 12px; }
 .image-caption { position: absolute; top: 15px; left: 15px; font-family: var(--font-mono); font-size: 12px; color: #666; }
 
-/* Menu Grid */
-
-/* 🟢 修正 1: 強制移除 Features 上方所有邊框與裝飾，並對齊左側 */
+/* Menu Grid (Features) */
+/* 強制移除上方所有邊框與間距 */
 .process-section { 
-    border-top: none !important;       /* 強制移除上邊框 */
-    background: transparent !important; /* 強制移除背景色 */
-    margin-top: 0 !important;          /* 移除上方間距 */
-    padding-top: 0 !important;         /* 移除上方內距 */
-    padding-left: 0 !important;        /* 確保靠左對齊 */
+    border-top: none !important; 
+    background: transparent !important; 
+    margin-top: 0 !important; 
+    padding-top: 0 !important;
+    padding-left: 0 !important; 
     padding-right: 0 !important;
 }
-
-/* 確保標題容器也沒有多餘間距 */
-.process-section .mb-4 {
-    margin-bottom: 1.5rem !important;
-    padding: 0 !important;
-}
+.process-section .mb-4 { margin-bottom: 1.5rem !important; padding: 0 !important; }
 
 .concept-grid { 
-    display: grid; 
-    grid-template-columns: repeat(4, 1fr); 
+    display: grid; grid-template-columns: repeat(4, 1fr); 
     border-top: 1px solid var(--line-color); 
     border-bottom: 1px solid var(--line-color); 
 }
-
-/* ... 以下 concept-item 等樣式保持不變，不用動 ... */
 .concept-item { padding: 3rem 2rem; border-right: 1px solid var(--line-color); position: relative; transition: background-color 0.3s; cursor: pointer; overflow: hidden; }
 .concept-item:last-child { border-right: none; }
 .concept-item:hover { background-color: var(--white); }
@@ -144,30 +132,37 @@ body {
 .concept-item h3, .concept-item p { position: relative; z-index: 2; }
 .concept-item h3 { margin-bottom: 1rem; margin-top: 1.5rem; font-weight: 600; }
 
-/* 🟢 修改需求 4: 內容區塊縮小左右邊距 */
+/* 🟢 修改需求 4: 內容區塊與上方按鈕拉開距離 */
 #content-area {
-    padding-inline: 2rem; /* 在原有 container padding 基礎上再內縮 */
+    margin-top: 0; 
+    padding-top: 2rem; /* 增加頂部內距，拉開標題距離 */
+    padding-inline: 2rem; /* 左右內縮 */
 }
 
 /* Calendar */
 #calendar-section { background: transparent; }
 .fc { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--line-color); font-family: var(--font-main); }
 
+/* 🟢 修改需求 3: New Event 按鈕改為藍色 */
+#btn-add-event {
+    background-color: var(--accent-color) !important; /* 強制藍色 */
+    border: none !important;
+    color: white !important;
+}
+
 /* 行事曆標頭 */
 .fc-col-header-cell { background-color: #333 !important; border: none !important; }
-.fc-col-header-cell-cushion,
-.fc-col-header-cell-cushion a { 
-    color: #ffffff !important; 
-    font-weight: 700; text-decoration: none !important; 
+.fc-col-header-cell-cushion, .fc-col-header-cell-cushion a { 
+    color: #ffffff !important; font-weight: 700; text-decoration: none !important; 
     padding-top: 8px; padding-bottom: 8px; display: block; 
 }
 
-/* 行事曆標題 (年月) 樣式 */
+/* 行事曆標題文字 (年月) */
 .fc-toolbar-title { 
     font-size: 1.5rem !important; 
     font-weight: 700; 
     color: var(--text-color);
-    margin-left: 1rem; /* 與月份選擇器拉開距離 */
+    margin-left: 1rem; 
 }
 
 .fc-daygrid-day-number { font-size: 0.9rem; font-weight: 500; padding: 4px 8px !important; color: #444 !important; text-decoration: none !important; }
@@ -184,21 +179,14 @@ body {
     border-radius: 4px; border: 1px solid var(--line-color); 
     display: flex; flex-direction: column; gap: 15px;
 }
-
-/* 🟢 修改需求 5: 輸入訊息框底色改為淺灰 */
-#msg-input {
-    background-color: #E9ECEF !important; /* 比原本的 bg-light 更深一點的灰 */
-    color: #333;
-}
+/* 輸入框淺灰底色 */
+#msg-input { background-color: #E9ECEF !important; color: #333; }
 
 .msg-row { display: flex; align-items: flex-end; gap: 10px; max-width: 80%; }
 .msg-bubble { padding: 12px 16px; border-radius: 12px; position: relative; font-size: 0.95rem; line-height: 1.5; }
-
 .msg-avatar {
-    width: 40px; height: 40px;
-    background: #f0f0f0; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center;
-    flex-shrink: 0; overflow: hidden; 
+    width: 40px; height: 40px; background: #f0f0f0; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
@@ -208,98 +196,41 @@ body {
 .msg-row.self { align-self: flex-end; flex-direction: row-reverse; }
 .msg-row.self .msg-bubble { background-color: #E3F2FD; color: #0D47A1; border-bottom-right-radius: 2px; text-align: right; }
 
-
 /* =========================================
    RWD (Mobile Optimization)
    ========================================= */
 @media (max-width: 900px) {
-    /* 🟢 修改需求 1: 縮小左右邊界，讓行事曆更寬 */
-    .container { padding: 0 8px; } /* 邊界縮小至 8px (極限寬度) */
+    /* 🟢 修改需求 1: 手機版行事曆加寬 (縮小邊距至 4px) */
+    .container { padding: 0 4px; } 
     
-    /* Hero 區塊調整 */
-    .hero { 
-        grid-template-columns: 1fr; 
-        padding: 2rem 1rem; 
-        gap: 2rem; 
-        margin-bottom: 2rem; 
-    }
+    .hero { grid-template-columns: 1fr; padding: 2rem 1rem; gap: 2rem; margin-bottom: 2rem; }
     .hero-image-placeholder { height: 30vh; }
     .display-text { font-size: 3rem; }
 
-    /* 🟢 修改需求 2 & 3: 按鈕高度、數字、分隔線 */
-    .concept-grid { 
-        grid-template-columns: repeat(4, 1fr);
-        gap: 0;
-        border-bottom: 1px solid var(--line-color); /* 補回底部線條 */
-    }
-    
+    .concept-grid { grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid var(--line-color); }
     .concept-item { 
-        /* 加回分隔線 */
-        border-right: 1px solid var(--line-color); 
-        border-bottom: none; 
-        
-        /* 增加高度 (上下內距加大) */
-        padding: 2.5rem 0.2rem 1.5rem 0.2rem; 
-        
-        display: flex;
-        flex-direction: column;
-        align-items: center;
-        text-align: center;
-        position: relative; /* 為了定位數字 */
+        border-right: 1px solid var(--line-color); border-bottom: none; 
+        padding: 2.5rem 0.2rem 1.5rem 0.2rem; display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; 
     }
-    
-    /* 移除最後一個按鈕的右邊線 */
     .concept-item:last-child { border-right: none; }
     
-    /* 讓數字回歸！但縮小尺寸以適應手機 */
     .concept-number { 
-        display: block; 
-        font-size: 1.5rem; /* 手機版數字縮小 */
-        top: 5px; 
-        right: 50%; 
-        transform: translateX(50%); /* 數字置中 */
-        color: #E0E0E0;
+        display: block; font-size: 1.5rem; top: 5px; right: 50%; transform: translateX(50%); color: #E0E0E0; 
     }
-    
-    /* 確保 Hover 效果在手機點擊時也能運作 */
-    .concept-item:active .concept-number,
-    .concept-item:focus .concept-number {
-        color: var(--accent-color);
-        opacity: 0.5;
-    }
-    
-    /* 隱藏描述文字，保留標題與Icon */
+    .concept-item:active .concept-number, .concept-item:focus .concept-number { color: var(--accent-color); opacity: 0.5; }
     .concept-desc { display: none; }
-    
-    .concept-item h3 { 
-        margin-top: 0.5rem; 
-        margin-bottom: 0;
-        font-size: 0.8rem; /* 字體微調 */
-        white-space: nowrap; /* 強制不換行 */
-    }
+    .concept-item h3 { margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8rem; white-space: nowrap; }
     .concept-item i { font-size: 1.4rem !important; }
 
-    /* New Event 按鈕 */
-    #btn-add-event {
-        padding: 4px 10px;
-        font-size: 0.8rem;
-    }
+    #btn-add-event { padding: 4px 10px; font-size: 0.8rem; }
 
-    /* 🟢 修改需求 1: 行事曆週標題縮小 */
-    .fc { padding: 5px; } /* 減少行事曆內部邊距 */
-    
-    /* 週日、週一文字縮小 */
-    .fc-col-header-cell-cushion {
-        font-size: 13px !important; /* 比預設再小 1-2px */
-        padding-top: 6px;
-        padding-bottom: 6px;
-    }
-
+    /* 行事曆優化 */
+    .fc { padding: 2px; } /* 極小內距 */
+    .fc-col-header-cell-cushion { font-size: 13px !important; padding-top: 6px; padding-bottom: 6px; }
     .fc-daygrid-day-frame { min-height: auto !important; height: auto !important; padding-bottom: 5px; } 
     .fc-daygrid-day-number { padding: 2px 4px !important; font-size: 0.8rem; } 
     .fc-toolbar-title { font-size: 1.1rem !important; margin-left: 0; margin-top: 5px; }
     .fc-header-toolbar { flex-wrap: wrap; gap: 5px; margin-bottom: 10px !important; justify-content: center; }
 
-    /* 內容區 */
     #content-area { padding-inline: 0; }
 }
