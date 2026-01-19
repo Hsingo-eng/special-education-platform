@@ -1,27 +1,31 @@
 /* =========================================
-   1. Design System & Variables (設計系統)
+   1. Design System & Variables
    ========================================= */
 :root {
-    /* 基礎色調 */
-    --bg-color: #FAFAF9;       /* 整體背景：米白 */
-    --hero-bg: #F4F4F5;        /* Hero 區塊背景：淺灰 */
-    --text-color: #1A1A1A;     /* 深墨灰 */
-    --white: #FFFFFF;
+    /* --- 🎨 平台配色 --- */
+    --bg-surface: #F6F8FA;      /* 網頁背景：冷灰 */
+    --bg-card: #FFFFFF;         /* 卡片背景：純白 */
     
-    /* 🔵 重點色系 */
-    --accent-color: #2952FF;   /* 功能按鈕藍 (Start, New Event) */
-    --morandi-blue: #647D98;   /* 身分標籤：莫蘭迪藍 */
+    --text-primary: #1F2937;    /* 主要文字 (H1, H2) */
+    --text-secondary: #6B7280;  /* 次要文字 (Body) */
     
-    /* 結構與功能 */
-    --line-color: #E0E0E0;
-    --evt-orange: #F57C00;
-    --evt-green: #388E3C;
+    --accent-color: #2563EB;    /* 品牌藍 */
+    --accent-hover: #1D4ED8;
     
+    --border-radius: 16px;      /* 統一圓角 */
+    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* 極淡陰影 */
+    
+    --spacing-section: 48px;    /* 區塊間距 */
+
+    /* 功能色 */
+    --evt-orange: #F97316;
+    --evt-green: #10B981;
+    --morandi-blue: #647D98;
+    --line-color: #E5E7EB;
+
     /* 字體 */
-    --font-main: 'Taipei Sans TC', 'Noto Sans TC', 'Microsoft JhengHei', sans-serif;
+    --font-main: 'Taipei Sans TC', 'Noto Sans TC', sans-serif;
     --font-mono: 'Courier New', Courier, monospace;
-    
-    --container-padding: 5vw;
 }
 
 /* =========================================
@@ -30,268 +34,311 @@
 * { box-sizing: border-box; margin: 0; padding: 0; }
 
 body {
-    background-color: var(--bg-color);
-    color: var(--text-color);
+    background-color: var(--bg-surface);
+    color: var(--text-primary);
     font-family: var(--font-main);
     line-height: 1.6;
-    overflow-x: hidden;
     font-weight: 400;
+    -webkit-font-smoothing: antialiased;
 }
 
-/* 標題與文字 */
-.display-text {
-    font-size: clamp(2.5rem, 5vw, 4rem);
+/* 標題層級系統 */
+h1, .h1-title {
+    font-size: 1.75rem;
     font-weight: 700;
-    line-height: calc(1em + 2rem); /* 標題行距加大 */
-    color: #1E293B;
+    color: var(--text-primary);
     margin-bottom: 1.5rem;
+    line-height: 1.2;
 }
 
-/* Hero 標題中的強調字 */
-.highlight-text {
-    color: var(--accent-color);
-    position: relative;
-    display: inline-block;
-}
-
-/* 小標籤 (Schedule, Features) */
-.section-label {
-    font-size: 15px;
-    text-transform: uppercase;
-    letter-spacing: 0.1em;
-    font-weight: 700;
-    margin-bottom: 1.5rem;
-    display: inline-block;
-    background-color: #333;
-    color: #fff;
-    padding: 6px 16px;
-    border-radius: 4px;
-    border-bottom: none;
-}
-
-/* 🟢 身分標籤 (莫蘭迪藍膠囊 + 綠燈) */
-.status-badge {
-    font-family: var(--font-main);
-    color: var(--morandi-blue);
-    border: 1px solid var(--morandi-blue);
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 0.9rem;
+h2, .h2-title {
+    font-size: 1.25rem;
     font-weight: 600;
-    display: flex; align-items: center;
-    background: transparent;
-}
-.status-badge::before {
-    content: ''; display: inline-block;
-    width: 8px; height: 8px;
-    background-color: var(--evt-green);
-    border-radius: 50%; margin-right: 10px;
-    box-shadow: 0 0 0 2px rgba(56, 142, 60, 0.1);
+    color: var(--text-primary);
+    margin-bottom: 1rem;
 }
 
-.body-text { font-size: 1.125rem; max-width: 600px; text-align: justify; color: #444; }
-.body-text.highlight-border { margin-top: 2rem; border-left: 3px solid var(--accent-color); padding-left: 1.5rem; }
-
-/* 視覺裝飾 (圈選) */
-.circle-sketch { display: inline-block; position: relative; z-index: 1; white-space: nowrap; }
-.circle-sketch::after {
-    content: ''; position: absolute; left: -10%; top: -5%; width: 120%; height: 115%;
-    border: 2px solid var(--accent-color);
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    z-index: -1; transform: rotate(-2deg); pointer-events: none;
+h3 {
+    font-size: 1.125rem;
+    font-weight: 600;
+    margin-bottom: 0.5rem;
 }
 
-/* 佈局容器 */
-.container { padding: 0 var(--container-padding); max-width: 1600px; margin: 0 auto; }
+.body-text, p {
+    font-size: 1rem;
+    color: var(--text-secondary);
+}
 
-/* Header */
-.site-header { padding-top: 2rem; padding-bottom: 2rem; display: flex; justify-content: space-between; align-items: center; }
-.logo { font-weight: 800; font-size: 1.5rem; letter-spacing: -0.02em; }
-
-/* =========================================
-   Hero Section (簡約版)
-   ========================================= */
-.hero {
-    min-height: 85vh; 
-    display: grid; 
-    grid-template-columns: 1.8fr 1fr; /* 左寬右窄 */
-    align-items: center; 
-    gap: 4rem; 
-    padding: 4rem; 
-    
-    background-color: var(--hero-bg); 
-    border-radius: 20px; 
-    margin-bottom: 4rem;
+/* 🟢 [補回] 輔助標籤樣式 (Eyebrow Text) */
+/* 專門用來弱化英文視覺的樣式 */
+.section-label {
+    display: block;            /* 讓它獨佔一行 */
+    font-family: var(--font-mono); 
+    font-size: 0.85rem;        /* 字體縮小 */
+    color: #94A3B8;            /* 顏色變淺灰 (關鍵！) */
+    font-weight: 400;          /* 字體變細 */
+    text-transform: uppercase; /* 強制大寫 */
+    letter-spacing: 0.12em;    /* 字距拉寬 */
+    margin-bottom: 4px;        /* 與下方中文保持一點點距離 */
+    background: transparent;   /* 確保沒有背景色 */
+    padding: 0;
     border: none;
 }
 
-.hero-content { position: relative; z-index: 2; }
-
-.hero-image-wrapper {
+/* 平台卡片標準 (The Platform Card) */
+.platform-card {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(0,0,0,0.02);
+    padding: 2rem;
     width: 100%;
+}
+
+/* 佈局容器 */
+.container { 
+    max-width: 1400px; 
+    margin: 0 auto; 
+    padding: 0 5vw;
+}
+
+/* Header */
+.site-header { padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
+.logo { font-weight: 800; font-size: 1.25rem; color: var(--text-primary); letter-spacing: -0.02em; }
+
+/* 身分標籤 */
+.status-badge {
+    color: var(--morandi-blue);
+    border: 1px solid var(--line-color);
+    background: white;
+    padding: 6px 16px;
+    border-radius: 50px;
+    font-size: 0.875rem;
+    font-weight: 600;
+    display: flex; align-items: center;
+}
+.status-badge::before {
+    content: ''; display: inline-block; width: 8px; height: 8px;
+    background-color: var(--evt-green); border-radius: 50%; margin-right: 8px;
+}
+
+/* =========================================
+   Login / Hero
+   ========================================= */
+.hero {
+    min-height: 80vh; 
+    display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: 4rem; 
+    padding: 4rem 0;
+}
+.display-text { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 2rem; }
+.circle-sketch { position: relative; color: var(--accent-color); z-index: 1; }
+
+/* =========================================
+   LEVEL 1: Calendar (最高權重)
+   ========================================= */
+#calendar-section {
+    margin-bottom: var(--spacing-section);
+}
+
+/* FullCalendar 覆寫 */
+.fc { font-family: var(--font-main); }
+.fc-toolbar-title { font-size: 1.5rem !important; font-weight: 700; color: var(--text-primary); }
+.fc-col-header-cell-cushion { color: var(--text-secondary) !important; font-weight: 600; padding: 12px 0; }
+.fc-daygrid-day-number { color: var(--text-secondary); font-size: 0.9rem; margin: 4px; }
+.fc-button-primary { background-color: var(--accent-color) !important; border: none !important; border-radius: 8px !important; }
+.fc-today-button { background-color: white !important; color: var(--text-primary) !important; border: 1px solid var(--line-color) !important; }
+
+/* =========================================
+   LEVEL 2: Features Navigation (功能模組 - 修正版)
+   ========================================= */
+.features-nav-section {
+    margin-bottom: var(--spacing-section);
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+/* 導覽卡片：卡片式設計 + 數字裝飾 */
+.nav-card {
+    background: var(--bg-card);
+    border-radius: var(--border-radius);
+    padding: 2rem 1.5rem; 
+    box-shadow: var(--card-shadow);
+    border: 1px solid rgba(0,0,0,0.02);
+    cursor: pointer;
+    transition: all 0.3s ease;
+    
+    position: relative; /* 為了數字定位 */
+    overflow: hidden;   
+    
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
     height: 100%;
 }
 
-.hero-image-placeholder {
-    background-color: #E4E4E7; 
-    height: 60vh; 
-    width: 100%;
-    position: relative; 
-    overflow: hidden; 
-    border-radius: 12px;
+/* Hover: 卡片上浮，移除藍色邊框 */
+.nav-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+    /* border-color: var(--accent-color);  <-- 已移除此行，不顯示藍框 */
 }
 
-.image-caption { 
-    position: absolute; 
-    top: 15px; 
-    left: 15px; 
-    font-family: var(--font-mono); 
-    font-size: 12px; 
-    color: #666; 
-}
-
-/* =========================================
-   3. Menu Grid (Features)
-   ========================================= */
-/* 強制移除上方邊框與內距，確保對齊 */
-.process-section { 
-    border-top: none !important; 
-    background: transparent !important; 
-    margin-top: 0 !important; 
-    padding: 0 !important;
-}
-.process-section .mb-4 { margin-bottom: 1.5rem !important; padding: 0 !important; }
-
-.concept-grid { 
-    display: grid; grid-template-columns: repeat(4, 1fr); 
-    border-top: 1px solid var(--line-color); 
-    border-bottom: 1px solid var(--line-color); 
-}
-.concept-item { 
-    padding: 3rem 2rem; border-right: 1px solid var(--line-color); 
-    position: relative; transition: background-color 0.3s; cursor: pointer; overflow: hidden; 
-}
-.concept-item:last-child { border-right: none; }
-.concept-item:hover { background-color: var(--white); }
-
+/* 大數字樣式 (01, 02...) */
 .concept-number {
-    font-size: 4rem; font-weight: 800; color: #E0E0E0; position: absolute; top: 1rem; right: 1.5rem;
-    line-height: 1; z-index: 0; font-family: var(--font-main); transition: color 0.3s ease;
+    font-size: 3.5rem; 
+    font-weight: 800; 
+    color: #F3F4F6; /* 極淡灰 */
+    line-height: 1; 
+    font-family: var(--font-main);
+    
+    position: absolute; 
+    top: 0.5rem; 
+    right: 1rem; 
+    z-index: 0; /* 底層 */
+    
+    transition: color 0.3s ease, opacity 0.3s ease;
 }
-.concept-item:hover .concept-number { color: var(--accent-color); opacity: 0.2; }
-.concept-item h3, .concept-item p { position: relative; z-index: 2; }
-.concept-item h3 { margin-bottom: 1rem; margin-top: 1.5rem; font-weight: 600; }
 
-/* 內容區：增加頂部間距，左右內縮 */
-#content-area {
-    margin-top: 0; 
-    padding-top: 2rem; 
-    padding-inline: 2rem; 
+/* Hover: 數字變藍色 (取代邊框效果) */
+.nav-card:hover .concept-number {
+    color: var(--accent-color);
+    opacity: 0.15; 
+}
+
+/* 卡片內容 */
+.nav-icon { 
+    font-size: 1.8rem; 
+    margin-bottom: 1rem; 
+    color: var(--accent-color); 
+    position: relative; z-index: 1; 
+}
+.nav-title { 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    margin-bottom: 0.5rem; 
+    color: var(--text-primary); 
+    position: relative; z-index: 1; 
+}
+.nav-desc { 
+    font-size: 0.9rem; 
+    color: var(--text-secondary); 
+    line-height: 1.5; 
+    position: relative; z-index: 1; 
 }
 
 /* =========================================
-   4. Calendar Styling (行事曆)
+   LEVEL 3: Content Stage (內容區)
    ========================================= */
-#calendar-section { background: transparent; }
-.fc { background: white; padding: 15px; border-radius: 12px; border: 1px solid var(--line-color); font-family: var(--font-main); }
-
-/* New Event 按鈕 (藍色) */
-#btn-add-event {
-    background-color: var(--accent-color) !important;
-    border: none !important; color: white !important;
+.content-stage-card {
+    background-color: var(--bg-card);
+    border-radius: var(--border-radius);
+    box-shadow: var(--card-shadow);
+    padding: 3rem; 
+    min-height: 500px; 
 }
-
-/* 行事曆標頭：深灰底白字 */
-.fc-col-header-cell { background-color: #333 !important; border: none !important; }
-.fc-col-header-cell-cushion, .fc-col-header-cell-cushion a { 
-    color: #ffffff !important; font-weight: 700; text-decoration: none !important; 
-    padding-top: 8px; padding-bottom: 8px; display: block; 
-}
-
-/* 標題 (年月) */
-.fc-toolbar-title { 
-    font-size: 1.5rem !important; font-weight: 700; color: var(--text-color); margin-left: 1rem; 
-}
-
-.fc-daygrid-day-number { font-size: 0.9rem; font-weight: 500; padding: 4px 8px !important; color: #444 !important; text-decoration: none !important; }
-.fc-daygrid-day-frame { min-height: 80px !important; }
-.fc-button-primary { background-color: white !important; border-color: #ddd !important; color: #333 !important; box-shadow: none !important; text-transform: uppercase; font-size: 0.75rem !important; }
-.fc-button-active { background-color: #333 !important; color: white !important; border-color: #333 !important; }
-.fc-event { border: none !important; border-radius: 2px; padding: 1px 4px; font-size: 0.75rem; margin-top: 1px !important; }
-.evt-orange { background-color: var(--evt-orange) !important; color: white !important; }
-.evt-green { background-color: var(--evt-green) !important; color: white !important; }
 
 /* =========================================
-   5. Chat Layout (留言板)
+   LEVEL 5: Chat Layout (留言板 - 完整修復版)
    ========================================= */
 .chat-container { 
-    height: 400px; overflow-y: auto; background: #fff; padding: 20px; 
-    border-radius: 4px; border: 1px solid var(--line-color); 
-    display: flex; flex-direction: column; gap: 15px;
+    height: 500px; 
+    overflow-y: auto; 
+    background: #fff; 
+    padding: 20px; 
+    border-radius: 12px; 
+    border: 1px solid var(--line-color); 
+    display: flex; 
+    flex-direction: column; 
+    gap: 20px;
 }
-/* 輸入框：淺灰底 */
-#msg-input { background-color: #E9ECEF !important; color: #333; }
 
-.msg-row { display: flex; align-items: flex-end; gap: 10px; max-width: 80%; }
-.msg-bubble { padding: 12px 16px; border-radius: 12px; position: relative; font-size: 0.95rem; line-height: 1.5; }
+#msg-input { background: #F3F4F6 !important; border: none; border-radius: 12px; color: #333; }
+
+/* 🔴 修復：強制 Flex 橫向排列 */
+.msg-row { 
+    display: flex; 
+    align-items: flex-end; /* 對齊底部 */
+    gap: 12px; 
+    max-width: 85%; 
+    width: auto;
+}
+
+/* 🔴 修復：鎖定頭像尺寸 */
 .msg-avatar {
-    width: 40px; height: 40px; background: #f0f0f0; border-radius: 50%;
-    display: flex; align-items: center; justify-content: center; flex-shrink: 0; overflow: hidden; 
+    width: 45px; 
+    height: 45px; 
+    min-width: 45px; /* 防止壓縮 */
+    background: #f0f0f0; 
+    border-radius: 50%;
+    display: flex; 
+    align-items: center; 
+    justify-content: center; 
+    overflow: hidden; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
+
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
-.msg-role { display: block; font-size: 0.75rem; margin-bottom: 4px; opacity: 0.7; font-weight: 600; }
+
+.msg-bubble { 
+    padding: 14px 18px; 
+    border-radius: 18px; 
+    position: relative; 
+    font-size: 1rem; 
+    line-height: 1.5; 
+    word-wrap: break-word;
+    display: flex;
+    flex-direction: column;
+}
+
+.msg-role { 
+    display: block; 
+    font-size: 0.75rem; 
+    margin-bottom: 4px; 
+    opacity: 0.8; 
+    font-weight: 600; 
+}
+
+/* 別人 (左側) */
 .msg-row.other { align-self: flex-start; }
-.msg-row.other .msg-bubble { background-color: #F5F5F5; color: #333; border-bottom-left-radius: 2px; }
-.msg-row.self { align-self: flex-end; flex-direction: row-reverse; }
-.msg-row.self .msg-bubble { background-color: #E3F2FD; color: #0D47A1; border-bottom-right-radius: 2px; text-align: right; }
+.msg-row.other .msg-bubble { 
+    background-color: #F3F4F6; 
+    color: #1F2937; 
+    border-bottom-left-radius: 4px; 
+}
+
+/* 我自己 (右側) - 反轉排列 */
+.msg-row.self { 
+    align-self: flex-end; 
+    flex-direction: row-reverse; 
+}
+.msg-row.self .msg-bubble { 
+    background-color: #EFF6FF; 
+    color: #1E40AF; 
+    border-bottom-right-radius: 4px; 
+    text-align: right; 
+    align-items: flex-end;
+}
 
 /* =========================================
-   RWD (Mobile Optimization)
+   RWD (Mobile)
    ========================================= */
 @media (max-width: 900px) {
-    /* 🟢 手機版邊距極限縮小 (4px) */
-    .container { padding: 0 4px; } 
+    .container { padding: 0 16px; }
+    .hero { grid-template-columns: 1fr; padding: 2rem 0; text-align: center; }
+    .display-text { font-size: 2.5rem; }
     
-    /* Hero 轉為垂直排列 */
-    .hero { 
-        grid-template-columns: 1fr; 
-        padding: 2rem 1rem; 
-        gap: 2rem; 
-        margin-bottom: 2rem; 
-        height: auto;
-    }
-    .hero-image-placeholder { height: 30vh; }
-    .display-text { font-size: 3rem; }
-
-    /* Features 四欄並排 */
-    .concept-grid { grid-template-columns: repeat(4, 1fr); gap: 0; border-bottom: 1px solid var(--line-color); }
-    .concept-item { 
-        border-right: 1px solid var(--line-color); border-bottom: none; 
-        padding: 2.5rem 0.2rem 1.5rem 0.2rem; /* 增加高度 */
-        display: flex; flex-direction: column; align-items: center; text-align: center; position: relative; 
-    }
-    .concept-item:last-child { border-right: none; }
+    /* Features Mobile: 2x2 grid */
+    .features-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
+    .nav-card { padding: 1.5rem 1rem; align-items: center; text-align: center; }
+    .nav-desc { display: none; } 
     
-    /* 數字回歸 (縮小) */
-    .concept-number { 
-        display: block; font-size: 1.5rem; top: 5px; right: 50%; transform: translateX(50%); color: #E0E0E0; 
-    }
-    .concept-item:active .concept-number, .concept-item:focus .concept-number { color: var(--accent-color); opacity: 0.5; }
-    .concept-desc { display: none; } /* 隱藏描述 */
-    .concept-item h3 { margin-top: 0.5rem; margin-bottom: 0; font-size: 0.8rem; white-space: nowrap; }
-    .concept-item i { font-size: 1.4rem !important; }
+    /* Mobile numbers */
+    .concept-number { font-size: 2.5rem; right: 50%; transform: translateX(50%); top: 5px; }
+    .nav-icon { margin-top: 1rem; font-size: 2rem; }
 
-    #btn-add-event { padding: 4px 10px; font-size: 0.8rem; }
-
-    /* 行事曆微調 */
-    .fc { padding: 2px; } 
-    .fc-col-header-cell-cushion { font-size: 13px !important; padding-top: 6px; padding-bottom: 6px; }
-    .fc-daygrid-day-frame { min-height: auto !important; height: auto !important; padding-bottom: 5px; } 
-    .fc-daygrid-day-number { padding: 2px 4px !important; font-size: 0.8rem; } 
-    .fc-toolbar-title { font-size: 1.1rem !important; margin-left: 0; margin-top: 5px; }
-    .fc-header-toolbar { flex-wrap: wrap; gap: 5px; margin-bottom: 10px !important; justify-content: center; }
-
-    /* 內容區重置內距 */
-    #content-area { padding-inline: 0; }
+    .content-stage-card { padding: 1.5rem; }
 }

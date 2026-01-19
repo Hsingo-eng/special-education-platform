@@ -90,6 +90,11 @@ function showSection(sectionId) {
         const el = document.getElementById(`section-${id}`);
         if(el) el.classList.add("d-none");
     });
+
+    //隱藏 Empty State 
+    const emptyState = document.getElementById("empty-state");
+    if(emptyState) emptyState.classList.add("d-none");
+
     // 顯示目標分頁
     const target = document.getElementById(`section-${sectionId}`);
     if(target) target.classList.remove("d-none");

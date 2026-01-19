@@ -26,13 +26,14 @@
         <div class="hero">
             <div class="hero-content">
                 <span class="section-label">Communication Platform</span>
+                
                 <h1 class="display-text">
-                    特教 <br>
-                    跨專業 <br>
+                    特教跨專團 <br>
                     <span class="circle-sketch">溝通平台</span>
                 </h1>
+                
                 <p class="body-text highlight-border mb-5">
-                    打造跨專業團隊更便利的溝通橋樑
+                    打造跨專業團隊更便利的溝通橋樑。極簡、高效、專注於孩子的成長紀錄。
                 </p>
 
                 <div class="card border-0 shadow-sm p-4" style="max-width: 400px; background: rgba(255,255,255,0.95);">
@@ -54,26 +55,36 @@
             
             <div class="hero-image-wrapper d-none d-md-block">
                 <div class="hero-image-placeholder">
-                    <span class="image-caption">PLATFORM VISUALIZATION</span>
-                    <div class="d-flex h-100 align-items-center justify-content-center">
-                         <i class="fas fa-shapes fa-5x opacity-25"></i>
+                    <div class="puzzle-group">
+                        <div class="puzzle-piece piece-blue">
+                            <i class="fas fa-chalkboard-teacher"></i>
+                        </div>
+                        <div class="puzzle-piece piece-green">
+                            <i class="fas fa-user-md"></i>
+                        </div>
+                        <div class="puzzle-piece piece-orange">
+                            <i class="fas fa-home"></i>
+                        </div>
                     </div>
+                    <span class="image-caption">COOPERATION & INTEGRATION</span>
                 </div>
             </div>
         </div>
     </div>
 
-    <div id="dashboard-section" class="container mt-4 d-none">
+    <div id="dashboard-section" class="container d-none" style="padding-top: 2rem; padding-bottom: 5rem;">
     
-        <div id="calendar-section" class="mb-5">
+        <div id="calendar-section" class="platform-card">
             <div class="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
                 <div>
                     <span class="section-label">Schedule</span>
+                    
                     <div class="d-flex align-items-center gap-3">
-                        <h2 class="mb-0">本月排程</h2>
+                        <h2 class="mb-0 fw-bold text-dark">本月排程</h2>
                         <input type="month" id="calendar-month-picker" class="form-control form-control-sm" style="width: auto; border-radius: 6px; border: 1px solid #ccc;">
                     </div>
                 </div>
+                
                 <button id="btn-add-event" class="btn btn-dark rounded-pill role-only" 
                         data-allow="teacher,therapist" 
                         onclick="openEventModal()">
@@ -81,99 +92,116 @@
                 </button>
             </div>
             
-            <div class="p-4 bg-white shadow-sm" style="border-radius: 20px;">
-                <div id="calendar"></div>
-            </div>
+            <div id="calendar"></div>
         </div>
 
-        <div class="process-section">
-            <div class="mb-4">
+        <div class="features-nav-section">
+            
+            <div class="mb-3 ms-1">
                 <span class="section-label">Features</span>
+                
+                <h2 class="h2-title mb-0 text-dark fw-bold">功能選單</h2>
             </div>
-            <div class="concept-grid">
-                
-                <div class="concept-item role-restricted" data-deny="parents" onclick="showSection('records')">
+            
+            <div class="features-grid">
+                <div class="nav-card role-restricted" data-deny="parents" onclick="showSection('records')">
                     <div class="concept-number">01</div>
-                    <h3><i class="fas fa-file-medical text-success me-2"></i>治療紀錄</h3>
-                    <p class="concept-desc">追蹤個案的治療進度與詳細紀錄。</p>
+                    <i class="fas fa-file-medical nav-icon text-success"></i>
+                    <div class="nav-title">治療紀錄</div>
+                    <div class="nav-desc">追蹤個案的治療進度與詳細紀錄。</div>
                 </div>
                 
-                <div class="concept-item" onclick="showSection('iep')">
+                <div class="nav-card" onclick="showSection('iep')">
                     <div class="concept-number">02</div>
-                    <h3><i class="fas fa-folder-open text-danger me-2"></i>IEP 資料</h3>
-                    <p class="concept-desc">個別化教育計畫檔案管理。</p>
+                    <i class="fas fa-folder-open nav-icon text-danger"></i>
+                    <div class="nav-title">IEP 資料</div>
+                    <div class="nav-desc">個別化教育計畫檔案管理與檢閱。</div>
                 </div>
 
-                <div class="concept-item" onclick="showSection('messages')">
+                <div class="nav-card" onclick="showSection('messages')">
                     <div class="concept-number">03</div>
-                    <h3><i class="fas fa-comments text-primary me-2"></i>留言板</h3>
-                    <p class="concept-desc">親師溝通的即時橋樑與 AI 摘要。</p>
+                    <i class="fas fa-comments nav-icon text-primary"></i>
+                    <div class="nav-title">留言板</div>
+                    <div class="nav-desc">親師溝通的即時橋樑與 AI 摘要。</div>
                 </div>
 
-                <div class="concept-item" onclick="showSection('questions')">
+                <div class="nav-card" onclick="showSection('questions')">
                     <div class="concept-number">04</div>
-                    <h3><i class="fas fa-question-circle text-info me-2"></i>提問回覆</h3>
-                    <p class="concept-desc">建立良好的諮詢與問答管道。</p>
+                    <i class="fas fa-question-circle nav-icon text-info"></i>
+                    <div class="nav-title">提問回覆</div>
+                    <div class="nav-desc">建立良好的諮詢與問答管道。</div>
                 </div>
             </div>
         </div>
 
-        <div id="content-area" class="pb-5">
-            <div id="section-records" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="display-6 fw-bold">治療紀錄列表</h3>
-                    <button class="btn btn-success rounded-pill role-only" data-allow="therapist" onclick="openRecordModal()">
-                        <i class="fas fa-plus"></i> 新增紀錄
-                    </button>
+        <div id="content-area">
+            <div class="platform-card content-stage-card">
+                
+                <div id="empty-state" class="text-center py-5">
+                    <i class="fas fa-mouse-pointer fa-3x text-light mb-3" style="color: #E5E7EB !important;"></i>
+                    <p class="text-secondary">請點選上方功能卡片以查看內容</p>
                 </div>
-                <div id="record-list" class="list-group"></div>
-            </div>
 
-            <div id="section-iep" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="display-6 fw-bold">IEP 個案資料</h3>
-                    <button class="btn btn-danger rounded-pill shadow-sm role-only" data-allow="teacher" onclick="openIepUpload()">
-                        <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
-                    </button>
+                <div id="section-records" class="d-none animate-fade">
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <h2 class="h2-title mb-0">治療紀錄列表</h2>
+                        <button class="btn btn-success btn-sm role-only" data-allow="therapist" onclick="openRecordModal()">
+                            <i class="fas fa-plus"></i> 新增
+                        </button>
+                    </div>
+                    <div id="record-list" class="list-group list-group-flush"></div>
                 </div>
-                <div id="iep-list" class="row g-4"></div>
-            </div>
 
-            <div id="section-messages" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="display-6 fw-bold">留言板</h3>
-                    <button class="btn btn-outline-primary rounded-pill" onclick="getAiSummary()">
-                        <i class="fas fa-robot"></i> AI 重點摘要
-                    </button>
+                <div id="section-iep" class="d-none animate-fade">
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <h2 class="h2-title mb-0">IEP 個案資料</h2>
+                        <button class="btn btn-danger btn-sm role-only" data-allow="teacher" onclick="openIepUpload()">
+                            <i class="fas fa-cloud-upload-alt"></i> 上傳
+                        </button>
+                    </div>
+                    <div id="iep-list" class="row g-4"></div>
                 </div>
-                <div id="ai-summary-box" class="alert alert-info d-none mb-3 shadow-sm border-0 bg-opacity-10">
-                    <h5 class="text-info"><i class="fas fa-magic"></i> Gemini AI 摘要：</h5>
-                    <p id="ai-summary-content" class="mb-0 small text-dark"></p>
-                </div>
-                <div class="chat-container mb-3 bg-white border p-3 rounded" style="min-height: 400px;">
-                    <div id="chat-box" class="chat-box"></div>
-                </div>
-                <div class="input-group">
-                    <input type="text" id="msg-input" class="form-control form-control-lg border-0 bg-light" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
-                    <button class="btn btn-primary px-4" onclick="sendMessage()"><i class="fas fa-paper-plane"></i></button>
-                </div>
-            </div>
 
-            <div id="section-questions" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h3 class="display-6 fw-bold">提問與回覆</h3>
-                    <button class="btn btn-info text-white rounded-pill shadow-sm" onclick="openQuestionModal()">
-                        <i class="fas fa-plus-circle"></i> 我要提問
-                    </button>
-                </div>
-                <div id="questions-list" class="row g-3"></div>
-            </div>
+                <div id="section-messages" class="d-none animate-fade">
+                    <div class="d-flex justify-content-between align-items-center mb-4">
+                        <h2 class="h2-title mb-0">留言板</h2>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="getAiSummary()">
+                            <i class="fas fa-robot"></i> AI 重點摘要
+                        </button>
+                    </div>
+                    
+                    <div id="ai-summary-box" class="alert alert-info d-none mb-4 border-0" style="background: #EFF6FF;">
+                        <h6 class="text-primary fw-bold mb-2"><i class="fas fa-magic"></i> Gemini AI 摘要</h6>
+                        <p id="ai-summary-content" class="mb-0 small text-secondary"></p>
+                    </div>
 
-        </div> <footer class="site-footer mt-5">
-            <div class="footer-meta">
-                <span>SYSTEM: READY</span>
-                <span>DESIGN: EDITORIAL STYLE</span>
+                    <div class="chat-container mb-4" style="height: 500px;">
+                        <div id="chat-box" class="chat-box p-3"></div>
+                    </div>
+                    
+                    <div class="input-group">
+                        <input type="text" id="msg-input" class="form-control form-control-lg px-4" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
+                        <button class="btn btn-primary px-4" onclick="sendMessage()" style="border-radius: 0 12px 12px 0;">
+                            <i class="fas fa-paper-plane"></i>
+                        </button>
+                    </div>
+                </div>
+
+                <div id="section-questions" class="d-none animate-fade">
+                    <div class="d-flex justify-content-between align-items-center mb-5">
+                        <h2 class="h2-title mb-0">提問與回覆</h2>
+                        <button class="btn btn-info text-white btn-sm rounded-pill" onclick="openQuestionModal()">
+                            <i class="fas fa-plus-circle"></i> 我要提問
+                        </button>
+                    </div>
+                    <div id="questions-list" class="row g-3"></div>
+                </div>
+
             </div>
+        </div>
+
+        <footer class="site-footer mt-5 text-center text-secondary small">
+            <span>© 2026 COMMUNICATION PLATFORM. ALL RIGHTS RESERVED.</span>
         </footer>
 
     </div> 
