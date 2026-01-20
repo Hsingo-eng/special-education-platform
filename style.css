@@ -103,8 +103,115 @@ h3 {
 }
 
 /* Header */
-.site-header { padding: 1.5rem 0; display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem; }
 .logo { font-weight: 800; font-size: 1.25rem; color: var(--text-primary); letter-spacing: -0.02em; }
+
+/* =========================================
+   🏢 Platform Header (整合優化版)
+   ========================================= */
+
+.app-header {
+    height: 64px;
+    background-color: #FFFFFF;
+    border-bottom: 1px solid #E5E7EB;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 24px;
+    position: sticky; top: 0; z-index: 1000;
+}
+
+/* --- Left: 平台識別區 (維持不變) --- */
+.header-left { display: flex; align-items: center; gap: 12px; }
+.header-logo-icon { font-size: 24px; color: var(--accent-color); display: flex; align-items: center; }
+.header-brand { display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
+.header-brand-main { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.05em; }
+.header-brand-sub { font-size: 0.75rem; color: #9CA3AF; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; }
+
+/* --- Center: 已移除 --- */
+
+/* --- Right: 使用者操作區 (整合版) --- */
+.header-right {
+    display: flex;
+    align-items: center;
+    gap: 8px; /* 縮小元件間距，使其更緊湊 */
+}
+
+/* 操作按鈕 (鈴鐺、登出) */
+.header-icon-btn {
+    background: transparent; border: none;
+    color: #6B7280; font-size: 1.1rem;
+    cursor: pointer; padding: 8px;
+    border-radius: 50%; transition: all 0.2s ease;
+    display: flex; align-items: center; justify-content: center;
+}
+.header-icon-btn:hover { background-color: #F3F4F6; color: var(--text-primary); }
+
+/* 分隔線 (直條) */
+.header-divider {
+    width: 1px; height: 24px;
+    background-color: #E5E7EB;
+    margin: 0 8px; /* 與左右保留距離 */
+}
+
+/* 使用者資訊群組 (文字在左，頭像在右) */
+.user-profile-group {
+    display: flex;
+    align-items: center;
+    gap: 12px; /* 文字與頭像的距離 */
+    padding-left: 4px;
+    cursor: default;
+}
+
+/* 角色文字 (靠右對齊) */
+.user-role-text {
+    font-size: 0.875rem; /* 14px */
+    font-weight: 600;
+    color: var(--text-primary);
+    text-align: right;
+}
+/* 增加一個 "Role" 的小標籤感，或僅純文字 */
+.user-role-label {
+    display: block;
+    font-size: 0.7rem;
+    color: #9CA3AF;
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+/* 頭像容器 (包含綠燈) */
+.avatar-wrapper {
+    position: relative; /* 為了定位綠燈 */
+    width: 38px; height: 38px;
+}
+
+.header-avatar {
+    width: 100%; height: 100%;
+    border-radius: 50%;
+    background-color: #E5E7EB;
+    border: 1px solid #E5E7EB;
+    overflow: hidden;
+}
+.header-avatar img { width: 100%; height: 100%; object-fit: cover; }
+
+/* 🟢 綠燈狀態點 (整合在頭像右下角) */
+.status-indicator {
+    position: absolute;
+    bottom: 0; right: 0;
+    width: 10px; height: 10px;
+    background-color: #10B981; /* 上線綠 */
+    border: 2px solid #FFFFFF; /* 白色邊框讓它與頭像區隔 */
+    border-radius: 50%;
+    box-shadow: 0 1px 2px rgba(0,0,0,0.1);
+}
+
+/* RWD */
+@media (max-width: 768px) {
+    .app-header { padding: 0 16px; height: 56px; }
+    .header-brand-sub { display: none; } 
+    /* 手機版隱藏文字，只留頭像 */
+    .user-role-text, .user-role-label { display: none; }
+}
 
 /* 身分標籤 */
 .status-badge {
