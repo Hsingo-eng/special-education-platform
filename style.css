@@ -1,54 +1,107 @@
 /* =========================================
-   1. Design System & Variables
+   1. ROOT: Visual Foundation (全站視覺基底)
    ========================================= */
 :root {
-    /* --- 🎨 平台配色 --- */
-    --bg-surface: #F6F8FA;      /* 網頁背景：冷灰 */
-    --bg-card: #FFFFFF;         /* 卡片背景：純白 */
+    /* --- 🎨 Color Palette (配色系統) --- */
     
-    --text-primary: #1F2937;    /* 主要文字 (H1, H2) */
-    --text-secondary: #6B7280;  /* 次要文字 (Body) */
+    /* 背景色：極淺藍灰 */
+    --bg-root: #F6F8FA;      
     
-    --accent-color: #2563EB;    /* 品牌藍 */
-    --accent-hover: #1D4ED8;
+    /* 容器色：純白 */
+    --bg-surface: #FFFFFF;   
+    --bg-card: #FFFFFF;      /* 兼容舊變數 */
+
+    /* 文字色 */
+    --text-primary: #1F2937;    /* 主要標題 */
+    --text-secondary: #6B7280;  /* 內文、說明 */
+    --text-hint: #9CA3AF;       /* 提示、輔助文字 */
+
+    /* 品牌色：專業藍 */
+    --brand-blue: #2563EB;       /* 主色 */
+    --brand-blue-hover: #1D4ED8; /* 互動懸停 */
     
-    --border-radius: 16px;      /* 統一圓角 */
-    --card-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03); /* 極淡陰影 */
-    
-    --spacing-section: 48px;    /* 區塊間距 */
+    /* 🟢 [關鍵修正] 兼容舊變數名稱，確保按鈕與圖示有顏色 */
+    --accent-color: var(--brand-blue); 
+    --morandi-blue: #647D98;   /* 身分標籤用 */
 
     /* 功能色 */
-    --evt-orange: #F97316;
-    --evt-green: #10B981;
-    --morandi-blue: #647D98;
-    --line-color: #E5E7EB;
+    --state-success: #10B981;
+    --state-warn: #F97316;
+    --state-danger: #EF4444;
+    
+    /* 🟢 [關鍵修正] 兼容舊變數名稱 */
+    --evt-green: var(--state-success);
+    --evt-orange: var(--state-warn);
 
-    /* 字體 */
-    --font-main: 'Taipei Sans TC', 'Noto Sans TC', sans-serif;
-    --font-mono: 'Courier New', Courier, monospace;
+    /* --- 📐 Layout & Spacing (版面節奏) --- */
+    --spacing-block: 48px;
+    --spacing-element: 16px;
+    --spacing-section: 48px; /* 兼容舊變數 */
+
+    --container-width: 1400px;
+    --container-padding: 5vw;
+
+    /* --- 🃏 Card System (卡片物理特性) --- */
+    --radius-card: 16px;
+    --border-radius: 16px; /* 兼容舊變數 */
+    
+    --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
+                   0 2px 4px -1px rgba(0, 0, 0, 0.03);
+    --card-shadow: var(--shadow-card); /* 兼容舊變數 */
+    
+    --border-subtle: 1px solid rgba(0,0,0,0.02);
+    --border-line: 1px solid #E5E7EB;
+    --line-color: #E5E7EB; /* 兼容舊變數 */
+
+    /* 字體系統 */
+    --font-main: 'Taipei Sans TC', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
+    --font-mono: 'Courier New', monospace;
 }
 
 /* =========================================
-   2. Reset & Base Styles
+   2. GLOBAL BASE (全站基礎設定)
    ========================================= */
-* { box-sizing: border-box; margin: 0; padding: 0; }
 
+/* 1. 網頁背景重置 */
 body {
-    background-color: var(--bg-surface);
+    background-color: var(--bg-root);
     color: var(--text-primary);
     font-family: var(--font-main);
     line-height: 1.6;
     font-weight: 400;
     -webkit-font-smoothing: antialiased;
+    margin: 0;
+    padding: 0;
+    overflow-x: hidden;
 }
 
-/* 標題層級系統 */
+/* 2. 佈局容器 (Page Container) */
+.container { 
+    max-width: var(--container-width); 
+    margin: 0 auto; 
+    padding: 0 var(--container-padding);
+}
+
+/* 3. 卡片系統 (Platform Card) */
+.platform-card {
+    background-color: var(--bg-surface);
+    border-radius: var(--radius-card);
+    box-shadow: var(--shadow-card);
+    border: var(--border-subtle);
+    padding: 2rem;
+    width: 100%;
+    position: relative;
+    transform: translateZ(0); 
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+/* 4. 基礎排版 (Typography) */
 h1, .h1-title {
     font-size: 1.75rem;
     font-weight: 700;
     color: var(--text-primary);
-    margin-bottom: 1.5rem;
     line-height: 1.2;
+    margin-bottom: 1.5rem;
 }
 
 h2, .h2-title {
@@ -58,57 +111,26 @@ h2, .h2-title {
     margin-bottom: 1rem;
 }
 
-h3 {
-    font-size: 1.125rem;
-    font-weight: 600;
-    margin-bottom: 0.5rem;
-}
-
-.body-text, p {
+.body-text {
     font-size: 1rem;
     color: var(--text-secondary);
 }
 
-/* 🟢 [補回] 輔助標籤樣式 (Eyebrow Text) */
-/* 專門用來弱化英文視覺的樣式 */
+/* 5. 輔助標籤 (Eyebrow Text) */
 .section-label {
-    display: block;            /* 讓它獨佔一行 */
-    font-family: var(--font-mono); 
-    font-size: 0.85rem;        /* 字體縮小 */
-    color: #94A3B8;            /* 顏色變淺灰 (關鍵！) */
-    font-weight: 400;          /* 字體變細 */
-    text-transform: uppercase; /* 強制大寫 */
-    letter-spacing: 0.12em;    /* 字距拉寬 */
-    margin-bottom: 4px;        /* 與下方中文保持一點點距離 */
-    background: transparent;   /* 確保沒有背景色 */
-    padding: 0;
-    border: none;
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    color: var(--text-hint);
+    font-weight: 400;
+    text-transform: uppercase;
+    letter-spacing: 0.12em;
+    margin-bottom: 6px;
 }
-
-/* 平台卡片標準 (The Platform Card) */
-.platform-card {
-    background-color: var(--bg-card);
-    border-radius: var(--border-radius);
-    box-shadow: var(--card-shadow);
-    border: 1px solid rgba(0,0,0,0.02);
-    padding: 2rem;
-    width: 100%;
-}
-
-/* 佈局容器 */
-.container { 
-    max-width: 1400px; 
-    margin: 0 auto; 
-    padding: 0 5vw;
-}
-
-/* Header */
-.logo { font-weight: 800; font-size: 1.25rem; color: var(--text-primary); letter-spacing: -0.02em; }
 
 /* =========================================
    🏢 Platform Header (整合優化版)
    ========================================= */
-
 .app-header {
     height: 64px;
     background-color: #FFFFFF;
@@ -120,23 +142,18 @@ h3 {
     position: sticky; top: 0; z-index: 1000;
 }
 
-/* --- Left: 平台識別區 (維持不變) --- */
 .header-left { display: flex; align-items: center; gap: 12px; }
 .header-logo-icon { font-size: 24px; color: var(--accent-color); display: flex; align-items: center; }
 .header-brand { display: flex; flex-direction: column; justify-content: center; line-height: 1.2; }
 .header-brand-main { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.05em; }
 .header-brand-sub { font-size: 0.75rem; color: #9CA3AF; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; }
 
-/* --- Center: 已移除 --- */
-
-/* --- Right: 使用者操作區 (整合版) --- */
 .header-right {
     display: flex;
     align-items: center;
-    gap: 8px; /* 縮小元件間距，使其更緊湊 */
+    gap: 8px;
 }
 
-/* 操作按鈕 (鈴鐺、登出) */
 .header-icon-btn {
     background: transparent; border: none;
     color: #6B7280; font-size: 1.1rem;
@@ -146,30 +163,26 @@ h3 {
 }
 .header-icon-btn:hover { background-color: #F3F4F6; color: var(--text-primary); }
 
-/* 分隔線 (直條) */
 .header-divider {
     width: 1px; height: 24px;
     background-color: #E5E7EB;
-    margin: 0 8px; /* 與左右保留距離 */
+    margin: 0 8px;
 }
 
-/* 使用者資訊群組 (文字在左，頭像在右) */
 .user-profile-group {
     display: flex;
     align-items: center;
-    gap: 12px; /* 文字與頭像的距離 */
+    gap: 12px;
     padding-left: 4px;
     cursor: default;
 }
 
-/* 角色文字 (靠右對齊) */
 .user-role-text {
-    font-size: 0.875rem; /* 14px */
+    font-size: 0.875rem;
     font-weight: 600;
     color: var(--text-primary);
     text-align: right;
 }
-/* 增加一個 "Role" 的小標籤感，或僅純文字 */
 .user-role-label {
     display: block;
     font-size: 0.7rem;
@@ -179,9 +192,8 @@ h3 {
     letter-spacing: 0.05em;
 }
 
-/* 頭像容器 (包含綠燈) */
 .avatar-wrapper {
-    position: relative; /* 為了定位綠燈 */
+    position: relative;
     width: 38px; height: 38px;
 }
 
@@ -194,26 +206,16 @@ h3 {
 }
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-/* 🟢 綠燈狀態點 (整合在頭像右下角) */
 .status-indicator {
     position: absolute;
     bottom: 0; right: 0;
     width: 10px; height: 10px;
-    background-color: #10B981; /* 上線綠 */
-    border: 2px solid #FFFFFF; /* 白色邊框讓它與頭像區隔 */
+    background-color: #10B981;
+    border: 2px solid #FFFFFF;
     border-radius: 50%;
     box-shadow: 0 1px 2px rgba(0,0,0,0.1);
 }
 
-/* RWD */
-@media (max-width: 768px) {
-    .app-header { padding: 0 16px; height: 56px; }
-    .header-brand-sub { display: none; } 
-    /* 手機版隱藏文字，只留頭像 */
-    .user-role-text, .user-role-label { display: none; }
-}
-
-/* 身分標籤 */
 .status-badge {
     color: var(--morandi-blue);
     border: 1px solid var(--line-color);
@@ -238,7 +240,53 @@ h3 {
     padding: 4rem 0;
 }
 .display-text { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 2rem; }
-.circle-sketch { position: relative; color: var(--accent-color); z-index: 1; }
+
+/* 藍色手繪圈圈 */
+.circle-sketch { 
+    display: inline-block; 
+    position: relative; 
+    z-index: 1; 
+    white-space: nowrap; 
+}
+.circle-sketch::after {
+    content: ''; 
+    position: absolute; 
+    left: -10%; top: -5%; width: 120%; height: 115%;
+    border: 2px solid var(--accent-color); 
+    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
+    z-index: -1; 
+    transform: rotate(-2deg); 
+    pointer-events: none;
+}
+
+/* 拼圖動畫 */
+.puzzle-group {
+    position: absolute;
+    top: 50%; left: 50%;
+    transform: translate(-50%, -50%) rotate(-10deg); 
+    width: 200px; height: 200px;
+    transition: transform 0.5s ease;
+}
+.hero-image-placeholder:hover .puzzle-group {
+    transform: translate(-50%, -50%) rotate(0deg);
+}
+.puzzle-piece {
+    position: absolute;
+    width: 100px; height: 100px;
+    border-radius: 15px;
+    display: flex; align-items: center; justify-content: center;
+    color: white; font-size: 2rem;
+    box-shadow: 4px 4px 15px rgba(0,0,0,0.15);
+    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    z-index: 1;
+}
+.piece-blue { background-color: var(--accent-color); top: 0; left: 0; z-index: 2; border-radius: 15px 15px 30px 15px; }
+.piece-green { background-color: var(--evt-green); top: 20px; left: 85px; z-index: 1; border-radius: 15px 15px 15px 30px; }
+.piece-orange { background-color: var(--evt-orange); top: 90px; left: 45px; z-index: 3; border-radius: 30px 15px 15px 15px; border: 3px solid #fff; }
+
+.hero-image-placeholder:hover .piece-blue { transform: translate(-15px, -15px) scale(1.1); }
+.hero-image-placeholder:hover .piece-green { transform: translate(15px, -10px) scale(1.1); }
+.hero-image-placeholder:hover .piece-orange { transform: translate(0px, 15px) scale(1.1); }
 
 /* =========================================
    LEVEL 1: Calendar (最高權重)
@@ -247,7 +295,6 @@ h3 {
     margin-bottom: var(--spacing-section);
 }
 
-/* FullCalendar 覆寫 */
 .fc { font-family: var(--font-main); }
 .fc-toolbar-title { font-size: 1.5rem !important; font-weight: 700; color: var(--text-primary); }
 .fc-col-header-cell-cushion { color: var(--text-secondary) !important; font-weight: 600; padding: 12px 0; }
@@ -256,7 +303,7 @@ h3 {
 .fc-today-button { background-color: white !important; color: var(--text-primary) !important; border: 1px solid var(--line-color) !important; }
 
 /* =========================================
-   LEVEL 2: Features Navigation (功能模組 - 修正版)
+   LEVEL 2: Features Navigation (功能模組)
    ========================================= */
 .features-nav-section {
     margin-bottom: var(--spacing-section);
@@ -268,7 +315,6 @@ h3 {
     gap: 1.5rem;
 }
 
-/* 導覽卡片：卡片式設計 + 數字裝飾 */
 .nav-card {
     background: var(--bg-card);
     border-radius: var(--border-radius);
@@ -277,65 +323,39 @@ h3 {
     border: 1px solid rgba(0,0,0,0.02);
     cursor: pointer;
     transition: all 0.3s ease;
-    
-    position: relative; /* 為了數字定位 */
-    overflow: hidden;   
-    
+    position: relative; 
+    overflow: hidden; 
     display: flex;
     flex-direction: column;
     align-items: flex-start;
     height: 100%;
 }
 
-/* Hover: 卡片上浮，移除藍色邊框 */
 .nav-card:hover {
     transform: translateY(-5px);
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-    /* border-color: var(--accent-color);  <-- 已移除此行，不顯示藍框 */
 }
 
-/* 大數字樣式 (01, 02...) */
 .concept-number {
     font-size: 3.5rem; 
     font-weight: 800; 
-    color: #F3F4F6; /* 極淡灰 */
+    color: #F3F4F6;
     line-height: 1; 
     font-family: var(--font-main);
-    
     position: absolute; 
-    top: 0.5rem; 
-    right: 1rem; 
-    z-index: 0; /* 底層 */
-    
+    top: 0.5rem; right: 1rem; 
+    z-index: 0;
     transition: color 0.3s ease, opacity 0.3s ease;
 }
 
-/* Hover: 數字變藍色 (取代邊框效果) */
 .nav-card:hover .concept-number {
     color: var(--accent-color);
     opacity: 0.15; 
 }
 
-/* 卡片內容 */
-.nav-icon { 
-    font-size: 1.8rem; 
-    margin-bottom: 1rem; 
-    color: var(--accent-color); 
-    position: relative; z-index: 1; 
-}
-.nav-title { 
-    font-size: 1.25rem; 
-    font-weight: 700; 
-    margin-bottom: 0.5rem; 
-    color: var(--text-primary); 
-    position: relative; z-index: 1; 
-}
-.nav-desc { 
-    font-size: 0.9rem; 
-    color: var(--text-secondary); 
-    line-height: 1.5; 
-    position: relative; z-index: 1; 
-}
+.nav-icon { font-size: 1.8rem; margin-bottom: 1rem; color: var(--accent-color); position: relative; z-index: 1; }
+.nav-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary); position: relative; z-index: 1; }
+.nav-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; position: relative; z-index: 1; }
 
 /* =========================================
    LEVEL 3: Content Stage (內容區)
@@ -349,7 +369,7 @@ h3 {
 }
 
 /* =========================================
-   LEVEL 5: Chat Layout (留言板 - 完整修復版)
+   LEVEL 5: Chat Layout (留言板 - 對稱修復版)
    ========================================= */
 .chat-container { 
     height: 500px; 
@@ -365,29 +385,23 @@ h3 {
 
 #msg-input { background: #F3F4F6 !important; border: none; border-radius: 12px; color: #333; }
 
-/* 🔴 修復：強制 Flex 橫向排列 */
 .msg-row { 
     display: flex; 
-    align-items: flex-end; /* 對齊底部 */
+    align-items: flex-end; 
     gap: 12px; 
     max-width: 85%; 
     width: auto;
+    margin: 0; 
 }
 
-/* 🔴 修復：鎖定頭像尺寸 */
 .msg-avatar {
-    width: 45px; 
-    height: 45px; 
-    min-width: 45px; /* 防止壓縮 */
+    width: 45px; height: 45px; min-width: 45px;
     background: #f0f0f0; 
     border-radius: 50%;
-    display: flex; 
-    align-items: center; 
-    justify-content: center; 
+    display: flex; align-items: center; justify-content: center; 
     overflow: hidden; 
     box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
-
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .msg-bubble { 
@@ -400,50 +414,34 @@ h3 {
     display: flex;
     flex-direction: column;
 }
+.msg-role { display: block; font-size: 0.75rem; margin-bottom: 4px; opacity: 0.8; font-weight: 600; }
 
-.msg-role { 
-    display: block; 
-    font-size: 0.75rem; 
-    margin-bottom: 4px; 
-    opacity: 0.8; 
-    font-weight: 600; 
-}
-
-/* 別人 (左側) */
 .msg-row.other { align-self: flex-start; }
-.msg-row.other .msg-bubble { 
-    background-color: #F3F4F6; 
-    color: #1F2937; 
-    border-bottom-left-radius: 4px; 
-}
+.msg-row.other .msg-bubble { background-color: #F3F4F6; color: #1F2937; border-bottom-left-radius: 4px; }
 
-/* 我自己 (右側) - 反轉排列 */
 .msg-row.self { 
     align-self: flex-end; 
     flex-direction: row-reverse; 
+    margin-right: 0; 
+    margin-left: auto;
 }
-.msg-row.self .msg-bubble { 
-    background-color: #EFF6FF; 
-    color: #1E40AF; 
-    border-bottom-right-radius: 4px; 
-    text-align: right; 
-    align-items: flex-end;
-}
+.msg-row.self .msg-bubble { background-color: #EFF6FF; color: #1E40AF; border-bottom-right-radius: 4px; text-align: right; align-items: flex-end; }
 
 /* =========================================
-   RWD (Mobile)
+   RWD (Mobile Optimization)
    ========================================= */
 @media (max-width: 900px) {
     .container { padding: 0 16px; }
+    .app-header { padding: 0 16px; height: 56px; }
+    .header-brand-sub { display: none; } 
+    .user-role-text, .user-role-label { display: none; }
+    
     .hero { grid-template-columns: 1fr; padding: 2rem 0; text-align: center; }
     .display-text { font-size: 2.5rem; }
     
-    /* Features Mobile: 2x2 grid */
     .features-grid { grid-template-columns: repeat(2, 1fr); gap: 1rem; }
     .nav-card { padding: 1.5rem 1rem; align-items: center; text-align: center; }
     .nav-desc { display: none; } 
-    
-    /* Mobile numbers */
     .concept-number { font-size: 2.5rem; right: 50%; transform: translateX(50%); top: 5px; }
     .nav-icon { margin-top: 1rem; font-size: 2rem; }
 
