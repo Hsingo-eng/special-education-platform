@@ -66,10 +66,25 @@ function showDashboard() {
     document.getElementById("login-section").classList.add("d-none");
     document.getElementById("dashboard-section").classList.remove("d-none");
     document.getElementById("main-nav").classList.remove("d-none");
-    
-    // 🟢 修正 2: 只顯示「角色名稱」，移除 ${currentUser.name}
-    // 這樣就算名字也是「老師」，也不會重複出現
     document.getElementById("nav-user-info").innerText = roleName(currentUser.role);
+    // ... (原本更新使用者名稱的程式碼) ...
+    // document.getElementById('nav-user-info').innerText = currentUser.name;
+
+    // 🟢 新增：根據角色切換頭貼
+    const avatarImg = document.getElementById('header-user-avatar');
+    if (avatarImg && currentUser) {
+        // 定義角色對應的圖片檔名 (請依實際檔案修改副檔名，如 .jpg)
+        const roleAvatars = {
+            'teacher': 'sticker1.png',    // 教師 -> sticker1
+            'therapist': 'sticker2.png',  // 治療師 -> sticker2
+            'parents': 'sticker3.png'     // 家長 -> sticker3
+        };
+
+        // 設定圖片 src，如果找不到對應角色，預設使用 sticker1
+        // 注意：系統內部的家長角色代碼通常是 'parents' (有s)
+        const avatarFile = roleAvatars[currentUser.role] || 'sticker1.png';
+        avatarImg.src = avatarFile;
+    }
 
     // 權限控制
     document.querySelectorAll(".role-restricted").forEach(el => {
