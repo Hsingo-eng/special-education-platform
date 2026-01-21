@@ -20,7 +20,7 @@
     --brand-blue: #2563EB;       /* 主色 */
     --brand-blue-hover: #1D4ED8; /* 互動懸停 */
     
-    /* 🟢 [關鍵修正] 兼容舊變數名稱，確保按鈕與圖示有顏色 */
+    /* 兼容舊變數 */
     --accent-color: var(--brand-blue); 
     --morandi-blue: #647D98;   /* 身分標籤用 */
 
@@ -29,7 +29,7 @@
     --state-warn: #F97316;
     --state-danger: #EF4444;
     
-    /* 🟢 [關鍵修正] 兼容舊變數名稱 */
+    /* 兼容舊變數 */
     --evt-green: var(--state-success);
     --evt-orange: var(--state-warn);
 
@@ -428,7 +428,7 @@ h2, .h2-title {
 .msg-row.self .msg-bubble { background-color: #EFF6FF; color: #1E40AF; border-bottom-right-radius: 4px; text-align: right; align-items: flex-end; }
 
 /* =========================================
-   3. 全域設定補強 (請確認這段在檔案中，或加在 RWD 之前)
+   3. 全域設定補強
    ========================================= */
 
 /* --- Calendar Event Styling (行事曆事件樣式優化) --- */
@@ -465,7 +465,7 @@ h2, .h2-title {
 
 
 /* =========================================
-   RWD (Mobile Optimization) - 手機版專用修復
+   RWD (Mobile Optimization) - 手機版專用修復 (合併且修正版)
    ========================================= */
 @media (max-width: 900px) {
     
@@ -486,88 +486,135 @@ h2, .h2-title {
        ========================================= */
     
     #calendar-section.platform-card {
-        padding: 12px 8px !important; 
+        padding: 12px 6px !important; /* 減少左右內距，爭取空間 */
     }
 
-    /* 上方標題區：改回 flex row，讓標題跟按鈕並排 */
+    /* 標題區塊容器：
+       上排：標題 + 月份選擇器 + 新增按鈕
+    */
     #calendar-section .platform-card > .d-flex {
         flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
-        gap: 8px;
-        margin-bottom: 12px !important;
+        flex-wrap: nowrap !important;
+        gap: 4px; /* 元件間距縮小 */
+        margin-bottom: 8px !important;
     }
 
-    /* 🔴 修改 1: 本月排程字體縮小 (18px)，強制一列 */
+    /* 1. 本月排程標題 (縮小) */
     #calendar-section .h1-title {
-        font-size: 18px !important; 
+        font-size: 16px !important; 
         margin-bottom: 0 !important;
-        white-space: nowrap; /* 關鍵：強制不換行 */
+        white-space: nowrap;
         line-height: 1;
         font-weight: 800;
+        flex-shrink: 0; /* 禁止壓縮標題 */
     }
 
-    /* 隱藏原本標題旁的月份選擇器 (因為空間不夠，把它移到下一排或隱藏) 
-       這裡我們選擇縮小並放在標題旁邊
-    */
+    /* 2. 月份選擇器 (找回來了！並縮小) */
     #calendar-month-picker {
-        display: none !important; /* 手機版暫時隱藏原生月曆選單，改用下方的大標題切換 */
+        display: block !important;
+        width: 90px !important;
+        height: 28px !important;
+        font-size: 12px !important;
+        padding: 0 2px !important;
+        text-align: center;
     }
 
-    /* 🔴 修改 1: + New Event 按鈕 (縮小字體與尺寸) */
+    /* 3. + New Event 按鈕 (縮小) */
     #btn-add-event {
-        width: auto !important; /* 不要在手機版滿版，改為自適應 */
-        font-size: 12px !important; 
-        padding: 6px 12px !important;
-        height: 32px !important;
+        width: auto !important;
+        font-size: 11px !important; 
+        padding: 0 8px !important;
+        height: 28px !important;
         white-space: nowrap;
+        display: flex; align-items: center;
     }
 
-    /* 第二排：月份導覽列 (2026年1月 + 上下月按鈕) */
-    #calendar-section .d-flex.align-items-center.gap-3 {
-        width: 100%;
-        justify-content: space-between;
-        margin-bottom: 8px;
-    }
-
-    /* --- FullCalendar 內部 --- */
+    /* --- FullCalendar 導覽列 (Row 2) --- */
+    /* 讓 < > today 2026年1月 month 擠在同一排 */
     
+    /* 隱藏原標題列容器多餘的間距 */
+    #calendar-section .d-flex.align-items-center.gap-3 {
+        display: none !important; /* 原本的結構隱藏，完全依賴 FullCalendar 自帶 Toolbar */
+    }
+
     /* 工具列 (Toolbar) */
     .fc-header-toolbar {
         margin-bottom: 4px !important;
-        display: flex;
-        justify-content: space-between;
-        align-items: center;
+        display: flex !important;
+        flex-wrap: nowrap !important; /* 絕對不換行 */
+        justify-content: space-between !important;
+        align-items: center !important;
+        gap: 0px !important; /* 移除間距 */
+        padding: 0 2px !important;
     }
 
     .fc-toolbar-chunk {
         display: flex;
         align-items: center;
-        gap: 4px;
+        gap: 2px !important;
     }
 
-    /* 🔴 修改 2: 事件字體縮小，無圓點 (已在上方全域設定處理無圓點) */
-    .fc-event-main {
-        font-size: 10px !important; /* 手機版字體極小化 */
-        line-height: 1.2;
-        padding: 1px 0;
+    /* < > today month 按鈕極小化 */
+    .fc-button {
+        padding: 0 4px !important; /* 內距極小 */
+        font-size: 10px !important; /* 字體縮小 */
+        height: 24px !important;    /* 高度縮小 */
+        line-height: 22px !important;
+        min-width: 20px !important; /* 允許按鈕很窄 */
     }
-    
-    /* 確保事件是塊狀顯示 */
-    .fc-daygrid-event {
+
+    /* 標題 (2026年1月) 縮小 */
+    .fc-toolbar-title {
+        font-size: 14px !important; /* 縮小以防換行 */
+        font-weight: 700;
         white-space: nowrap;
-        overflow: hidden;
-        margin-top: 1px !important;
+        margin: 0 2px !important;
     }
 
-    /* 縮小日期格子高度 */
+    /* --- 行事曆內容 --- */
+    .fc-event-main { font-size: 10px !important; line-height: 1.2; padding: 1px 0; }
+    .fc-daygrid-event { white-space: nowrap; overflow: hidden; margin-top: 1px !important; }
     .fc-daygrid-day-frame { min-height: 40px !important; height: auto !important; }
+    .fc-daygrid-day-number { font-size: 10px !important; padding: 1px !important; }
+    .fc-col-header-cell-cushion { font-size: 11px !important; padding: 2px 0 !important; }
+
+    /* =========================================
+       💬 留言板手機版：瘦身優化
+       ========================================= */
     
-    /* 縮小日期數字 */
-    .fc-daygrid-day-number { font-size: 11px !important; padding: 2px !important; }
-    
-    /* 縮小週標題 */
-    .fc-col-header-cell-cushion { font-size: 12px !important; padding: 4px 0 !important; }
+    .chat-container {
+        padding: 10px !important; /* 減少容器邊距 */
+    }
+
+    /* 訊息列：拉寬顯示範圍 */
+    .msg-row {
+        gap: 6px !important;
+        max-width: 98% !important; /* 幾乎滿版，減少浪費空間 */
+        width: 100% !important;
+    }
+
+    /* 頭像縮小 (45px -> 30px) */
+    .msg-avatar {
+        width: 32px !important;
+        height: 32px !important;
+        min-width: 32px !important;
+    }
+
+    /* 對話框字體縮小、內距縮小 */
+    .msg-bubble {
+        padding: 8px 12px !important;
+        border-radius: 12px !important;
+        font-size: 13px !important; /* 字體縮小 */
+        line-height: 1.4;
+    }
+
+    /* 角色名稱字體縮小 */
+    .msg-role {
+        font-size: 10px !important;
+        margin-bottom: 2px !important;
+    }
 
     /* =========================================
        其他區域
