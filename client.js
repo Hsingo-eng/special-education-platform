@@ -468,19 +468,18 @@ function replyQuestion(id) {
 // ==========================================
 // 功能 E: 行事曆 (編輯功能 + 修正監聽器)
 // ==========================================
+// ==========================================
+// 功能 E: 行事曆 (優化版：只顯標題、點擊顯詳情)
+// ==========================================
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
     document.getElementById("calendar-section").classList.remove("d-none");
 
     const monthPicker = document.getElementById('calendar-month-picker');
-
-    // 🟢 修正：移除重複的 monthPicker 監聽器，只保留一個
     if (monthPicker) {
-        // 先移除舊的 listener (如果有的話)，避免重複綁定
         const newPicker = monthPicker.cloneNode(true);
         monthPicker.parentNode.replaceChild(newPicker, monthPicker);
-        
         newPicker.addEventListener('change', function() {
             if (this.value) calendar.gotoDate(this.value);
         });
@@ -491,6 +490,10 @@ function initCalendar() {
         locale: 'zh-tw',
         height: 'auto',
         contentHeight: 'auto',
+        
+        // 🔴 關鍵修改：不顯示時間，只顯示標題 (如：期末IEP)
+        displayEventTime: false, 
+
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
@@ -507,26 +510,60 @@ function initCalendar() {
              try {
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
-                const eventsWithColor = (json.data || []).map((evt, index) => {
-                    const colorClass = (index % 2 === 0) ? 'evt-orange' : 'evt-green';
-                    return { ...evt, classNames: [colorClass] };
+                
+                // 🔴 關鍵修改：根據角色分配顏色
+                const eventsWithColor = (json.data || []).map(evt => {
+                    // 假設後端回傳 evt.role (建立者角色)，如果沒有，預設用 evt-orange
+                    // 根據需求：教師=橘色, 治療師=綠色
+                    let colorClass = 'evt-orange'; // 預設教師
+                    if (evt.role === 'therapist') colorClass = 'evt-green';
+                    
+                    return { 
+                        ...evt, 
+                        classNames: [colorClass],
+                        // 我們把時間資訊存進 extendedProps 方便點擊時使用
+                        extendedProps: {
+                            ...evt.extendedProps,
+                            role: evt.role, // 確保 role 存在
+                            creator: roleName(evt.role) // 轉換成中文 (教師/治療師)
+                        }
+                    };
                 });
                 successCallback(eventsWithColor);
             } catch (e) { failureCallback(e); }
         },
         eventClick: function(info) {
              const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
-             const desc = info.event.extendedProps.description || "無詳細內容";
+             const props = info.event.extendedProps;
+             const desc = props.description || "無詳細內容";
+             const creator = props.creator || "未知"; 
              
+             // 格式化時間 (例如: 上午 09:00)
+             const timeStr = info.event.start ? info.event.start.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '全天';
+
+             // 🔴 彈出視窗內容優化
+             const contentHtml = `
+                <div class="text-start bg-light p-3 rounded mb-3">
+                    <p class="mb-1"><strong><i class="far fa-clock"></i> 時間：</strong> ${timeStr}</p>
+                    <p class="mb-1"><strong><i class="fas fa-user"></i> 新增者：</strong> ${creator}</p>
+                    <hr class="my-2">
+                    <p class="mb-0 text-secondary">${desc}</p>
+                </div>
+             `;
+
              if (!isOwner) {
-                 Swal.fire({ title: info.event.title, text: desc, icon: 'info', confirmButtonColor: '#2563EB' });
+                 Swal.fire({ 
+                     title: info.event.title, 
+                     html: contentHtml, // 使用自訂 HTML 顯示詳情
+                     icon: 'info', 
+                     confirmButtonColor: '#2563EB' 
+                 });
              } else {
-                 // 🟢 教師/治療師：顯示編輯與刪除按鈕
                  Swal.fire({
                      title: info.event.title,
                      html: `
-                        <p class="text-secondary mb-4">${desc}</p>
-                        <div class="d-flex gap-2 justify-content-center">
+                        ${contentHtml}
+                        <div class="d-flex gap-2 justify-content-center mt-2">
                             <button id="btn-swal-edit" class="btn btn-primary flex-grow-1"><i class="fas fa-edit"></i> 編輯</button>
                             <button id="btn-swal-del" class="btn btn-outline-danger flex-grow-1"><i class="fas fa-trash-alt"></i> 刪除</button>
                         </div>
@@ -536,7 +573,7 @@ function initCalendar() {
                      didOpen: () => {
                          document.getElementById('btn-swal-edit').onclick = () => {
                              Swal.close();
-                             openEventModal(info.event); // 打開編輯視窗
+                             openEventModal(info.event); 
                          };
                          document.getElementById('btn-swal-del').onclick = () => {
                              Swal.close();

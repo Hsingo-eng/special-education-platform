@@ -428,12 +428,48 @@ h2, .h2-title {
 .msg-row.self .msg-bubble { background-color: #EFF6FF; color: #1E40AF; border-bottom-right-radius: 4px; text-align: right; align-items: flex-end; }
 
 /* =========================================
+   3. 全域設定補強 (請確認這段在檔案中，或加在 RWD 之前)
+   ========================================= */
+
+/* --- Calendar Event Styling (行事曆事件樣式優化) --- */
+/* 1. 隱藏原本的圓點 */
+.fc-daygrid-event-dot {
+    display: none !important;
+}
+
+/* 2. 事件改為色塊風格 (白字、無邊框) */
+.fc-event {
+    border: none !important;
+    padding: 2px 4px !important;
+    border-radius: 4px;
+    margin-top: 2px !important;
+    cursor: pointer;
+}
+
+.fc-event-main {
+    color: white !important; /* 強制白字 */
+    font-weight: 500;
+    font-size: 0.85rem; /* 電腦版字體 */
+}
+
+/* 3. 定義身分顏色 (教師橘、治療師綠) */
+.evt-orange {
+    background-color: var(--evt-orange) !important;
+    color: white !important;
+}
+
+.evt-green {
+    background-color: var(--evt-green) !important;
+    color: white !important;
+}
+
+
+/* =========================================
    RWD (Mobile Optimization) - 手機版專用修復
    ========================================= */
 @media (max-width: 900px) {
     
-    /* 1. 容器與 Header 基礎調整 */
-    .container { padding: 0 12px; }
+    .container { padding: 0 8px; }
     .app-header { padding: 0 16px; height: 56px; }
 
     /* 隱藏非必要元素 */
@@ -442,100 +478,99 @@ h2, .h2-title {
     .user-role-label,
     .hero-image-wrapper { display: none !important; }
     
-    /* Hero 區塊 */
-    .hero { 
-        grid-template-columns: 1fr; 
-        padding: 2rem 0; 
-        text-align: center; 
-        gap: 1.5rem;
-    }
+    .hero { grid-template-columns: 1fr; padding: 2rem 0; text-align: center; gap: 1.5rem; }
     .display-text { font-size: 2.25rem; margin-bottom: 1rem; }
     
     /* =========================================
-       📅 行事曆手機版：頭部微調 (Header Tuning)
+       📅 行事曆手機版：極致壓縮版
        ========================================= */
     
-    /* 卡片容器 */
     #calendar-section.platform-card {
-        padding: 16px 12px !important; 
+        padding: 12px 8px !important; 
     }
 
-    /* 標題區塊容器：強制垂直排列 (上排標題+月份，下排按鈕) */
+    /* 上方標題區：改回 flex row，讓標題跟按鈕並排 */
     #calendar-section .platform-card > .d-flex {
-        flex-direction: column !important;
-        align-items: stretch !important;
-        gap: 12px; /* 上下排間距 */
-        margin-bottom: 12px !important;
-        padding-bottom: 0 !important;
-        border-bottom: none !important;
-    }
-
-    /* 第一排：標題 + 月份選擇器 (水平排列) */
-    #calendar-section .d-flex.align-items-center.gap-3 {
-        display: flex !important;
         flex-direction: row !important;
-        justify-content: space-between !important; 
         align-items: center !important;
-        width: 100%;
-        gap: 8px !important; /* 縮小標題跟月份的間距 */
+        justify-content: space-between !important;
+        gap: 8px;
+        margin-bottom: 12px !important;
     }
 
-    /* 🔴 修改 1: 本月排程字體縮小 (22px)，強制不換行 */
+    /* 🔴 修改 1: 本月排程字體縮小 (18px)，強制一列 */
     #calendar-section .h1-title {
-        font-size: 22px !important; 
+        font-size: 18px !important; 
         margin-bottom: 0 !important;
-        white-space: nowrap; /* 關鍵：強制一列 */
-        line-height: 1.2;
+        white-space: nowrap; /* 關鍵：強制不換行 */
+        line-height: 1;
+        font-weight: 800;
     }
 
-    /* 🔴 修改 2: 月份選擇器 (文字置中 + 尺寸調整) */
+    /* 隱藏原本標題旁的月份選擇器 (因為空間不夠，把它移到下一排或隱藏) 
+       這裡我們選擇縮小並放在標題旁邊
+    */
     #calendar-month-picker {
-        font-size: 14px !important;
-        padding: 4px 0 !important;
-        width: 110px !important; /* 固定寬度 */
-        height: 34px !important;
-        text-align: center !important; /* 關鍵：文字置中 */
-        border-radius: 8px;
+        display: none !important; /* 手機版暫時隱藏原生月曆選單，改用下方的大標題切換 */
     }
 
-    /* 🔴 修改 3: + New Event 按鈕 (縮小字體與高度) */
+    /* 🔴 修改 1: + New Event 按鈕 (縮小字體與尺寸) */
     #btn-add-event {
+        width: auto !important; /* 不要在手機版滿版，改為自適應 */
+        font-size: 12px !important; 
+        padding: 6px 12px !important;
+        height: 32px !important;
+        white-space: nowrap;
+    }
+
+    /* 第二排：月份導覽列 (2026年1月 + 上下月按鈕) */
+    #calendar-section .d-flex.align-items-center.gap-3 {
         width: 100%;
-        margin-left: 0 !important;
-        font-size: 13px !important; /* 字體縮小 */
-        padding: 0 !important;      /* 移除多餘內距 */
-        height: 36px !important;    /* 設定固定高度 */
-        display: flex;
-        align-items: center;
-        justify-content: center;
+        justify-content: space-between;
+        margin-bottom: 8px;
     }
 
     /* --- FullCalendar 內部 --- */
+    
+    /* 工具列 (Toolbar) */
     .fc-header-toolbar {
-        flex-wrap: nowrap !important;
-        gap: 2px !important;
-        margin-bottom: 8px !important;
+        margin-bottom: 4px !important;
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
     }
 
-    .fc-button {
-        padding: 0 8px !important;
-        font-size: 12px !important;
-        height: 30px !important;
-        line-height: 28px !important; /* 垂直置中 */
+    .fc-toolbar-chunk {
+        display: flex;
+        align-items: center;
+        gap: 4px;
     }
 
-    .fc-toolbar-title {
-        font-size: 18px !important;
-        white-space: nowrap;
+    /* 🔴 修改 2: 事件字體縮小，無圓點 (已在上方全域設定處理無圓點) */
+    .fc-event-main {
+        font-size: 10px !important; /* 手機版字體極小化 */
+        line-height: 1.2;
+        padding: 1px 0;
     }
     
-    /* 縮小行事曆高度 */
-    .fc-daygrid-day-frame { min-height: 45px !important; height: auto !important; }
-    .fc-col-header-cell-cushion { font-size: 13px !important; padding: 4px 0 !important; }
-    .fc-daygrid-day-number { font-size: 12px !important; padding: 2px 4px !important; }
+    /* 確保事件是塊狀顯示 */
+    .fc-daygrid-event {
+        white-space: nowrap;
+        overflow: hidden;
+        margin-top: 1px !important;
+    }
+
+    /* 縮小日期格子高度 */
+    .fc-daygrid-day-frame { min-height: 40px !important; height: auto !important; }
+    
+    /* 縮小日期數字 */
+    .fc-daygrid-day-number { font-size: 11px !important; padding: 2px !important; }
+    
+    /* 縮小週標題 */
+    .fc-col-header-cell-cushion { font-size: 12px !important; padding: 4px 0 !important; }
 
     /* =========================================
-       其他區域 (維持不變)
+       其他區域
        ========================================= */
     .features-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .nav-card { padding: 1rem; min-height: 110px; align-items: center; text-align: center; }
