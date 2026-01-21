@@ -1,3 +1,9 @@
+const roleMap = {
+    'teacher': '教師',
+    'therapist': '治療師',
+    'parents': '家長'
+};
+
 const API_URL = "https://special-education-platform.zeabur.app";
 const socket = io(API_URL);
 let currentUser = null;
@@ -207,24 +213,41 @@ async function loadMessages() {
 
 function renderMessage(msg) {
     const chatBox = document.getElementById("chat-box");
-    
-    const isMe = (msg.user_name === currentUser.name);
-    const alignClass = isMe ? "msg-self" : "msg-other";
+    if (!chatBox) return;
 
-    let colorClass = "msg-teacher";
-    if (msg.role === "parents") colorClass = "msg-parents";
-    if (msg.role === "therapist") colorClass = "msg-therapist";
+    // 判斷是否為自己發出的訊息
+    const isSelf = (msg.username === currentUser.username);
 
-    const div = document.createElement("div");
-    div.className = `message-item ${alignClass} ${colorClass}`;
-    
-    const label = isMe ? "我" : `${roleName(msg.role)} - ${msg.user_name}`;
+    // 🟢 修改重點 1：只取得中文身分名稱 (例如：教師)，不顯示使用者帳號
+    const roleName = roleMap[msg.role] || '訪客';
 
-    div.innerHTML = `
-        <span class="msg-role-label">${label}</span>
-        <div>${msg.message}</div>
+    // 🟢 修改重點 2：根據角色決定頭貼
+    const roleAvatars = {
+        'teacher': 'sticker1.png',
+        'therapist': 'sticker2.png',
+        'parents': 'sticker3.png'
+    };
+    // 如果找不到對應圖片，預設用 sticker1
+    const avatarSrc = roleAvatars[msg.role] || 'sticker1.png';
+
+    // 產生 HTML
+    const msgHtml = `
+        <div class="msg-row ${isSelf ? 'self' : 'other'}">
+            <div class="msg-avatar">
+                <img src="${avatarSrc}" alt="${roleName}">
+            </div>
+            <div class="msg-bubble">
+                <span class="msg-role">${roleName}</span>
+                <div>${msg.text}</div>
+            </div>
+        </div>
     `;
-    chatBox.appendChild(div);
+
+    // 插入對話框
+    chatBox.insertAdjacentHTML('beforeend', msgHtml);
+    
+    // 自動捲動到底部
+    chatBox.scrollTop = chatBox.scrollHeight;
 }
 
 async function sendMessage() {
@@ -683,43 +706,174 @@ function initCalendar() {
     }
 }
 
-async function openEventModal() {
-    const { value: formValues } = await Swal.fire({
-        title: '新增行事曆事件',
-        html: `
-            <input type="text" id="swal-evt-title" class="form-control mb-3" placeholder="事件標題 (如: IEP會議)">
-            <input type="date" id="swal-evt-date" class="form-control mb-3">
-            <input type="time" id="swal-evt-time" class="form-control mb-3" value="09:00">
-            <input type="text" id="swal-evt-desc" class="form-control" placeholder="備註 (選填)">
-        `,
-        showCancelButton: true,
-        confirmButtonText: '新增',
-        preConfirm: () => {
-            return {
-                title: document.getElementById('swal-evt-title').value,
-                date: document.getElementById('swal-evt-date').value,
-                time: document.getElementById('swal-evt-time').value,
-                description: document.getElementById('swal-evt-desc').value
-            };
+// --- 全域變數新增 ---
+let currentEditingEventId = null; // 用來記錄現在是否正在編輯某個排程
+
+// 🟢 1. 改良版：打開活動視窗 (支援新增與編輯)
+function openEventModal(eventData = null) {
+    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
+    
+    // 取得輸入欄位
+    const titleInput = document.getElementById('event-title');
+    const dateInput = document.getElementById('event-date');
+    const descInput = document.getElementById('event-desc');
+    const modalTitle = document.getElementById('eventModalLabel'); // 記得在 HTML 加這個 ID 給 Modal Title
+    
+    if (eventData) {
+        // --- 編輯模式 ---
+        currentEditingEventId = eventData.id; // 記錄 ID
+        titleInput.value = eventData.title;
+        dateInput.value = eventData.startStr; // FullCalendar 的日期格式
+        descInput.value = eventData.extendedProps.description || '';
+        
+        // 如果 HTML 有 Modal 標題，改為「編輯排程」
+        if(modalTitle) modalTitle.innerText = "編輯排程";
+    } else {
+        // --- 新增模式 ---
+        currentEditingEventId = null; // 清空 ID
+        titleInput.value = '';
+        dateInput.value = '';
+        descInput.value = '';
+        
+        if(modalTitle) modalTitle.innerText = "新增排程";
+    }
+
+    modal.show();
+}
+
+// 🟢 2. 改良版：儲存活動 (分辨是新增還是更新)
+async function saveEvent() {
+    const title = document.getElementById('event-title').value;
+    const date = document.getElementById('event-date').value;
+    const desc = document.getElementById('event-desc').value;
+
+    if (!title || !date) {
+        Swal.fire('欄位未填', '請輸入標題與日期', 'warning');
+        return;
+    }
+
+    const payload = { title, date, description: desc };
+
+    try {
+        let url = `${API_URL}/api/calendar`;
+        let method = 'POST';
+
+        // 如果有 ID，代表是「編輯」，改用 PUT 方法
+        if (currentEditingEventId) {
+            url = `${API_URL}/api/calendar/${currentEditingEventId}`;
+            method = 'PUT'; // 或 PATCH，視您的後端設計而定
+        }
+
+        const res = await fetchWithAuth(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            // 關閉 Modal
+            const modalEl = document.getElementById('eventModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            modal.hide();
+
+            // 重新整理行事曆
+            calendar.refetchEvents();
+            
+            Swal.fire('成功', currentEditingEventId ? '排程已更新' : '排程已新增', 'success');
+        } else {
+            throw new Error('儲存失敗');
+        }
+    } catch (error) {
+        console.error(error);
+        Swal.fire('錯誤', '無法儲存排程', 'error');
+    }
+}
+
+// 🟢 3. 改良版：行事曆初始化 (加入編輯按鈕)
+function initCalendar() {
+    const calendarEl = document.getElementById('calendar');
+    if (!calendarEl) return;
+    document.getElementById("calendar-section").classList.remove("d-none");
+
+    const monthPicker = document.getElementById('calendar-month-picker');
+
+    calendar = new FullCalendar.Calendar(calendarEl, {
+        initialView: 'dayGridMonth',
+        locale: 'zh-tw',
+        height: 'auto',
+        contentHeight: 'auto',
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth'
+        },
+        // ... (datesSet 與 events 部分維持不變) ...
+        events: async function(info, successCallback, failureCallback) {
+             try {
+                const res = await fetchWithAuth(`${API_URL}/api/calendar`);
+                const json = await res.json();
+                const eventsWithColor = (json.data || []).map((evt, index) => {
+                    const colorClass = (index % 2 === 0) ? 'evt-orange' : 'evt-green';
+                    return { ...evt, classNames: [colorClass] };
+                });
+                successCallback(eventsWithColor);
+            } catch (e) { failureCallback(e); }
+        },
+        // 點擊事件處理
+        eventClick: function(info) {
+             const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
+             const desc = info.event.extendedProps.description || "無詳細內容";
+             
+             if (!isOwner) {
+                 // 家長只能看
+                 Swal.fire({ 
+                     title: info.event.title, 
+                     text: desc, 
+                     icon: 'info', 
+                     confirmButtonColor: '#2563EB' 
+                 });
+             } else {
+                 // 教師/治療師 可以 編輯 或 刪除
+                 Swal.fire({
+                     title: info.event.title,
+                     html: `
+                        <p class="text-secondary mb-4">${desc}</p>
+                        <div class="d-flex gap-2 justify-content-center">
+                            <button id="btn-swal-edit" class="btn btn-primary flex-grow-1">
+                                <i class="fas fa-edit"></i> 編輯
+                            </button>
+                            <button id="btn-swal-del" class="btn btn-outline-danger flex-grow-1">
+                                <i class="fas fa-trash-alt"></i> 刪除
+                            </button>
+                        </div>
+                     `,
+                     showConfirmButton: false, 
+                     showCloseButton: true,
+                     didOpen: () => {
+                         // 綁定編輯按鈕
+                         document.getElementById('btn-swal-edit').onclick = () => {
+                             Swal.close(); // 關閉 SweetAlert
+                             openEventModal(info.event); // 打開編輯視窗並帶入資料
+                         };
+                         
+                         // 綁定刪除按鈕
+                         document.getElementById('btn-swal-del').onclick = () => {
+                             Swal.close();
+                             deleteEvent(info.event.id); // 呼叫原本的刪除函式
+                         };
+                     }
+                 });
+             }
         }
     });
 
-    if (formValues) {
-        if(!formValues.title || !formValues.date) return Swal.fire("請填寫完整");
+    calendar.render();
 
-        try {
-            const res = await fetchWithAuth(`${API_URL}/api/calendar`, {
-                method: "POST",
-                body: JSON.stringify(formValues)
-            });
-            if(res.ok) {
-                Swal.fire("成功", "行程已加入 Google Calendar", "success");
-                calendar.refetchEvents(); 
-            } else {
-                throw new Error("新增失敗");
+    if(monthPicker) {
+        monthPicker.addEventListener('change', function() {
+            if (this.value) {
+                calendar.gotoDate(this.value);
             }
-        } catch (err) {
-            Swal.fire("失敗", err.message, "error");
-        }
+        });
     }
 }
