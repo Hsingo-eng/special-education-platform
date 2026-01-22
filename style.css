@@ -463,9 +463,8 @@ h2, .h2-title {
     color: white !important;
 }
 
-
 /* =========================================
-   RWD (Mobile Optimization) - 手機版專用修復 (合併且修正版)
+   RWD (Mobile Optimization) - 手機版最終修復
    ========================================= */
 @media (max-width: 900px) {
     
@@ -482,46 +481,51 @@ h2, .h2-title {
     .display-text { font-size: 2.25rem; margin-bottom: 1rem; }
     
     /* =========================================
-       📅 行事曆手機版：極致壓縮版
+       📅 行事曆手機版修復
        ========================================= */
     
     #calendar-section.platform-card {
-        padding: 12px 6px !important; /* 減少左右內距，爭取空間 */
+        padding: 12px 6px !important;
     }
 
-    /* 標題區塊容器：
-       上排：標題 + 月份選擇器 + 新增按鈕
-    */
+    /* 標題區塊容器 */
     #calendar-section .platform-card > .d-flex {
         flex-direction: row !important;
         align-items: center !important;
         justify-content: space-between !important;
         flex-wrap: nowrap !important;
-        gap: 4px; /* 元件間距縮小 */
+        gap: 4px; 
         margin-bottom: 8px !important;
     }
 
-    /* 1. 本月排程標題 (縮小) */
+    /* 1. 本月排程標題 */
     #calendar-section .h1-title {
-        font-size: 16px !important; 
+        font-size: 18px !important; 
         margin-bottom: 0 !important;
         white-space: nowrap;
         line-height: 1;
         font-weight: 800;
-        flex-shrink: 0; /* 禁止壓縮標題 */
+        flex-shrink: 0; 
     }
 
-    /* 2. 月份選擇器 (找回來了！並縮小) */
+    /* 2. 月份選擇器 (修復消失問題) */
     #calendar-month-picker {
         display: block !important;
-        width: 90px !important;
-        height: 28px !important;
-        font-size: 12px !important;
-        padding: 0 2px !important;
+        width: 105px !important;
+        height: 30px !important;
+        font-size: 13px !important;
+        padding: 0 4px !important;
         text-align: center;
+        
+        /* 🔴 關鍵修正：加上邊框與背景，讓它現形 */
+        background-color: #fff !important;
+        border: 1px solid #ced4da !important;
+        border-radius: 6px !important;
+        color: #333 !important;
+        opacity: 1 !important;
     }
 
-    /* 3. + New Event 按鈕 (縮小) */
+    /* 3. + New Event 按鈕 */
     #btn-add-event {
         width: auto !important;
         font-size: 11px !important; 
@@ -531,49 +535,37 @@ h2, .h2-title {
         display: flex; align-items: center;
     }
 
-    /* --- FullCalendar 導覽列 (Row 2) --- */
-    /* 讓 < > today 2026年1月 month 擠在同一排 */
-    
-    /* 隱藏原標題列容器多餘的間距 */
-    #calendar-section .d-flex.align-items-center.gap-3 {
-        display: none !important; /* 原本的結構隱藏，完全依賴 FullCalendar 自帶 Toolbar */
-    }
+    /* --- FullCalendar 導覽列 --- */
+    #calendar-section .d-flex.align-items-center.gap-3 { display: none !important; }
 
-    /* 工具列 (Toolbar) */
     .fc-header-toolbar {
         margin-bottom: 4px !important;
         display: flex !important;
-        flex-wrap: nowrap !important; /* 絕對不換行 */
+        flex-wrap: nowrap !important; 
         justify-content: space-between !important;
         align-items: center !important;
-        gap: 0px !important; /* 移除間距 */
+        gap: 0px !important; 
         padding: 0 2px !important;
     }
 
-    .fc-toolbar-chunk {
-        display: flex;
-        align-items: center;
-        gap: 2px !important;
-    }
+    .fc-toolbar-chunk { display: flex; align-items: center; gap: 2px !important; }
 
-    /* < > today month 按鈕極小化 */
     .fc-button {
-        padding: 0 4px !important; /* 內距極小 */
-        font-size: 10px !important; /* 字體縮小 */
-        height: 24px !important;    /* 高度縮小 */
+        padding: 0 4px !important; 
+        font-size: 10px !important; 
+        height: 24px !important;    
         line-height: 22px !important;
-        min-width: 20px !important; /* 允許按鈕很窄 */
+        min-width: 20px !important; 
     }
 
-    /* 標題 (2026年1月) 縮小 */
     .fc-toolbar-title {
-        font-size: 14px !important; /* 縮小以防換行 */
+        font-size: 14px !important; 
         font-weight: 700;
         white-space: nowrap;
         margin: 0 2px !important;
     }
 
-    /* --- 行事曆內容 --- */
+    /* 行事曆內容縮小 */
     .fc-event-main { font-size: 10px !important; line-height: 1.2; padding: 1px 0; }
     .fc-daygrid-event { white-space: nowrap; overflow: hidden; margin-top: 1px !important; }
     .fc-daygrid-day-frame { min-height: 40px !important; height: auto !important; }
@@ -581,44 +573,43 @@ h2, .h2-title {
     .fc-col-header-cell-cushion { font-size: 11px !important; padding: 2px 0 !important; }
 
     /* =========================================
-       💬 留言板手機版：瘦身優化
+       💬 留言板手機版修復
        ========================================= */
     
-    .chat-container {
-        padding: 10px !important; /* 減少容器邊距 */
-    }
+    .chat-container { padding: 10px !important; }
 
-    /* 訊息列：拉寬顯示範圍 */
     .msg-row {
         gap: 6px !important;
-        max-width: 98% !important; /* 幾乎滿版，減少浪費空間 */
+        max-width: 98% !important; 
         width: 100% !important;
+        /* 🔴 關鍵修正：增加底部間距，避免黏在一起 */
+        margin-bottom: 16px !important;
     }
 
-    /* 頭像縮小 (45px -> 30px) */
     .msg-avatar {
-        width: 32px !important;
-        height: 32px !important;
-        min-width: 32px !important;
+        width: 32px !important; height: 32px !important; min-width: 32px !important;
     }
 
-    /* 對話框字體縮小、內距縮小 */
     .msg-bubble {
         padding: 8px 12px !important;
         border-radius: 12px !important;
-        font-size: 13px !important; /* 字體縮小 */
+        font-size: 13px !important; 
         line-height: 1.4;
     }
 
-    /* 角色名稱字體縮小 */
-    .msg-role {
-        font-size: 10px !important;
-        margin-bottom: 2px !important;
-    }
+    .msg-role { font-size: 10px !important; margin-bottom: 2px !important; }
 
     /* =========================================
-       其他區域
+       ❓ 提問區修復 (針對手機版與電腦版都生效)
        ========================================= */
+    /* 修正 badge 顏色，避免白字在淺灰底看不見 */
+    .badge.bg-secondary {
+        background-color: #e2e3e5 !important; /* 淺灰底 */
+        color: #383d41 !important; /* 深灰字 */
+        font-weight: 600;
+    }
+    
+    /* 其他 */
     .features-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     .nav-card { padding: 1rem; min-height: 110px; align-items: center; text-align: center; }
     .nav-desc { display: none; } 
@@ -626,4 +617,5 @@ h2, .h2-title {
     .nav-title { font-size: 1rem; margin-bottom: 0; }
     .concept-number { font-size: 2rem; top: -5px; right: 5px; opacity: 0.3; }
     .content-stage-card { padding: 1.5rem; }
+
 }

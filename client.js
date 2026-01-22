@@ -383,8 +383,9 @@ async function loadQuestions() {
 function renderQuestions(data) {
     const list = document.getElementById("questions-list");
     list.innerHTML = "";
+
     if (!data || data.length === 0) {
-        list.innerHTML = '<div class="alert alert-light text-center w-100">沒有提問</div>';
+        list.innerHTML = '<div class="alert alert-light text-center w-100">目前沒有任何提問</div>';
         return;
     }
 
@@ -394,20 +395,62 @@ function renderQuestions(data) {
         else if (q.asker_role === 'therapist') roleBadge = '<span class="badge bg-success">治療師</span>';
         else roleBadge = '<span class="badge bg-warning text-dark">家長</span>';
 
-        // 🟢 修正：移除 q.asker_name，只顯示 roleBadge
+        let targetHtml = '';
+        if (q.target_role) {
+            const roles = q.target_role.split(','); 
+            const nameMap = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
+            
+            targetHtml = roles.map(r => {
+                // 🔴 修正：移除 text-white，改用 text-dark 或自訂顏色，確保可見度
+                // 如果是英文代碼 (r)，嘗試轉成中文，如果轉換失敗就顯示原文
+                const label = nameMap[r.trim()] || r;
+                return `<span class="badge rounded-pill bg-light text-dark border me-1" style="font-size: 0.85em;">@${label}</span>`;
+            }).join('');
+        }
+
+        const statusColor = q.status === '已回覆' ? 'success' : 'secondary';
+
+        let replyHtml = '';
+        if (q.reply) {
+            replyHtml = `
+                <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
+                    <div class="d-flex justify-content-between">
+                        <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> 回覆：</small>
+                    </div>
+                    <p class="mb-0 mt-1 text-dark">${q.reply}</p>
+                </div>
+            `;
+        } else {
+            replyHtml = `
+                <div class="mt-3 text-end">
+                    <button class="btn btn-outline-secondary btn-sm" onclick="replyQuestion('${q.id}')">
+                        <i class="fas fa-reply"></i> 點此回覆
+                    </button>
+                </div>
+            `;
+        }
+
         const html = `
             <div class="col-md-12">
                 <div class="card shadow-sm border-0 h-100">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>${roleBadge} <small class="text-muted ms-2">${q.date}</small></div>
-                            <span class="badge bg-${q.status === '已回覆' ? 'success' : 'secondary'}-subtle text-dark">${q.status}</span>
+                            <div>
+                                ${roleBadge} 
+                                <span class="fw-bold ms-1">${q.asker_name}</span>
+                                <small class="text-muted ms-2"><i class="far fa-clock"></i> ${q.date}</small>
+                            </div>
+                            <span class="badge bg-${statusColor}-subtle text-${statusColor} border border-${statusColor}">${q.status}</span>
                         </div>
-                        <h5 class="card-text mt-2" style="white-space: pre-wrap;">${q.question}</h5>
-                        ${q.reply ? `<div class="mt-3 p-3 bg-light border-start border-4 border-success"><strong>回覆：</strong> ${q.reply}</div>` : `<div class="mt-3 text-end"><button class="btn btn-sm btn-outline-secondary" onclick="replyQuestion('${q.id}')">回覆</button></div>`}
+                        
+                        <div class="mb-2">${targetHtml}</div>
+                        
+                        <h5 class="card-text mt-2 text-dark" style="white-space: pre-wrap;">${q.question}</h5>
+                        ${replyHtml}
                     </div>
                 </div>
-            </div>`;
+            </div>
+        `;
         list.innerHTML += html;
     });
 }
