@@ -348,15 +348,22 @@ h2, .h2-title {
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
 }
 
+/* 大數字樣式 (01, 02...) */
 .concept-number {
     font-size: 3.5rem; 
     font-weight: 800; 
-    color: #F3F4F6;
+    
+    /* 🔴 修改 2: 顏色加深 (原本是 #F3F4F6 太淡) */
+    color: #E2E8F0; /* 改為較深的淺灰 (Slate 200) */
+    
     line-height: 1; 
     font-family: var(--font-main);
+    
     position: absolute; 
-    top: 0.5rem; right: 1rem; 
-    z-index: 0;
+    top: 0.5rem; 
+    right: 1rem; 
+    z-index: 0; 
+    
     transition: color 0.3s ease, opacity 0.3s ease;
 }
 
@@ -476,7 +483,7 @@ h2, .h2-title {
 }
 
 /* =========================================
-   RWD (Mobile Optimization) - 手機版專用修復
+   RWD (Mobile Optimization) - 手機版最終精修 V4
    ========================================= */
 @media (max-width: 900px) {
     
@@ -500,9 +507,7 @@ h2, .h2-title {
         padding: 16px 8px !important;
     }
 
-    /* --- 1. 修復：找回「本月排程」與「月份選擇器」 --- */
-    
-    /* 最外層容器：強制垂直排列 (Row 1: 標題區, Row 2: 行事曆) */
+    /* 標題區塊容器：強制垂直排列 */
     #calendar-section .platform-card > .d-flex {
         flex-direction: column !important;
         align-items: flex-start !important;
@@ -512,29 +517,30 @@ h2, .h2-title {
 
     /* 標題與選擇器的容器：強制水平排列 */
     #calendar-section .d-flex.align-items-center.gap-3 {
-        display: flex !important; /* 找回來！ */
+        display: flex !important;
         flex-direction: row !important;
         width: 100%;
-        justify-content: space-between !important; /* 標題靠左，選擇器靠右 */
+        justify-content: space-between !important;
         align-items: center !important;
-        gap: 0 !important;
+        gap: 8px !important;
     }
 
-    /* 標題「本月排程」：字體縮小 */
+    /* 🔴 修改 1: 本月排程字體縮小 (18px -> 16px) */
     #calendar-section .h1-title {
-        font-size: 18px !important; 
+        font-size: 16px !important; 
         margin-bottom: 0 !important;
         white-space: nowrap;
         font-weight: 800;
+        line-height: 1.5;
     }
 
-    /* 月份選擇器：顯示並美化 */
+    /* 🔴 修改 1: 月份選擇器加大 (105px -> 130px) 避免切字 */
     #calendar-month-picker {
         display: block !important;
-        width: 105px !important;
-        height: 30px !important;
-        font-size: 13px !important;
-        padding: 0 4px !important;
+        width: 130px !important; /* 加寬 */
+        height: 32px !important;
+        font-size: 14px !important;
+        padding: 0 8px !important;
         text-align: center;
         background-color: #fff !important;
         border: 1px solid #ced4da !important;
@@ -543,46 +549,50 @@ h2, .h2-title {
         margin-left: auto !important; /* 強制靠右 */
     }
 
-    /* + New Event 按鈕：獨立一排或縮小 */
+    /* 🔴 修改 1: + New Event 按鈕 (剛好包住字體) */
     #btn-add-event {
-        width: 100% !important; /* 手機版改回滿版按鈕，比較好按 */
-        font-size: 13px !important; 
-        padding: 6px 0 !important;
-        height: 34px !important;
+        width: auto !important; /* 不要在手機版滿版 */
+        display: inline-block !important; /* 讓寬度隨內容調整 */
+        font-size: 12px !important; 
+        padding: 4px 12px !important; /* 縮小內距 */
+        height: 32px !important;
         margin-left: 0 !important;
+        white-space: nowrap;
+        line-height: 1.8; /* 垂直置中 */
+    }
+    
+    /* 讓按鈕區塊置右或滿版，視您喜好，這裡設定為自適應靠左 */
+    #calendar-section .platform-card > .d-flex > button {
+        align-self: flex-start;
     }
 
-    /* --- 2. 修復：行事曆標題 (2026年1月) 強制置中 --- */
-    
+    /* --- 行事曆標題 (2026年1月) 強制置中 --- */
     .fc-header-toolbar {
-        position: relative !important; /* 為了讓標題絕對定位 */
+        position: relative !important;
         margin-bottom: 8px !important;
         display: flex !important;
         justify-content: space-between !important;
         align-items: center !important;
     }
 
-    /* 標題絕對置中 */
     .fc-toolbar-title {
         position: absolute;
         left: 50%;
         top: 50%;
-        transform: translate(-50%, -50%); /* 完美的幾何置中 */
+        transform: translate(-50%, -50%);
         font-size: 16px !important;
         font-weight: 700;
         white-space: nowrap;
-        z-index: 1; /* 確保不被遮擋 */
+        z-index: 1;
     }
 
-    /* 左右按鈕群組 (prev, next, today, month) */
     .fc-toolbar-chunk {
         display: flex;
         align-items: center;
         gap: 4px;
-        z-index: 2; /* 按鈕要在上層 */
+        z-index: 2;
     }
 
-    /* 按鈕縮小 */
     .fc-button {
         padding: 0 6px !important; 
         font-size: 12px !important; 
@@ -591,16 +601,13 @@ h2, .h2-title {
         min-width: 24px !important; 
     }
 
-    /* --- 3. 修復：事件字體縮小 --- */
     .fc-event-main { 
-        font-size: 8.5px !important; /* 縮小 2px (原約10.5px) */
+        font-size: 8.5px !important;
         line-height: 1.1; 
         padding: 1px 2px !important;
         font-weight: 400 !important;
     }
     .fc-daygrid-event { margin-top: 1px !important; }
-
-    /* 格子高度維持 */
     .fc-daygrid-day-frame { min-height: 40px !important; height: auto !important; }
     .fc-daygrid-day-number { font-size: 11px !important; padding: 1px 4px !important; }
     .fc-col-header-cell-cushion { font-size: 12px !important; padding: 4px 0 !important; }
@@ -637,12 +644,14 @@ h2, .h2-title {
     .nav-icon { margin-top: 0.5rem; margin-bottom: 0.5rem; font-size: 1.5rem; }
     .nav-title { font-size: 1rem; margin-bottom: 0; }
     
-    /* 🔴 修改 4: 按鈕數字往內移，不要太靠邊 */
+    /* 手機版數字位置微調 */
     .concept-number { 
         font-size: 2rem; 
-        top: 8px !important;   /* 增加頂部距離 */
-        right: 12px !important; /* 增加右側距離 */
-        opacity: 0.3; 
+        top: 8px !important;   
+        right: 12px !important; 
+        /* 手機版顏色也加深一點，確保可見 */
+        color: #E5E7EB !important; 
+        opacity: 1 !important; 
     }
     
     .content-stage-card { padding: 1.5rem; }
