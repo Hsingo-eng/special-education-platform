@@ -714,3 +714,84 @@ async function deleteEvent(id) {
     }
 }
 
+// ==========================================
+// 功能 F: 治療紀錄表單整合
+// ==========================================
+
+// 1. 初始化監聽 (折疊選單)
+document.addEventListener("DOMContentLoaded", () => {
+    document.querySelectorAll('.area-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const target = document.getElementById(this.dataset.target);
+            if(this.checked) target.classList.remove('d-none');
+            else target.classList.add('d-none');
+        });
+    });
+    // 日期預設今天
+    const d = document.getElementById('form-date');
+    if(d) d.valueAsDate = new Date();
+});
+
+// 2. 打開表單
+function openTherapyForm() {
+    new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
+}
+
+// 3. 送出資料
+async function submitTherapyRecord() {
+    // 🔴 請填入步驟二得到的 Apps Script 網址
+    const SCRIPT_URL = "https://script.google.com/macros/s/您的網址/exec"; 
+
+    // 收集資料
+    const date = document.getElementById('form-date').value;
+    const duration = document.getElementById('form-duration').value;
+    if(!date || !duration) return Swal.fire("欄位未填", "請輸入日期與時長", "warning");
+
+    const getData = (chk, inp, sel) => {
+        if(!document.getElementById(chk).checked) return ["", ""];
+        return [document.getElementById(inp).value, document.getElementById(sel).value];
+    }
+
+    const [compC, compP] = getData('check-comp', 'input-comp-content', 'select-comp-perf');
+    const [expC, expP] = getData('check-exp', 'input-exp-content', 'select-exp-perf');
+    const [artC, artP] = getData('check-art', 'input-art-content', 'select-art-perf');
+    const [commC, commP] = getData('check-comm', 'input-comm-content', 'select-comm-perf');
+
+    let part = []; document.querySelectorAll('.check-part:checked').forEach(e=>part.push(e.value));
+    let strat = []; document.querySelectorAll('.check-strat:checked').forEach(e=>strat.push(e.value));
+
+    const payload = {
+        date: date,
+        type: document.querySelector('input[name="form-type"]:checked').value,
+        duration: duration,
+        goal_comp_content: compC, goal_comp_perf: compP,
+        goal_exp_content: expC, goal_exp_perf: expP,
+        goal_art_content: artC, goal_art_perf: artP,
+        goal_comm_content: commC, goal_comm_perf: commP,
+        participation: part.join(', '),
+        participation_other: document.getElementById('check-part-other').checked ? document.getElementById('input-part-other').value : "",
+        strategies: strat.join(', '),
+        strategies_other: document.getElementById('check-strat-other').checked ? document.getElementById('input-strat-other').value : "",
+        remarks: document.getElementById('input-remarks').value
+    };
+
+    // 傳送
+    Swal.fire({ title: '傳送中...', didOpen: () => Swal.showLoading() });
+
+    try {
+        await fetch(SCRIPT_URL, {
+            method: 'POST',
+            mode: 'no-cors', // 關鍵：Apps Script 跨域限制
+            body: JSON.stringify(payload),
+            headers: { 'Content-Type': 'application/json' }
+        });
+        
+        Swal.fire('成功', '紀錄已儲存', 'success');
+        bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
+        document.getElementById('therapyForm').reset();
+        
+    } catch(e) {
+        Swal.fire('錯誤', '傳送失敗', 'error');
+    }
+}
+
