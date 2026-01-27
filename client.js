@@ -740,7 +740,7 @@ function openTherapyForm() {
 // 3. 送出資料
 async function submitTherapyRecord() {
     // 🔴 請填入步驟二得到的 Apps Script 網址
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbx9JchEkc5yIYk8oUfLu72b46Jj9LVpGqsPQ_0wlN06cgR2vLjPlxKibtMoI6gW4_DHYg/exec"; 
+    const SCRIPT_URL = "https://script.googleusercontent.com/macros/echo?user_content_key=AehSKLjOeoePfKBiwYDEUIRLK8bztJ3QLAEPEGY13JsHAZd95m9IkIkOJ0bat6FfyVMzE_ijshK52HpSwh_BFcFYqwHEVi-K3TD31eNcKVoyuj8gbCkFn___ABqSee1wtQtnMelcbzI5f7OEqtL2HHUD4UKVHdCTSCPNClja6kUT2kRRxfVo9gQUHJDlWP97zzlJDo5OXDsUhux---whB5XgJOw5idSbCkFQ49A6sTqxGNYiszwP_Y5_O_Ja7Fnu-R4OSVu3s-YNB1MKsVTKrF6PFY592osazRqK2uUIK7l1&lib=MpmwdR2FQfxtmeaiWf-506MlJSX1kjq8P"; 
 
     // 收集資料
     const date = document.getElementById('form-date').value;
