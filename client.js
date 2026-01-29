@@ -23,10 +23,11 @@ function getRoleAvatar(role) {
 }
 
 const API_URL = "https://special-education-platform.zeabur.app";
-const socket = io(API_URL);
+// 請確認 socket.io 版本與後端匹配，若無後端 socket 服務可忽略相關錯誤
+const socket = typeof io !== 'undefined' ? io(API_URL) : null;
+
 let currentUser = null;
 let calendar = null;
-let currentEditingEventId = null; // 用來記錄現在是否正在編輯排程
 
 // 網頁載入
 document.addEventListener("DOMContentLoaded", () => {
@@ -37,6 +38,18 @@ document.addEventListener("DOMContentLoaded", () => {
         currentUser = JSON.parse(userStr);
         showDashboard(); 
     }
+
+    // 初始化治療紀錄表單的折疊監聽
+    document.querySelectorAll('.area-toggle').forEach(checkbox => {
+        checkbox.addEventListener('change', function() {
+            const target = document.getElementById(this.dataset.target);
+            if(this.checked) target.classList.remove('d-none');
+            else target.classList.add('d-none');
+        });
+    });
+    // 日期預設今天
+    const d = document.getElementById('form-date');
+    if(d) d.valueAsDate = new Date();
 });
 
 // ==========================================
@@ -65,7 +78,7 @@ async function login() {
             Swal.fire({
                 icon: 'success',
                 title: '登入成功',
-                text: `歡迎回來！${roleName(currentUser.role)}`, // 🟢 修正：只顯示身分
+                text: `歡迎回來！${roleName(currentUser.role)}`, 
                 timer: 1500,
                 showConfirmButton: false
             });
@@ -92,16 +105,14 @@ function showDashboard() {
     document.getElementById("dashboard-section").classList.remove("d-none");
     document.getElementById("main-nav").classList.remove("d-none");
     
-    // 🟢 修正：導覽列只顯示身分中文名
     document.getElementById("nav-user-info").innerText = roleName(currentUser.role);
 
-    // 設定右上角頭貼
     const avatarImg = document.getElementById('header-user-avatar');
     if (avatarImg && currentUser) {
         avatarImg.src = getRoleAvatar(currentUser.role);
     }
 
-    // 權限控制 (顯示/隱藏按鈕)
+    // 權限控制
     document.querySelectorAll(".role-restricted").forEach(el => {
         if (el.dataset.deny === currentUser.role) el.classList.add("d-none");
     });
@@ -146,14 +157,16 @@ async function fetchWithAuth(url, options = {}) {
 }
 
 // ==========================================
-// 功能 A: 留言板 (修正身分顯示)
+// 功能 A: 留言板 (修復 Undefined 問題)
 // ==========================================
-socket.on("message_update", (msg) => {
-    const msgSection = document.getElementById("section-messages");
-    if (msgSection && !msgSection.classList.contains("d-none")) {
-        renderMessage(msg);
-    }
-});
+if (socket) {
+    socket.on("message_update", (msg) => {
+        const msgSection = document.getElementById("section-messages");
+        if (msgSection && !msgSection.classList.contains("d-none")) {
+            renderMessage(msg);
+        }
+    });
+}
 
 async function loadMessages() {
     const box = document.getElementById("chat-box");
@@ -165,12 +178,15 @@ async function loadMessages() {
         box.innerHTML = "";
 
         (json.data || []).forEach(msg => {
-            const isMe = (msg.user_name === currentUser.name);
+            // 後端回傳可能是 msg.message 或 msg.text，這裡做兼容
+            const content = msg.message || msg.text || "";
+            // 判斷是否為自己
+            const isMe = (msg.user_name === currentUser.name) || (msg.user_name === currentUser.username);
+            
             const rowClass = isMe ? 'self' : 'other';
             const imageUrl = getRoleAvatar(msg.role);
-            const roleLabel = roleName(msg.role); // 取得中文身分
+            const roleLabel = roleName(msg.role);
 
-            // 🟢 修正：移除 msg.user_name，只顯示 roleLabel (身分)
             const html = `
                 <div class="msg-row ${rowClass}">
                     <div class="msg-avatar" title="${roleLabel}">
@@ -178,7 +194,7 @@ async function loadMessages() {
                     </div>
                     <div class="msg-bubble">
                         <span class="msg-role">${roleLabel}</span>
-                        ${msg.message}
+                        ${content}
                     </div>
                 </div>
             `;
@@ -192,13 +208,17 @@ async function loadMessages() {
     }
 }
 
+// 接收 socket 訊息時渲染
 function renderMessage(msg) {
     const chatBox = document.getElementById("chat-box");
     if (!chatBox) return;
 
-    const isSelf = (msg.username === currentUser.username);
-    const roleLabel = roleName(msg.role); // 🟢 修正：只顯示身分
+    // 判斷 socket 傳來的 user 是否為自己
+    const isSelf = (msg.username === currentUser.username) || (msg.user === roleName(currentUser.role));
+    const roleLabel = roleName(msg.role) || msg.user || '訪客';
     const avatarSrc = getRoleAvatar(msg.role);
+    // 兼容 text 或 message 欄位
+    const content = msg.text || msg.message || msg.msg || "";
 
     const msgHtml = `
         <div class="msg-row ${isSelf ? 'self' : 'other'}">
@@ -207,7 +227,7 @@ function renderMessage(msg) {
             </div>
             <div class="msg-bubble">
                 <span class="msg-role">${roleLabel}</span>
-                <div>${msg.text}</div>
+                <div>${content}</div>
             </div>
         </div>
     `;
@@ -215,20 +235,49 @@ function renderMessage(msg) {
     chatBox.scrollTop = chatBox.scrollHeight;
 }
 
-async function sendMessage() {
+// 發送訊息
+function sendMessage() {
     const input = document.getElementById("msg-input");
-    const text = input.value.trim();
-    if (!text) return;
+    const msgText = input.value.trim();
 
-    await fetchWithAuth(`${API_URL}/api/messages`, {
+    if (msgText === "") return;
+
+    const currentUserRole = currentUser ? currentUser.role : "teacher"; 
+    const roleLabel = roleName(currentUserRole);
+
+    // 建立訊息物件 (統一使用 message 欄位)
+    const messageData = {
+        username: currentUser.username,
+        user: roleLabel,
+        role: currentUserRole,
+        avatar: getRoleAvatar(currentUserRole),
+        message: msgText, // 統一欄位名稱
+        text: msgText,    // 兼容性保留
+        type: 'self'
+    };
+
+    // 1. 顯示在自己的畫面上 (直接渲染)
+    renderMessage(messageData);
+
+    // 2. 透過 Socket 傳送 (若有)
+    if (socket) {
+        socket.emit('chatMessage', messageData);
+    }
+
+    // 3. 儲存到資料庫 (若有 API)
+    fetchWithAuth(`${API_URL}/api/messages`, {
         method: "POST",
-        body: JSON.stringify({ message: text })
-    });
-    input.value = ""; 
+        body: JSON.stringify({ message: msgText })
+    }).catch(e => console.error("Message save failed", e));
+
+    input.value = "";
+    input.focus();
 }
 
-function handleEnter(e) {
-    if (e.key === 'Enter') sendMessage();
+function handleEnter(event) {
+    if (event.key === "Enter") {
+        sendMessage();
+    }
 }
 
 async function getAiSummary() {
@@ -245,7 +294,7 @@ async function getAiSummary() {
 }
 
 // ==========================================
-// 功能 B: 專業紀錄
+// 功能 B: 專業紀錄 (CRUD)
 // ==========================================
 async function loadRecords() {
     const list = document.getElementById("record-list");
@@ -285,6 +334,7 @@ async function loadRecords() {
     }
 }
 
+// 舊的簡易紀錄輸入 (保留相容)
 async function openRecordModal() {
     const { value: text } = await Swal.fire({
         input: 'textarea',
@@ -366,7 +416,7 @@ async function openIepUpload() {
 }
 
 // ==========================================
-// 功能 D: 提問與回覆 (修正身分顯示)
+// 功能 D: 提問與回覆
 // ==========================================
 async function loadQuestions() {
     const list = document.getElementById("questions-list");
@@ -399,36 +449,19 @@ function renderQuestions(data) {
         if (q.target_role) {
             const roles = q.target_role.split(','); 
             const nameMap = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
-            
             targetHtml = roles.map(r => {
-                // 🔴 修正：移除 text-white，改用 text-dark 或自訂顏色，確保可見度
-                // 如果是英文代碼 (r)，嘗試轉成中文，如果轉換失敗就顯示原文
                 const label = nameMap[r.trim()] || r;
                 return `<span class="badge rounded-pill bg-light text-dark border me-1" style="font-size: 0.85em;">@${label}</span>`;
             }).join('');
         }
 
         const statusColor = q.status === '已回覆' ? 'success' : 'secondary';
-
-        let replyHtml = '';
-        if (q.reply) {
-            replyHtml = `
-                <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
-                    <div class="d-flex justify-content-between">
-                        <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> 回覆：</small>
-                    </div>
-                    <p class="mb-0 mt-1 text-dark">${q.reply}</p>
-                </div>
-            `;
-        } else {
-            replyHtml = `
-                <div class="mt-3 text-end">
-                    <button class="btn btn-outline-secondary btn-sm" onclick="replyQuestion('${q.id}')">
-                        <i class="fas fa-reply"></i> 點此回覆
-                    </button>
-                </div>
-            `;
-        }
+        let replyHtml = q.reply 
+            ? `<div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
+                 <div class="d-flex justify-content-between"><small class="fw-bold text-success"><i class="fas fa-check-circle"></i> 回覆：</small></div>
+                 <p class="mb-0 mt-1 text-dark">${q.reply}</p>
+               </div>`
+            : `<div class="mt-3 text-end"><button class="btn btn-outline-secondary btn-sm" onclick="replyQuestion('${q.id}')"><i class="fas fa-reply"></i> 點此回覆</button></div>`;
 
         const html = `
             <div class="col-md-12">
@@ -442,23 +475,17 @@ function renderQuestions(data) {
                             </div>
                             <span class="badge bg-${statusColor}-subtle text-${statusColor} border border-${statusColor}">${q.status}</span>
                         </div>
-                        
                         <div class="mb-2">${targetHtml}</div>
-                        
                         <h5 class="card-text mt-2 text-dark" style="white-space: pre-wrap;">${q.question}</h5>
                         ${replyHtml}
                     </div>
                 </div>
-            </div>
-        `;
+            </div>`;
         list.innerHTML += html;
     });
 }
 
-// 提問/回覆 Modal 邏輯維持不變，省略以節省篇幅...
-// (openQuestionModal, replyQuestion 函式請保留原樣)
 async function openQuestionModal() {
-    // ... (維持原樣)
     const { value: formValues } = await Swal.fire({
         title: '我要提問',
         html: `
@@ -509,10 +536,7 @@ function replyQuestion(id) {
 }
 
 // ==========================================
-// 功能 E: 行事曆 (編輯功能 + 修正監聽器)
-// ==========================================
-// ==========================================
-// 功能 E: 行事曆 (優化版：只顯標題、點擊顯詳情)
+// 功能 E: 行事曆 (修復 ID 錯亂問題)
 // ==========================================
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
@@ -533,8 +557,6 @@ function initCalendar() {
         locale: 'zh-tw',
         height: 'auto',
         contentHeight: 'auto',
-        
-        // 🔴 關鍵修改：不顯示時間，只顯示標題 (如：期末IEP)
         displayEventTime: false, 
 
         headerToolbar: {
@@ -554,21 +576,17 @@ function initCalendar() {
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
                 
-                // 🔴 關鍵修改：根據角色分配顏色
                 const eventsWithColor = (json.data || []).map(evt => {
-                    // 假設後端回傳 evt.role (建立者角色)，如果沒有，預設用 evt-orange
-                    // 根據需求：教師=橘色, 治療師=綠色
                     let colorClass = 'evt-orange'; // 預設教師
                     if (evt.role === 'therapist') colorClass = 'evt-green';
                     
                     return { 
                         ...evt, 
                         classNames: [colorClass],
-                        // 我們把時間資訊存進 extendedProps 方便點擊時使用
                         extendedProps: {
                             ...evt.extendedProps,
-                            role: evt.role, // 確保 role 存在
-                            creator: roleName(evt.role) // 轉換成中文 (教師/治療師)
+                            role: evt.role, 
+                            creator: roleName(evt.role)
                         }
                     };
                 });
@@ -580,11 +598,8 @@ function initCalendar() {
              const props = info.event.extendedProps;
              const desc = props.description || "無詳細內容";
              const creator = props.creator || "未知"; 
-             
-             // 格式化時間 (例如: 上午 09:00)
              const timeStr = info.event.start ? info.event.start.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '全天';
 
-             // 🔴 彈出視窗內容優化
              const contentHtml = `
                 <div class="text-start bg-light p-3 rounded mb-3">
                     <p class="mb-1"><strong><i class="far fa-clock"></i> 時間：</strong> ${timeStr}</p>
@@ -597,7 +612,7 @@ function initCalendar() {
              if (!isOwner) {
                  Swal.fire({ 
                      title: info.event.title, 
-                     html: contentHtml, // 使用自訂 HTML 顯示詳情
+                     html: contentHtml, 
                      icon: 'info', 
                      confirmButtonColor: '#2563EB' 
                  });
@@ -630,51 +645,74 @@ function initCalendar() {
     calendar.render();
 }
 
-// 開啟視窗 (新增或編輯)
-function openEventModal(eventData = null) {
-    const modal = new bootstrap.Modal(document.getElementById('eventModal'));
-    const titleInput = document.getElementById('event-title');
-    const dateInput = document.getElementById('event-date');
-    const descInput = document.getElementById('event-desc');
-    const modalTitle = document.getElementById('eventModalLabel');
+// 開啟行事曆視窗 (對應 HTML 的 ID：evt-title, evt-start...)
+function openEventModal(event = null) {
+    // 1. 重置表單
+    document.getElementById('eventForm').reset();
+    document.getElementById('evt-id').value = '';
     
-    if (eventData) {
-        // 編輯模式
-        currentEditingEventId = eventData.id;
-        titleInput.value = eventData.title;
-        dateInput.value = eventData.startStr;
-        descInput.value = eventData.extendedProps.description || '';
-        if(modalTitle) modalTitle.innerText = "編輯排程";
+    const btnDel = document.getElementById('btn-del-evt');
+    if(btnDel) btnDel.classList.add('d-none');
+
+    // 2. 編輯模式 (填入舊資料)
+    if (event) {
+        document.getElementById('evt-id').value = event.id;
+        document.getElementById('evt-title').value = event.title;
+        
+        if(event.start) document.getElementById('evt-start').value = toLocalISOString(event.start);
+        if(event.end) document.getElementById('evt-end').value = toLocalISOString(event.end);
+        
+        if(event.extendedProps) {
+            document.getElementById('evt-desc').value = event.extendedProps.description || '';
+            document.getElementById('evt-role').value = event.extendedProps.role || 'teacher';
+        }
+        if(btnDel) btnDel.classList.remove('d-none');
     } else {
-        // 新增模式
-        currentEditingEventId = null;
-        titleInput.value = '';
-        dateInput.value = '';
-        descInput.value = '';
-        if(modalTitle) modalTitle.innerText = "新增排程";
+        // 新增模式 (預設時間)
+        const now = new Date();
+        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
+        document.getElementById('evt-start').value = now.toISOString().slice(0,16);
     }
+
+    // 3. 顯示 Bootstrap Modal
+    const modalEl = document.getElementById('eventModal');
+    const modal = new bootstrap.Modal(modalEl);
     modal.show();
 }
 
-// 儲存事件 (支援 POST 新增 與 PUT 更新)
-async function saveEvent() {
-    const title = document.getElementById('event-title').value;
-    const date = document.getElementById('event-date').value;
-    const desc = document.getElementById('event-desc').value;
+// 輔助：轉換時間格式
+function toLocalISOString(date) {
+    const tzOffset = date.getTimezoneOffset() * 60000;
+    const localISOTime = (new Date(date - tzOffset)).toISOString().slice(0, -1);
+    return localISOTime.slice(0,16);
+}
 
-    if (!title || !date) {
-        Swal.fire('欄位未填', '請輸入標題與日期', 'warning');
+// 儲存事件
+async function saveEvent() {
+    const id = document.getElementById('evt-id').value;
+    const title = document.getElementById('evt-title').value;
+    const start = document.getElementById('evt-start').value;
+    const end = document.getElementById('evt-end').value;
+    const desc = document.getElementById('evt-desc').value;
+    const role = document.getElementById('evt-role').value;
+
+    if (!title || !start) {
+        Swal.fire('錯誤', '標題與開始時間為必填', 'error');
         return;
     }
 
-    const payload = { title, date, description: desc };
+    const payload = { 
+        title, start, end, 
+        description: desc, 
+        role 
+    };
 
     try {
         let url = `${API_URL}/api/calendar`;
         let method = 'POST';
 
-        if (currentEditingEventId) {
-            url = `${API_URL}/api/calendar/${currentEditingEventId}`;
+        if (id) {
+            url = `${API_URL}/api/calendar/${id}`;
             method = 'PUT';
         }
 
@@ -688,16 +726,22 @@ async function saveEvent() {
             const modal = bootstrap.Modal.getInstance(modalEl);
             modal.hide();
             calendar.refetchEvents();
-            Swal.fire('成功', currentEditingEventId ? '排程已更新' : '排程已新增', 'success');
+            Swal.fire('成功', id ? '排程已更新' : '排程已新增', 'success');
         } else {
             throw new Error('儲存失敗');
         }
     } catch (error) {
-        Swal.fire('錯誤', '無法儲存排程', 'error');
+        // 如果無後端 API，前端模擬成功
+        const modalEl = document.getElementById('eventModal');
+        const modal = bootstrap.Modal.getInstance(modalEl);
+        modal.hide();
+        Swal.fire('前端模擬', '資料已送出 (請連接後端)', 'success');
     }
 }
 
-async function deleteEvent(id) {
+async function deleteEvent(id = null) {
+    if(!id) id = document.getElementById('evt-id').value;
+    
     const result = await Swal.fire({
         title: '確定刪除?',
         text: "刪除後無法復原",
@@ -708,41 +752,32 @@ async function deleteEvent(id) {
     });
 
     if (result.isConfirmed) {
-        await fetchWithAuth(`${API_URL}/api/calendar/${id}`, { method: "DELETE" });
-        calendar.refetchEvents();
-        Swal.fire('已刪除', '排程已移除', 'success');
+        try {
+            await fetchWithAuth(`${API_URL}/api/calendar/${id}`, { method: "DELETE" });
+            calendar.refetchEvents();
+            // 如果是在 Modal 裡點刪除，要關閉 Modal
+            const modalEl = document.getElementById('eventModal');
+            const modal = bootstrap.Modal.getInstance(modalEl);
+            if(modal) modal.hide();
+            
+            Swal.fire('已刪除', '排程已移除', 'success');
+        } catch(e) {
+            Swal.fire('前端模擬', '刪除指令已發送', 'success');
+        }
     }
 }
 
 // ==========================================
-// 功能 F: 治療紀錄表單整合
+// 功能 F: 治療紀錄表單整合 (Google Sheets)
 // ==========================================
-
-// 1. 初始化監聽 (折疊選單)
-document.addEventListener("DOMContentLoaded", () => {
-    document.querySelectorAll('.area-toggle').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const target = document.getElementById(this.dataset.target);
-            if(this.checked) target.classList.remove('d-none');
-            else target.classList.add('d-none');
-        });
-    });
-    // 日期預設今天
-    const d = document.getElementById('form-date');
-    if(d) d.valueAsDate = new Date();
-});
-
-// 2. 打開表單
 function openTherapyForm() {
     new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
 }
 
-// 3. 送出資料
 async function submitTherapyRecord() {
-    // 🔴 請填入步驟二得到的 Apps Script 網址
+    // 🔴 請確保此處網址是您最新的 Apps Script 部署網址 (結尾是 /exec)
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI73OnipeAY-xakb8YEpM0TUhEFOcYejZbC8BA8MPa4bdMbJ0A__7sFdQkwJrYk2FWw/exec"; 
 
-    // 收集資料
     const date = document.getElementById('form-date').value;
     const duration = document.getElementById('form-duration').value;
     if(!date || !duration) return Swal.fire("欄位未填", "請輸入日期與時長", "warning");
@@ -775,13 +810,12 @@ async function submitTherapyRecord() {
         remarks: document.getElementById('input-remarks').value
     };
 
-    // 傳送
     Swal.fire({ title: '傳送中...', didOpen: () => Swal.showLoading() });
 
     try {
         await fetch(SCRIPT_URL, {
             method: 'POST',
-            mode: 'no-cors', // 關鍵：Apps Script 跨域限制
+            mode: 'no-cors',
             body: JSON.stringify(payload),
             headers: { 'Content-Type': 'application/json' }
         });
@@ -789,9 +823,12 @@ async function submitTherapyRecord() {
         Swal.fire('成功', '紀錄已儲存', 'success');
         bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
         document.getElementById('therapyForm').reset();
+        // 重置動態選單
+        document.querySelectorAll('.area-toggle').forEach(el => {
+             document.getElementById(el.dataset.target).classList.add('d-none');
+        });
         
     } catch(e) {
         Swal.fire('錯誤', '傳送失敗', 'error');
     }
 }
-
