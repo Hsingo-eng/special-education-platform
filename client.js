@@ -296,41 +296,58 @@ async function getAiSummary() {
 // ==========================================
 // 功能 B: 專業紀錄 (CRUD)
 // ==========================================
+// ==========================================
+// 功能 B: 專業紀錄 (改為從 Google Sheet 讀取)
+// ==========================================
 async function loadRecords() {
     const list = document.getElementById("record-list");
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
+    // 🔴 請確認這裡填入的是您最新的 Apps Script 網址
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtwl6uNF_3nHyhzToyGcKIRDkth3QcWs3epllnxkBuFjrxrL7Pu4JfDRDPINaL70Fc8w/exec"; 
+
     try {
-        const res = await fetchWithAuth(`${API_URL}/api/records`);
-        if (res.status === 403) {
-            list.innerHTML = "<div class='alert alert-danger'>權限不足</div>";
-            return;
-        }
+        // 使用一般的 fetch (Google Sheet 公開讀取不需要 Auth Header)
+        const res = await fetch(SCRIPT_URL);
         const json = await res.json();
+        
         list.innerHTML = "";
 
+        // 檢查是否有資料
         if (!json.data || json.data.length === 0) {
             list.innerHTML = "<div class='text-center text-muted p-4'>目前還沒有治療紀錄</div>";
             return;
         }
 
-        json.data.forEach(rec => {
-            const replyHtml = rec.teacher_reply 
-                ? `<div class="mt-3 p-3 bg-light border-start border-4 border-primary rounded"><strong>教師回覆：</strong> ${rec.teacher_reply}</div>` 
-                : (currentUser.role === 'teacher' ? `<button class="btn btn-sm btn-outline-primary mt-2" onclick="replyRecord('${rec.id}')">回覆</button>` : `<div class="mt-2 text-muted text-sm">等待回覆...</div>`);
+        // 資料反轉，讓最新的顯示在最上面
+        json.data.reverse().forEach(rec => {
+            // 處理日期格式 (Google Sheet 回傳的日期可能是長字串)
+            let dateStr = rec.date;
+            if(dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+
+            // 組合顯示內容：顯示形式、時長、補充事項
+            // 如果 remarks 是空的，顯示預設文字
+            const contentDisplay = rec.remarks ? rec.remarks : "（無補充事項）";
+            const detailInfo = `<span class="badge bg-secondary me-2">${rec.session_Type || '個別'}</span> <span class="text-muted small"><i class="far fa-clock"></i> ${rec.duration || 0} 分鐘</span>`;
+
+            // 由於 Google Sheet 目前沒有 teacher_reply 欄位，我們先隱藏回覆區塊，或顯示為待開發
+            // 如果您之後在 Sheet 增加了 teacher_reply 欄位，可以再把這裡打開
+            const replyHtml = `<div class="mt-2 text-muted text-sm fst-italic display-none">尚無回覆功能</div>`;
 
             list.innerHTML += `
                 <div class="list-group-item mb-3 border-0 shadow-sm rounded p-4">
                     <div class="d-flex w-100 justify-content-between border-bottom pb-2 mb-2">
-                        <h5 class="mb-1 fw-bold text-dark">${rec.date} 紀錄</h5>
+                        <h5 class="mb-1 fw-bold text-dark">${dateStr} 紀錄</h5>
                         <small class="text-muted">治療師</small> 
                     </div>
-                    <p class="mb-1 fs-6">${rec.content}</p>
-                    ${replyHtml}
-                </div>`;
+                    <div class="mb-2">${detailInfo}</div>
+                    <p class="mb-1 fs-6 text-dark">${contentDisplay}</p>
+                    
+                    </div>`;
         });
     } catch (err) {
-        list.innerHTML = "<div class='alert alert-danger'>載入失敗</div>";
+        console.error(err);
+        list.innerHTML = "<div class='alert alert-danger'>載入失敗，請檢查 Apps Script 部署</div>";
     }
 }
 
