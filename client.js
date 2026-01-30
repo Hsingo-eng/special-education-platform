@@ -303,36 +303,28 @@ async function loadRecords() {
     const list = document.getElementById("record-list");
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
-    // 🔴 請確認這裡填入的是您最新的 Apps Script 網址
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxtwl6uNF_3nHyhzToyGcKIRDkth3QcWs3epllnxkBuFjrxrL7Pu4JfDRDPINaL70Fc8w/exec"; 
+    // 🔴 這裡換成新的網址
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbwWYJnCJSsYruWeQdQwYhszjgWYjU9BQxBaYsVvUC5-hbbfcSVLHCNHRCkdD4HJwi1okQ/exec"; 
 
     try {
-        // 使用一般的 fetch (Google Sheet 公開讀取不需要 Auth Header)
         const res = await fetch(SCRIPT_URL);
         const json = await res.json();
         
         list.innerHTML = "";
 
-        // 檢查是否有資料
         if (!json.data || json.data.length === 0) {
             list.innerHTML = "<div class='text-center text-muted p-4'>目前還沒有治療紀錄</div>";
             return;
         }
 
-        // 資料反轉，讓最新的顯示在最上面
         json.data.reverse().forEach(rec => {
-            // 處理日期格式 (Google Sheet 回傳的日期可能是長字串)
-            let dateStr = rec.date;
-            if(dateStr.includes('T')) dateStr = dateStr.split('T')[0];
+            // 處理日期格式
+            let dateStr = rec.date ? rec.date.toString().substring(0, 10) : '未知日期';
 
-            // 組合顯示內容：顯示形式、時長、補充事項
-            // 如果 remarks 是空的，顯示預設文字
-            const contentDisplay = rec.remarks ? rec.remarks : "（無補充事項）";
-            const detailInfo = `<span class="badge bg-secondary me-2">${rec.session_Type || '個別'}</span> <span class="text-muted small"><i class="far fa-clock"></i> ${rec.duration || 0} 分鐘</span>`;
-
-            // 由於 Google Sheet 目前沒有 teacher_reply 欄位，我們先隱藏回覆區塊，或顯示為待開發
-            // 如果您之後在 Sheet 增加了 teacher_reply 欄位，可以再把這裡打開
-            const replyHtml = `<div class="mt-2 text-muted text-sm fst-italic display-none">尚無回覆功能</div>`;
+            // 🟢 修正：對應 Google Sheet 的標題欄位 (remarks)
+            // 如果 Sheet 標題是 remarks，這裡就用 rec.remarks
+            const contentDisplay = rec.remarks || "（無補充事項）";
+            const typeDisplay = rec.session_Type || "個別"; // 注意大小寫要跟 Sheet 標題一樣
 
             list.innerHTML += `
                 <div class="list-group-item mb-3 border-0 shadow-sm rounded p-4">
@@ -340,10 +332,12 @@ async function loadRecords() {
                         <h5 class="mb-1 fw-bold text-dark">${dateStr} 紀錄</h5>
                         <small class="text-muted">治療師</small> 
                     </div>
-                    <div class="mb-2">${detailInfo}</div>
+                    <div class="mb-2">
+                        <span class="badge bg-secondary me-2">${typeDisplay}</span>
+                        <span class="text-muted small"><i class="far fa-clock"></i> ${rec.duration} 分鐘</span>
+                    </div>
                     <p class="mb-1 fs-6 text-dark">${contentDisplay}</p>
-                    
-                    </div>`;
+                </div>`;
         });
     } catch (err) {
         console.error(err);
