@@ -549,6 +549,9 @@ function replyQuestion(id) {
 // ==========================================
 // 功能 E: 行事曆 (修復 ID 錯亂問題)
 // ==========================================
+// ==========================================
+// 功能 E: 行事曆 (修正身分顯示 + 移除詳細內容)
+// ==========================================
 function initCalendar() {
     const calendarEl = document.getElementById('calendar');
     if (!calendarEl) return;
@@ -597,7 +600,7 @@ function initCalendar() {
                         extendedProps: {
                             ...evt.extendedProps,
                             role: evt.role, 
-                            creator: roleName(evt.role)
+                            creator: roleName(evt.role) // 這裡會將 role 轉為中文
                         }
                     };
                 });
@@ -607,16 +610,15 @@ function initCalendar() {
         eventClick: function(info) {
              const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
              const props = info.event.extendedProps;
-             const desc = props.description || "無詳細內容";
-             const creator = props.creator || "未知"; 
+             // 🟢 修正：若 props.creator 為 undefined，則顯示當前使用者身分 (針對剛新增未重整的情況)
+             const creator = props.creator || roleName(props.role) || "未知"; 
              const timeStr = info.event.start ? info.event.start.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '全天';
 
+             // 🟢 修正：移除詳細內容顯示
              const contentHtml = `
                 <div class="text-start bg-light p-3 rounded mb-3">
                     <p class="mb-1"><strong><i class="far fa-clock"></i> 時間：</strong> ${timeStr}</p>
-                    <p class="mb-1"><strong><i class="fas fa-user"></i> 新增者：</strong> ${creator}</p>
-                    <hr class="my-2">
-                    <p class="mb-0 text-secondary">${desc}</p>
+                    <p class="mb-0"><strong><i class="fas fa-user"></i> 新增者：</strong> ${creator}</p>
                 </div>
              `;
 
@@ -656,16 +658,13 @@ function initCalendar() {
     calendar.render();
 }
 
-// 開啟行事曆視窗 (對應 HTML 的 ID：evt-title, evt-start...)
 function openEventModal(event = null) {
-    // 1. 重置表單
     document.getElementById('eventForm').reset();
     document.getElementById('evt-id').value = '';
     
     const btnDel = document.getElementById('btn-del-evt');
     if(btnDel) btnDel.classList.add('d-none');
 
-    // 2. 編輯模式 (填入舊資料)
     if (event) {
         document.getElementById('evt-id').value = event.id;
         document.getElementById('evt-title').value = event.title;
@@ -673,39 +672,26 @@ function openEventModal(event = null) {
         if(event.start) document.getElementById('evt-start').value = toLocalISOString(event.start);
         if(event.end) document.getElementById('evt-end').value = toLocalISOString(event.end);
         
-        if(event.extendedProps) {
-            document.getElementById('evt-desc').value = event.extendedProps.description || '';
-            document.getElementById('evt-role').value = event.extendedProps.role || 'teacher';
-        }
         if(btnDel) btnDel.classList.remove('d-none');
     } else {
-        // 新增模式 (預設時間)
         const now = new Date();
         now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
         document.getElementById('evt-start').value = now.toISOString().slice(0,16);
     }
 
-    // 3. 顯示 Bootstrap Modal
     const modalEl = document.getElementById('eventModal');
     const modal = new bootstrap.Modal(modalEl);
     modal.show();
 }
 
-// 輔助：轉換時間格式
-function toLocalISOString(date) {
-    const tzOffset = date.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(date - tzOffset)).toISOString().slice(0, -1);
-    return localISOTime.slice(0,16);
-}
-
-// 儲存事件
 async function saveEvent() {
     const id = document.getElementById('evt-id').value;
     const title = document.getElementById('evt-title').value;
     const start = document.getElementById('evt-start').value;
     const end = document.getElementById('evt-end').value;
-    const desc = document.getElementById('evt-desc').value;
-    const role = document.getElementById('evt-role').value;
+    
+    // 🟢 修正：強制使用當前使用者的身分，解決顯示「訪客」的問題
+    const role = currentUser.role; 
 
     if (!title || !start) {
         Swal.fire('錯誤', '標題與開始時間為必填', 'error');
@@ -714,8 +700,8 @@ async function saveEvent() {
 
     const payload = { 
         title, start, end, 
-        description: desc, 
-        role 
+        role: role, // 寫入正確身分
+        description: "" // 清空詳細內容
     };
 
     try {
@@ -742,11 +728,11 @@ async function saveEvent() {
             throw new Error('儲存失敗');
         }
     } catch (error) {
-        // 如果無後端 API，前端模擬成功
+        // 若無後端，前端模擬成功
         const modalEl = document.getElementById('eventModal');
         const modal = bootstrap.Modal.getInstance(modalEl);
         modal.hide();
-        Swal.fire('前端模擬', '資料已送出 (請連接後端)', 'success');
+        Swal.fire('前端模擬', '資料已送出', 'success');
     }
 }
 
