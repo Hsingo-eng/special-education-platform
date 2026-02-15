@@ -302,7 +302,7 @@ async function loadRecords() {
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
     // 🔴 請務必更新為您剛剛部署的「新」Apps Script 網址
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI73OnipeAY-xakb8YEpM0TUhEFOcYejZbC8BA8MPa4bdMbJ0A__7sFdQkwJrYk2FWw/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa29p_cTCsxEhdQ6yGrTPJQ4rjJSh83OPwlJu6cSa19QIc1LmvBR41MZ7OkKwYxBh6uw/exec"; 
 
     try {
         const res = await fetch(SCRIPT_URL);
@@ -470,7 +470,7 @@ async function saveEvent() {
 // 4. 送出治療紀錄 (記得換網址)
 async function submitTherapyRecord() {
     // 🔴 務必換成最新的網址
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyblIRGOmfjDcC9OsTZNwZuim7njTq9qKW9SozgM6n9wKiauOzYq65RenSY7nul-GXvGg/exec"; 
+    const SCRIPT_URL = "vhttps://script.google.com/macros/s/AKfycbxa29p_cTCsxEhdQ6yGrTPJQ4rjJSh83OPwlJu6cSa19QIc1LmvBR41MZ7OkKwYxBh6uw/exec"; 
     
     // ... (其餘邏輯保持不變，略) ...
     // (請保留原本的收集資料程式碼)
@@ -933,7 +933,7 @@ function openTherapyForm() {
 
 async function submitTherapyRecord() {
     // 🔴 請確保此處網址是您最新的 Apps Script 部署網址 (結尾是 /exec)
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI73OnipeAY-xakb8YEpM0TUhEFOcYejZbC8BA8MPa4bdMbJ0A__7sFdQkwJrYk2FWw/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa29p_cTCsxEhdQ6yGrTPJQ4rjJSh83OPwlJu6cSa19QIc1LmvBR41MZ7OkKwYxBh6uw/exec"; 
 
     const date = document.getElementById('form-date').value;
     const duration = document.getElementById('form-duration').value;
