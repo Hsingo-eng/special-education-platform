@@ -294,19 +294,19 @@ async function getAiSummary() {
 }
 
 // ==========================================
-// 功能 B: 專業紀錄 (改為從 Google Sheet 讀取)
+// 功能 B: 專業紀錄 (修正版：顯示完整治療內容)
 // ==========================================
-// 1. 治療紀錄讀取 (修正 undefined 問題)
 async function loadRecords() {
     const list = document.getElementById("record-list");
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
-    // 🔴 請務必更新為您剛剛部署的「新」Apps Script 網址
+    // 🔴 請確認這裡填入的是您最新的 Apps Script 網址
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa29p_cTCsxEhdQ6yGrTPJQ4rjJSh83OPwlJu6cSa19QIc1LmvBR41MZ7OkKwYxBh6uw/exec"; 
 
     try {
         const res = await fetch(SCRIPT_URL);
         const json = await res.json();
+        
         list.innerHTML = "";
 
         if (!json.data || json.data.length === 0) {
@@ -315,24 +315,45 @@ async function loadRecords() {
         }
 
         json.data.reverse().forEach(rec => {
-            // 處理日期 (只取前10碼)
+            // 1. 處理日期格式 (只取前10碼 YYYY-MM-DD)
             let dateStr = rec.date ? String(rec.date).substring(0, 10) : '未知日期';
             
-            // 🟢 修正：讀取 remarks 欄位，如果沒填則顯示無
-            const content = rec.remarks || "（無補充事項）";
+            // 2. 組合顯示內容：把各領域的內容串起來
+            let contentHtml = "";
+            
+            // 檢查各欄位是否有值，有就加進去
+            if (rec.comp_content) contentHtml += `<div class="mb-1"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-1">理解</span> ${rec.comp_content}</div>`;
+            if (rec.exp_content)  contentHtml += `<div class="mb-1"><span class="badge bg-success bg-opacity-10 text-success border border-success me-1">表達</span> ${rec.exp_content}</div>`;
+            if (rec.art_content)  contentHtml += `<div class="mb-1"><span class="badge bg-warning bg-opacity-10 text-dark border border-warning me-1">構音</span> ${rec.art_content}</div>`;
+            if (rec.comm_content) contentHtml += `<div class="mb-1"><span class="badge bg-info bg-opacity-10 text-dark border border-info me-1">溝通</span> ${rec.comm_content}</div>`;
+            
+            // 如果上述都沒填，但有備註
+            if (contentHtml === "" && rec.remarks) {
+                contentHtml = `<div class="text-secondary">${rec.remarks}</div>`;
+            } else if (contentHtml === "") {
+                contentHtml = `<div class="text-muted fst-italic">（無詳細內容）</div>`;
+            }
+
+            // 如果有備註，也加在下面
+            if (rec.remarks) {
+                contentHtml += `<div class="mt-2 pt-2 border-top small text-secondary"><i class="fas fa-info-circle"></i> 備註：${rec.remarks}</div>`;
+            }
+
             const type = rec.session_Type || "個別";
 
             list.innerHTML += `
                 <div class="list-group-item mb-3 border-0 shadow-sm rounded p-4">
-                    <div class="d-flex w-100 justify-content-between border-bottom pb-2 mb-2">
-                        <h5 class="mb-1 fw-bold text-dark">${dateStr} 紀錄</h5>
-                        <small class="text-muted">治療師</small> 
+                    <div class="d-flex w-100 justify-content-between border-bottom pb-2 mb-3">
+                        <div class="d-flex align-items-center gap-2">
+                            <h5 class="mb-0 fw-bold text-dark">${dateStr}</h5>
+                            <span class="badge bg-secondary rounded-pill">${type}</span>
+                        </div>
+                        <small class="text-muted"><i class="far fa-clock"></i> ${rec.duration} 分鐘</small> 
                     </div>
-                    <div class="mb-2">
-                        <span class="badge bg-secondary me-2">${type}</span>
-                        <span class="text-muted small"><i class="far fa-clock"></i> ${rec.duration} 分鐘</span>
+                    
+                    <div class="record-content">
+                        ${contentHtml}
                     </div>
-                    <p class="mb-1 fs-6 text-dark">${content}</p>
                 </div>`;
         });
     } catch (err) {
