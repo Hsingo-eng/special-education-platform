@@ -7,12 +7,10 @@ const roleMap = {
     'parents': '家長'
 };
 
-// 輔助函式：取得角色中文名稱
 function roleName(role) {
     return roleMap[role] || '訪客';
 }
 
-// 根據角色取得頭貼
 function getRoleAvatar(role) {
     const roleAvatars = {
         'teacher': 'sticker1.png',
@@ -23,13 +21,11 @@ function getRoleAvatar(role) {
 }
 
 const API_URL = "https://special-education-platform.zeabur.app";
-// 請確認 socket.io 版本與後端匹配，若無後端 socket 服務可忽略相關錯誤
 const socket = typeof io !== 'undefined' ? io(API_URL) : null;
 
 let currentUser = null;
 let calendar = null;
 
-// 網頁載入
 document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -39,7 +35,6 @@ document.addEventListener("DOMContentLoaded", () => {
         showDashboard(); 
     }
 
-    // 初始化治療紀錄表單的折疊監聽
     document.querySelectorAll('.area-toggle').forEach(checkbox => {
         checkbox.addEventListener('change', function() {
             const target = document.getElementById(this.dataset.target);
@@ -47,7 +42,6 @@ document.addEventListener("DOMContentLoaded", () => {
             else target.classList.add('d-none');
         });
     });
-    // 日期預設今天
     const d = document.getElementById('form-date');
     if(d) d.valueAsDate = new Date();
 });
@@ -112,7 +106,6 @@ function showDashboard() {
         avatarImg.src = getRoleAvatar(currentUser.role);
     }
 
-    // 權限控制
     document.querySelectorAll(".role-restricted").forEach(el => {
         if (el.dataset.deny === currentUser.role) el.classList.add("d-none");
     });
@@ -143,7 +136,6 @@ function showSection(sectionId) {
     if (sectionId === 'iep') loadIepFiles();
 }
 
-// Fetch 封裝
 async function fetchWithAuth(url, options = {}) {
     const token = localStorage.getItem("token");
     const headers = {
@@ -284,13 +276,13 @@ async function getAiSummary() {
 }
 
 // ==========================================
-// 功能 B: 專業紀錄 (顯示內容+表現+參與+策略)
+// 功能 B: 專業紀錄
 // ==========================================
 async function loadRecords() {
     const list = document.getElementById("record-list");
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
-    // 🔴 請確保此處網址是您最新的 Apps Script 網址
+    // 🔴 請確認網址不用變，繼續用原本那個
     const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJyvD4A63VSCo7isp_Pwmciq5nKRLM3H8otQfdWtWe_XYShVu609jruQVqm7YFt4Iw_w/exec"; 
 
     try {
@@ -421,7 +413,7 @@ async function openIepUpload() {
 }
 
 // ==========================================
-// 功能 D: 提問與回覆 (Thread UI 設計)
+// 功能 D: 提問與回覆 (✨ 全新設計版)
 // ==========================================
 async function loadQuestions() {
     const list = document.getElementById("questions-list");
@@ -475,7 +467,7 @@ function renderQuestions(data) {
                 </div>`;
         }
 
-        // 4. 生成卡片 HTML (加入 data-role 與 question-card class)
+        // 4. 生成卡片 HTML (🔴 關鍵：加入 question-card 與 data-role)
         const html = `
             <div class="col-md-12 mb-4">
                 <div class="card question-card h-100 border-0 shadow-sm" data-role="${q.asker_role}">
