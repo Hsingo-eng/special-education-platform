@@ -3,55 +3,50 @@
    ========================================= */
 :root {
     /* --- 🎨 Color Palette (配色系統) --- */
-    
-    /* 背景色：極淺藍灰 */
     --bg-root: #F6F8FA;      
-    
-    /* 容器色：純白 */
     --bg-surface: #FFFFFF;   
-    --bg-card: #FFFFFF;      /* 兼容舊變數 */
+    --bg-card: #FFFFFF;      
 
     /* 文字色 */
-    --text-primary: #1F2937;    /* 主要標題 */
-    --text-secondary: #6B7280;  /* 內文、說明 */
-    --text-hint: #9CA3AF;       /* 提示、輔助文字 */
+    --text-primary: #1F2937;    
+    --text-secondary: #6B7280;  
+    --text-hint: #9CA3AF;       
 
     /* 品牌色：專業藍 */
-    --brand-blue: #2563EB;       /* 主色 */
-    --brand-blue-hover: #1D4ED8; /* 互動懸停 */
+    --brand-blue: #2563EB;       
+    --brand-blue-hover: #1D4ED8; 
     
     /* 兼容舊變數 */
     --accent-color: var(--brand-blue); 
-    --morandi-blue: #647D98;   /* 身分標籤用 */
+    --morandi-blue: #647D98;   
 
     /* 功能色 */
     --state-success: #10B981;
     --state-warn: #F97316;
     --state-danger: #EF4444;
     
-    /* 兼容舊變數 */
     --evt-green: var(--state-success);
     --evt-orange: var(--state-warn);
 
     /* --- 📐 Layout & Spacing (版面節奏) --- */
     --spacing-block: 48px;
     --spacing-element: 16px;
-    --spacing-section: 48px; /* 兼容舊變數 */
+    --spacing-section: 48px; 
 
     --container-width: 1400px;
     --container-padding: 5vw;
 
     /* --- 🃏 Card System (卡片物理特性) --- */
     --radius-card: 16px;
-    --border-radius: 16px; /* 兼容舊變數 */
+    --border-radius: 16px; 
     
     --shadow-card: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 
                    0 2px 4px -1px rgba(0, 0, 0, 0.03);
-    --card-shadow: var(--shadow-card); /* 兼容舊變數 */
+    --card-shadow: var(--shadow-card); 
     
     --border-subtle: 1px solid rgba(0,0,0,0.02);
     --border-line: 1px solid #E5E7EB;
-    --line-color: #E5E7EB; /* 兼容舊變數 */
+    --line-color: #E5E7EB; 
 
     /* 字體系統 */
     --font-main: 'Taipei Sans TC', 'Noto Sans TC', system-ui, -apple-system, sans-serif;
@@ -62,7 +57,6 @@
    2. GLOBAL BASE (全站基礎設定)
    ========================================= */
 
-/* 1. 網頁背景重置 */
 body {
     background-color: var(--bg-root);
     color: var(--text-primary);
@@ -75,14 +69,12 @@ body {
     overflow-x: hidden;
 }
 
-/* 2. 佈局容器 (Page Container) */
 .container { 
     max-width: var(--container-width); 
     margin: 0 auto; 
     padding: 0 var(--container-padding);
 }
 
-/* 3. 卡片系統 (Platform Card) */
 .platform-card {
     background-color: var(--bg-surface);
     border-radius: var(--radius-card);
@@ -95,7 +87,6 @@ body {
     transition: transform 0.2s ease, box-shadow 0.2s ease;
 }
 
-/* 4. 基礎排版 (Typography) */
 h1, .h1-title {
     font-size: 1.75rem;
     font-weight: 700;
@@ -116,7 +107,6 @@ h2, .h2-title {
     color: var(--text-secondary);
 }
 
-/* 5. 輔助標籤 (Eyebrow Text) */
 .section-label {
     display: block;
     font-family: var(--font-mono);
@@ -129,7 +119,7 @@ h2, .h2-title {
 }
 
 /* =========================================
-   🏢 Platform Header (整合優化版)
+   🏢 Platform Header
    ========================================= */
 .app-header {
     height: 64px;
@@ -148,11 +138,7 @@ h2, .h2-title {
 .header-brand-main { font-size: 1.125rem; font-weight: 700; color: var(--text-primary); letter-spacing: 0.05em; }
 .header-brand-sub { font-size: 0.75rem; color: #9CA3AF; font-family: var(--font-mono); text-transform: uppercase; letter-spacing: 0.1em; }
 
-.header-right {
-    display: flex;
-    align-items: center;
-    gap: 8px;
-}
+.header-right { display: flex; align-items: center; gap: 8px; }
 
 .header-icon-btn {
     background: transparent; border: none;
@@ -170,32 +156,19 @@ h2, .h2-title {
 }
 
 .user-profile-group {
-    display: flex;
-    align-items: center;
-    gap: 12px;
-    padding-left: 4px;
-    cursor: default;
+    display: flex; align-items: center; gap: 12px;
+    padding-left: 4px; cursor: default;
 }
 
 .user-role-text {
-    font-size: 0.875rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    text-align: right;
+    font-size: 0.875rem; font-weight: 600; color: var(--text-primary); text-align: right;
 }
 .user-role-label {
-    display: block;
-    font-size: 0.7rem;
-    color: #9CA3AF;
-    font-weight: 400;
-    text-transform: uppercase;
-    letter-spacing: 0.05em;
+    display: block; font-size: 0.7rem; color: #9CA3AF;
+    font-weight: 400; text-transform: uppercase; letter-spacing: 0.05em;
 }
 
-.avatar-wrapper {
-    position: relative;
-    width: 38px; height: 38px;
-}
+.avatar-wrapper { position: relative; width: 38px; height: 38px; }
 
 .header-avatar {
     width: 100%; height: 100%;
@@ -206,24 +179,8 @@ h2, .h2-title {
 }
 .header-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
-.status-indicator {
-    display: none !important;
-}
-
-.status-badge {
-    color: var(--morandi-blue);
-    border: 1px solid var(--line-color);
-    background: white;
-    padding: 6px 16px;
-    border-radius: 50px;
-    font-size: 0.875rem;
-    font-weight: 600;
-    display: flex; align-items: center;
-}
-.status-badge::before {
-    content: ''; display: inline-block; width: 8px; height: 8px;
-    background-color: var(--evt-green); border-radius: 50%; margin-right: 8px;
-}
+/* 🟢 修改：隱藏頭貼綠點 */
+.status-indicator { display: none !important; }
 
 /* =========================================
    Login / Hero
@@ -235,12 +192,8 @@ h2, .h2-title {
 }
 .display-text { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 2rem; }
 
-/* 藍色手繪圈圈 */
 .circle-sketch { 
-    display: inline-block; 
-    position: relative; 
-    z-index: 1; 
-    white-space: nowrap; 
+    display: inline-block; position: relative; z-index: 1; white-space: nowrap; 
 }
 .circle-sketch::after {
     content: ''; 
@@ -253,7 +206,6 @@ h2, .h2-title {
     pointer-events: none;
 }
 
-/* 拼圖動畫 */
 .puzzle-group {
     position: absolute;
     top: 50%; left: 50%;
@@ -261,9 +213,7 @@ h2, .h2-title {
     width: 200px; height: 200px;
     transition: transform 0.5s ease;
 }
-.hero-image-placeholder:hover .puzzle-group {
-    transform: translate(-50%, -50%) rotate(0deg);
-}
+.hero-image-placeholder:hover .puzzle-group { transform: translate(-50%, -50%) rotate(0deg); }
 .puzzle-piece {
     position: absolute;
     width: 100px; height: 100px;
@@ -283,11 +233,9 @@ h2, .h2-title {
 .hero-image-placeholder:hover .piece-orange { transform: translate(0px, 15px) scale(1.1); }
 
 /* =========================================
-   LEVEL 1: Calendar (最高權重)
+   LEVEL 1: Calendar
    ========================================= */
-#calendar-section {
-    margin-bottom: var(--spacing-section);
-}
+#calendar-section { margin-bottom: var(--spacing-section); }
 
 .fc { font-family: var(--font-main); }
 .fc-toolbar-title { font-size: 1.5rem !important; font-weight: 700; color: var(--text-primary); }
@@ -295,31 +243,22 @@ h2, .h2-title {
 .fc-daygrid-day-number { color: var(--text-secondary); font-size: 0.9rem; margin: 4px; }
 .fc-button-primary { background-color: var(--accent-color) !important; border: none !important; border-radius: 8px !important; }
 .fc-today-button { background-color: white !important; color: var(--text-primary) !important; border: 1px solid var(--line-color) !important; }
-/* 電腦版行事曆標題置中 */
-.fc-header-toolbar {
-    position: relative;
-    justify-content: space-between;
-}
 
-.fc-toolbar-title {
-    position: absolute;
-    left: 50%;
-    transform: translateX(-50%);
-    font-weight: 700;
-}
+/* 行事曆事件優化 (色塊風格) */
+.fc-daygrid-event-dot { display: none !important; }
+.fc-event { border: none !important; padding: 2px 4px !important; border-radius: 4px; margin-top: 2px !important; cursor: pointer; }
+.fc-event-main { color: white !important; font-weight: 500; font-size: 0.85rem; }
+.evt-orange { background-color: var(--evt-orange) !important; color: white !important; }
+.evt-green { background-color: var(--evt-green) !important; color: white !important; }
+
+.fc-header-toolbar { position: relative; justify-content: space-between; }
+.fc-toolbar-title { position: absolute; left: 50%; transform: translateX(-50%); font-weight: 700; }
 
 /* =========================================
-   LEVEL 2: Features Navigation (功能模組)
+   LEVEL 2: Features Navigation
    ========================================= */
-.features-nav-section {
-    margin-bottom: var(--spacing-section);
-}
-
-.features-grid {
-    display: grid;
-    grid-template-columns: repeat(4, 1fr);
-    gap: 1.5rem;
-}
+.features-nav-section { margin-bottom: var(--spacing-section); }
+.features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
 
 .nav-card {
     background: var(--bg-card);
@@ -331,160 +270,130 @@ h2, .h2-title {
     transition: all 0.3s ease;
     position: relative; 
     overflow: hidden; 
-    display: flex;
-    flex-direction: column;
-    align-items: flex-start;
-    height: 100%;
+    display: flex; flex-direction: column; align-items: flex-start; height: 100%;
 }
+.nav-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1); }
 
-.nav-card:hover {
-    transform: translateY(-5px);
-    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-}
-
-/* 大數字樣式 (01, 02...) */
 .concept-number {
-    font-size: 3.5rem; 
-    font-weight: 800; 
-    
-    /* 🔴 修改 2: 顏色加深 (原本是 #F3F4F6 太淡) */
-    color: #E2E8F0; /* 改為較深的淺灰 (Slate 200) */
-    
-    line-height: 1; 
-    font-family: var(--font-main);
-    
-    position: absolute; 
-    top: 0.5rem; 
-    right: 1rem; 
-    z-index: 0; 
-    
+    font-size: 3.5rem; font-weight: 800; color: #E2E8F0; 
+    line-height: 1; font-family: var(--font-main);
+    position: absolute; top: 0.5rem; right: 1rem; z-index: 0; 
     transition: color 0.3s ease, opacity 0.3s ease;
 }
-
-.nav-card:hover .concept-number {
-    color: var(--accent-color);
-    opacity: 0.15; 
-}
+.nav-card:hover .concept-number { color: var(--accent-color); opacity: 0.15; }
 
 .nav-icon { font-size: 1.8rem; margin-bottom: 1rem; color: var(--accent-color); position: relative; z-index: 1; }
 .nav-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary); position: relative; z-index: 1; }
 .nav-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; position: relative; z-index: 1; }
 
 /* =========================================
-   LEVEL 3: Content Stage (內容區)
+   LEVEL 3: Content Stage
    ========================================= */
 .content-stage-card {
     background-color: var(--bg-card);
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
-    padding: 3rem; 
-    min-height: 500px; 
+    padding: 3rem; min-height: 500px; 
 }
 
 /* =========================================
-   LEVEL 5: Chat Layout (留言板 - 對稱修復版)
+   LEVEL 5: Chat Layout
    ========================================= */
 .chat-container { 
-    height: 500px; 
-    overflow-y: auto; 
-    background: #fff; 
-    padding: 20px; 
-    border-radius: 12px; 
-    border: 1px solid var(--line-color); 
-    display: flex; 
-    flex-direction: column; 
-    gap: 20px;
+    height: 500px; overflow-y: auto; 
+    background: #fff; padding: 20px; 
+    border-radius: 12px; border: 1px solid var(--line-color); 
+    display: flex; flex-direction: column; gap: 20px;
 }
-
 #msg-input { background: #F3F4F6 !important; border: none; border-radius: 12px; color: #333; }
 
-.msg-row { 
-    display: flex; 
-    align-items: flex-end; 
-    gap: 12px; 
-    max-width: 85%; 
-    width: auto;
-    margin: 0; 
-}
-
+.msg-row { display: flex; align-items: flex-end; gap: 12px; max-width: 85%; width: auto; margin: 0; }
 .msg-avatar {
     width: 45px; height: 45px; min-width: 45px;
-    background: #f0f0f0; 
-    border-radius: 50%;
+    background: #f0f0f0; border-radius: 50%;
     display: flex; align-items: center; justify-content: center; 
-    overflow: hidden; 
-    box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+    overflow: hidden; box-shadow: 0 2px 4px rgba(0,0,0,0.1);
 }
 .msg-avatar img { width: 100%; height: 100%; object-fit: cover; }
 
 .msg-bubble { 
-    padding: 14px 18px; 
-    border-radius: 18px; 
-    position: relative; 
-    font-size: 1rem; 
-    line-height: 1.5; 
-    word-wrap: break-word;
-    display: flex;
-    flex-direction: column;
+    padding: 14px 18px; border-radius: 18px; position: relative; 
+    font-size: 1rem; line-height: 1.5; word-wrap: break-word;
+    display: flex; flex-direction: column;
 }
 .msg-role { display: block; font-size: 0.75rem; margin-bottom: 4px; opacity: 0.8; font-weight: 600; }
 
 .msg-row.other { align-self: flex-start; }
 .msg-row.other .msg-bubble { background-color: #F3F4F6; color: #1F2937; border-bottom-left-radius: 4px; }
 
-.msg-row.self { 
-    align-self: flex-end; 
-    flex-direction: row-reverse; 
-    margin-right: 0; 
-    margin-left: auto;
-}
+.msg-row.self { align-self: flex-end; flex-direction: row-reverse; margin-right: 0; margin-left: auto; }
 .msg-row.self .msg-bubble { background-color: #EFF6FF; color: #1E40AF; border-bottom-right-radius: 4px; text-align: right; align-items: flex-end; }
 
 /* =========================================
-   3. 全域設定補強
+   ✨ 提問回覆區 UI 重設計 (Thread 風格)
    ========================================= */
 
-/* --- Calendar Event Styling (行事曆事件樣式優化) --- */
-/* 1. 隱藏原本的圓點 */
-.fc-daygrid-event-dot {
-    display: none !important;
-}
-
-/* 2. 事件改為色塊風格 (白字、無邊框) */
-.fc-event {
+/* 1. 卡片基礎：去邊框、加陰影、圓角 */
+.card.question-card {
     border: none !important;
-    padding: 2px 4px !important;
-    border-radius: 4px;
-    margin-top: 2px !important;
-    cursor: pointer;
+    border-radius: 16px !important;
+    background: #fff;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* 柔和浮起 */
+    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    overflow: hidden; 
+    position: relative;
+    border-left: 6px solid #e2e8f0 !important; /* 預設邊框 */
 }
 
-.fc-event-main {
-    color: white !important; /* 強制白字 */
+.card.question-card:hover {
+    transform: translateY(-3px);
+    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+}
+
+/* 2. 左側身分識別色條 (使用 data-role) */
+.card.question-card[data-role="teacher"] { border-left-color: #4361ee !important; }   /* 教師：藍 */
+.card.question-card[data-role="therapist"] { border-left-color: #2ec4b6 !important; } /* 治療師：綠 */
+.card.question-card[data-role="parents"] { border-left-color: #ff9f1c !important; }   /* 家長：橘 */
+
+/* 3. 內容排版 */
+.card.question-card .card-body { padding: 1.5rem 1.8rem; }
+
+.card.question-card h5 { 
+    font-weight: 700; color: #2c3e50; margin-bottom: 0.2rem; font-size: 1.1rem; 
+}
+
+/* 4. 提問對象 Tag */
+.card.question-card .badge.bg-light {
+    background-color: #f1f5f9 !important;
+    color: #475569 !important;
+    border: 1px solid #e2e8f0;
+    border-radius: 50rem;
+    padding: 0.35em 0.8em;
     font-weight: 500;
-    font-size: 0.85rem; /* 電腦版字體 */
 }
 
-/* 3. 定義身分顏色 (教師橘、治療師綠) */
-.evt-orange {
-    background-color: var(--evt-orange) !important;
-    color: white !important;
+/* 5. 問題內文 */
+.card.question-card .card-text {
+    font-size: 1.05rem; line-height: 1.7; color: #334155; margin-top: 1rem; margin-bottom: 1.5rem;
 }
 
-.evt-green {
-    background-color: var(--evt-green) !important;
-    color: white !important;
+/* 6. 回覆區塊 */
+.card.question-card .bg-light.rounded {
+    background-color: #f8fafc !important;
+    border-left: 3px solid #cbd5e1;
+    border-radius: 0 12px 12px 0 !important;
+    padding: 1.2rem !important;
+    margin-top: 1.5rem;
 }
 
 /* =========================================
-   RWD (Mobile Optimization) - 手機版最終精修 V4
+   RWD (Mobile Optimization) - 手機版最終精修
    ========================================= */
 @media (max-width: 900px) {
     
     .container { padding: 0 8px; }
     .app-header { padding: 0 16px; height: 56px; }
 
-    /* 隱藏非必要元素 */
     .header-brand-sub, 
     .user-role-text, 
     .user-role-label,
@@ -493,23 +402,15 @@ h2, .h2-title {
     .hero { grid-template-columns: 1fr; padding: 2rem 0; text-align: center; gap: 1.5rem; }
     .display-text { font-size: 2.25rem; margin-bottom: 1rem; }
     
-    /* =========================================
-       📅 行事曆手機版修復
-       ========================================= */
-    
-    #calendar-section.platform-card {
-        padding: 16px 8px !important;
-    }
+    /* 📅 行事曆手機版修復 */
+    #calendar-section.platform-card { padding: 16px 8px !important; }
 
-    /* 標題區塊容器：強制垂直排列 */
     #calendar-section .platform-card > .d-flex {
         flex-direction: column !important;
         align-items: flex-start !important;
-        gap: 12px; 
-        margin-bottom: 4px !important;
+        gap: 12px; margin-bottom: 4px !important;
     }
 
-    /* 標題與選擇器的容器：強制水平排列 */
     #calendar-section .d-flex.align-items-center.gap-3 {
         display: flex !important;
         flex-direction: row !important;
@@ -519,248 +420,88 @@ h2, .h2-title {
         gap: 8px !important;
     }
 
-    /* 🔴 修改 1: 本月排程字體縮小 (18px -> 16px) */
     #calendar-section .h1-title {
-        font-size: 16px !important; 
-        margin-bottom: 0 !important;
-        white-space: nowrap;
-        font-weight: 800;
-        line-height: 1.5;
+        font-size: 16px !important; margin-bottom: 0 !important;
+        white-space: nowrap; font-weight: 800; line-height: 1.5;
     }
 
-    /* 🔴 修改 1: 月份選擇器加大 (105px -> 130px) 避免切字 */
     #calendar-month-picker {
         display: block !important;
-        width: 130px !important; /* 加寬 */
-        height: 32px !important;
-        font-size: 14px !important;
-        padding: 0 8px !important;
+        width: 130px !important; height: 32px !important;
+        font-size: 14px !important; padding: 0 8px !important;
         text-align: center;
-        background-color: #fff !important;
-        border: 1px solid #ced4da !important;
-        border-radius: 6px !important;
-        color: #333 !important;
-        margin-left: auto !important; /* 強制靠右 */
+        background-color: #fff !important; border: 1px solid #ced4da !important;
+        border-radius: 6px !important; color: #333 !important;
+        margin-left: auto !important;
     }
 
-    /* 🔴 修改 1: + New Event 按鈕 (剛好包住字體) */
     #btn-add-event {
-        width: auto !important; /* 不要在手機版滿版 */
-        display: inline-block !important; /* 讓寬度隨內容調整 */
-        font-size: 12px !important; 
-        padding: 4px 12px !important; /* 縮小內距 */
-        height: 32px !important;
-        margin-left: 0 !important;
-        white-space: nowrap;
-        line-height: 1.8; /* 垂直置中 */
+        width: auto !important; display: inline-block !important;
+        font-size: 12px !important; padding: 4px 12px !important;
+        height: 32px !important; margin-left: 0 !important;
+        white-space: nowrap; line-height: 1.8;
     }
     
-    /* 讓按鈕區塊置右或滿版，視您喜好，這裡設定為自適應靠左 */
-    #calendar-section .platform-card > .d-flex > button {
-        align-self: flex-start;
-    }
+    #calendar-section .platform-card > .d-flex > button { align-self: flex-start; }
 
-    /* --- 行事曆標題 (2026年1月) 強制置中 --- */
+    /* 行事曆標題置中 */
     .fc-header-toolbar {
-        position: relative !important;
-        margin-bottom: 8px !important;
-        display: flex !important;
-        justify-content: space-between !important;
+        position: relative !important; margin-bottom: 8px !important;
+        display: flex !important; justify-content: space-between !important;
         align-items: center !important;
     }
 
     .fc-toolbar-title {
-        position: absolute;
-        left: 50%;
-        top: 50%;
+        position: absolute; left: 50%; top: 50%;
         transform: translate(-50%, -50%);
-        font-size: 16px !important;
-        font-weight: 700;
-        white-space: nowrap;
-        z-index: 1;
+        font-size: 16px !important; font-weight: 700;
+        white-space: nowrap; z-index: 1;
     }
 
-    .fc-toolbar-chunk {
-        display: flex;
-        align-items: center;
-        gap: 4px;
-        z-index: 2;
-    }
+    .fc-toolbar-chunk { display: flex; align-items: center; gap: 4px; z-index: 2; }
 
     .fc-button {
-        padding: 0 6px !important; 
-        font-size: 12px !important; 
-        height: 28px !important;    
-        line-height: 26px !important;
+        padding: 0 6px !important; font-size: 12px !important; 
+        height: 28px !important; line-height: 26px !important;
         min-width: 24px !important; 
     }
 
     .fc-event-main { 
-        font-size: 8.5px !important;
-        line-height: 1.1; 
-        padding: 1px 2px !important;
-        font-weight: 400 !important;
+        font-size: 8.5px !important; line-height: 1.1; 
+        padding: 1px 2px !important; font-weight: 400 !important;
     }
     .fc-daygrid-event { margin-top: 1px !important; }
     .fc-daygrid-day-frame { min-height: 40px !important; height: auto !important; }
     .fc-daygrid-day-number { font-size: 11px !important; padding: 1px 4px !important; }
     .fc-col-header-cell-cushion { font-size: 12px !important; padding: 4px 0 !important; }
 
-    /* =========================================
-   提問回覆區 UI 重設計 (Thread 風格)
-   ========================================= */
-
-/* 1. 卡片基礎設定：去除舊邊框，改用陰影與圓角 */
-.question-card {
-    border: none !important;
-    border-radius: 16px !important;
-    background: #fff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* 柔和的浮起效果 */
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    overflow: hidden; /* 確保左側色條不溢出 */
-    position: relative;
-}
-
-.question-card:hover {
-    transform: translateY(-3px); /* 滑鼠移過去微微浮起 */
-    box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
-}
-
-/* 2. 左側身分識別色條 (Visual Identity) */
-/* 透過 data-role 屬性自動變色 */
-.question-card[data-role="teacher"] {
-    border-left: 6px solid #4361ee !important; /* 教師：皇家藍 */
-}
-
-.question-card[data-role="therapist"] {
-    border-left: 6px solid #2ec4b6 !important; /* 治療師：湖水綠 */
-}
-
-.question-card[data-role="parents"] {
-    border-left: 6px solid #ff9f1c !important; /* 家長：暖橘色 */
-}
-
-/* 3. 標題與資訊區優化 */
-.question-card .card-body {
-    padding: 1.5rem 1.8rem;
-}
-
-/* 名字與頭像區 */
-.question-card h5 { /* 假設名字是用 h5 或類似標籤 */
-    font-weight: 700;
-    color: #2c3e50;
-    margin-bottom: 0.2rem;
-    font-size: 1.1rem;
-}
-
-/* 日期與小標 */
-.question-card small {
-    color: #94a3b8; /* 更有質感的灰色 */
-    font-size: 0.85rem;
-    letter-spacing: 0.5px;
-}
-
-/* 4. 提問對象 Tag (Pill Shape) */
-/* 讓 @對象 看起來像標籤 */
-.question-card .badge.bg-light {
-    background-color: #f1f5f9 !important;
-    color: #475569 !important;
-    border: 1px solid #e2e8f0;
-    border-radius: 50rem; /* 藥丸狀 */
-    padding: 0.35em 0.8em;
-    font-weight: 500;
-    margin-top: 5px;
-    display: inline-block;
-}
-
-/* 5. 問題內文 (Typography) */
-.question-card .card-text {
-    font-size: 1.05rem;
-    line-height: 1.7; /* 增加行距，提升閱讀舒適度 */
-    color: #334155;
-    margin-top: 1rem;
-    margin-bottom: 1.5rem;
-    white-space: pre-wrap; /* 保留換行 */
-}
-
-/* 6. 回覆區塊 (Thread Design) - 重點！ */
-/* 將原本的回覆區塊美化成「對話串」 */
-.question-card .bg-light.rounded {
-    background-color: #f8fafc !important; /* 極淺藍灰背景 */
-    border-left: 3px solid #cbd5e1; /* 左側細灰線，建立層級感 */
-    border-radius: 0 12px 12px 0 !important; /* 只有右邊圓角 */
-    padding: 1.2rem !important;
-    margin-top: 1.5rem;
-    position: relative;
-}
-
-/* 回覆區標題美化 */
-.question-card .bg-light small.fw-bold {
-    color: #2ec4b6; /* 讓「回覆」二字跟治療師色系呼應 */
-    font-size: 0.9rem;
-    text-transform: uppercase;
-    display: block;
-    margin-bottom: 0.5rem;
-}
-
-/* 回覆內容 */
-.question-card .bg-light p {
-    color: #475569;
-    font-size: 0.95rem;
-    margin-bottom: 0;
-}
-
-/* 7. 狀態 Badge (右上角) */
-.question-card .badge.bg-success-subtle {
-    background-color: #d1fae5 !important;
-    color: #059669 !important;
-}
-
-.question-card .badge.bg-secondary-subtle {
-    background-color: #f1f5f9 !important;
-    color: #64748b !important;
-}
-
-    /* =========================================
-       💬 留言板手機版
-       ========================================= */
+    /* 💬 留言板手機版 */
     .chat-container { padding: 10px !important; }
     
     .msg-row {
-        gap: 6px !important;
-        max-width: 98% !important; 
-        width: 100% !important;
-        margin-bottom: 16px !important;
+        gap: 6px !important; max-width: 98% !important; 
+        width: 100% !important; margin-bottom: 16px !important;
     }
 
     .msg-avatar { width: 32px !important; height: 32px !important; min-width: 32px !important; }
     .msg-bubble { padding: 8px 12px !important; border-radius: 12px !important; font-size: 13px !important; line-height: 1.4; }
     .msg-role { font-size: 10px !important; margin-bottom: 2px !important; }
 
-    /* =========================================
-       ✨ 其他區域 (修復按鈕數字位置)
-       ========================================= */
+    /* ✨ 其他區域 */
     .features-grid { grid-template-columns: repeat(2, 1fr); gap: 12px; }
     
     .nav-card { 
-        padding: 1rem; 
-        min-height: 110px; 
-        align-items: center; 
-        text-align: center; 
+        padding: 1rem; min-height: 110px; 
+        align-items: center; text-align: center; 
     }
     
     .nav-desc { display: none; } 
     .nav-icon { margin-top: 0.5rem; margin-bottom: 0.5rem; font-size: 1.5rem; }
     .nav-title { font-size: 1rem; margin-bottom: 0; }
     
-    /* 手機版數字位置微調 */
     .concept-number { 
-        font-size: 2rem; 
-        top: 8px !important;   
-        right: 12px !important; 
-        /* 手機版顏色也加深一點，確保可見 */
-        color: #E5E7EB !important; 
-        opacity: 1 !important; 
+        font-size: 2rem; top: 8px !important; right: 12px !important; 
+        color: #E5E7EB !important; opacity: 1 !important; 
     }
     
     .content-stage-card { padding: 1.5rem; }
