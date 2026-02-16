@@ -301,7 +301,7 @@ async function loadRecords() {
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
     // 🔴 請確認網址不用變，繼續用原本那個
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI73OnipeAY-xakb8YEpM0TUhEFOcYejZbC8BA8MPa4bdMbJ0A__7sFdQkwJrYk2FWw/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJyvD4A63VSCo7isp_Pwmciq5nKRLM3H8otQfdWtWe_XYShVu609jruQVqm7YFt4Iw_w/exec"; 
 
     try {
         const res = await fetch(SCRIPT_URL);
