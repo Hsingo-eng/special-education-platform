@@ -294,14 +294,14 @@ async function getAiSummary() {
 }
 
 // ==========================================
-// 功能 B: 專業紀錄 (修正版：顯示完整治療內容)
+// 功能 B: 專業紀錄 (終極完整版：顯示內容+表現+參與+策略)
 // ==========================================
 async function loadRecords() {
     const list = document.getElementById("record-list");
     list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
     
-    // 🔴 請確認這裡填入的是您最新的 Apps Script 網址
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa29p_cTCsxEhdQ6yGrTPJQ4rjJSh83OPwlJu6cSa19QIc1LmvBR41MZ7OkKwYxBh6uw/exec"; 
+    // 🔴 請確認網址不用變，繼續用原本那個
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxdI73OnipeAY-xakb8YEpM0TUhEFOcYejZbC8BA8MPa4bdMbJ0A__7sFdQkwJrYk2FWw/exec"; 
 
     try {
         const res = await fetch(SCRIPT_URL);
@@ -315,32 +315,48 @@ async function loadRecords() {
         }
 
         json.data.reverse().forEach(rec => {
-            // 1. 處理日期格式 (只取前10碼 YYYY-MM-DD)
+            // 1. 日期與基本資訊
             let dateStr = rec.date ? String(rec.date).substring(0, 10) : '未知日期';
-            
-            // 2. 組合顯示內容：把各領域的內容串起來
-            let contentHtml = "";
-            
-            // 檢查各欄位是否有值，有就加進去
-            if (rec.comp_content) contentHtml += `<div class="mb-1"><span class="badge bg-primary bg-opacity-10 text-primary border border-primary me-1">理解</span> ${rec.comp_content}</div>`;
-            if (rec.exp_content)  contentHtml += `<div class="mb-1"><span class="badge bg-success bg-opacity-10 text-success border border-success me-1">表達</span> ${rec.exp_content}</div>`;
-            if (rec.art_content)  contentHtml += `<div class="mb-1"><span class="badge bg-warning bg-opacity-10 text-dark border border-warning me-1">構音</span> ${rec.art_content}</div>`;
-            if (rec.comm_content) contentHtml += `<div class="mb-1"><span class="badge bg-info bg-opacity-10 text-dark border border-info me-1">溝通</span> ${rec.comm_content}</div>`;
-            
-            // 如果上述都沒填，但有備註
-            if (contentHtml === "" && rec.remarks) {
-                contentHtml = `<div class="text-secondary">${rec.remarks}</div>`;
-            } else if (contentHtml === "") {
-                contentHtml = `<div class="text-muted fst-italic">（無詳細內容）</div>`;
-            }
-
-            // 如果有備註，也加在下面
-            if (rec.remarks) {
-                contentHtml += `<div class="mt-2 pt-2 border-top small text-secondary"><i class="fas fa-info-circle"></i> 備註：${rec.remarks}</div>`;
-            }
-
             const type = rec.session_Type || "個別";
 
+            // 2. 組合「四大領域」的內容與表現
+            let goalsHtml = "";
+            
+            // 輔助函式：產生一行「領域 + 內容 + 表現」
+            const addRow = (badgeColor, badgeText, content, perf) => {
+                if (!content) return "";
+                const perfHtml = perf ? `<span class="ms-2 badge bg-light text-dark border">表現：${perf}</span>` : "";
+                return `<div class="mb-2">
+                            <span class="badge ${badgeColor} me-1">${badgeText}</span>
+                            <span class="text-dark">${content}</span>
+                            ${perfHtml}
+                        </div>`;
+            };
+
+            goalsHtml += addRow("bg-primary", "理解", rec.comp_content, rec.comp_perf);
+            goalsHtml += addRow("bg-success", "表達", rec.exp_content, rec.exp_perf);
+            goalsHtml += addRow("bg-warning text-dark", "構音", rec.art_content, rec.art_perf);
+            goalsHtml += addRow("bg-info text-dark", "溝通", rec.comm_content, rec.comm_perf);
+
+            // 若全空顯示無內容
+            if (goalsHtml === "") goalsHtml = `<div class="text-muted fst-italic">（本次無特定訓練目標）</div>`;
+
+            // 3. 組合「參與狀況」與「策略」
+            let detailsHtml = "";
+            if (rec.participation) {
+                detailsHtml += `<div class="mt-2 small text-secondary"><i class="fas fa-user-check me-1"></i> <strong>參與狀況：</strong>${rec.participation}</div>`;
+            }
+            if (rec.strategies) {
+                detailsHtml += `<div class="mt-1 small text-secondary"><i class="fas fa-lightbulb me-1"></i> <strong>延伸策略：</strong>${rec.strategies}</div>`;
+            }
+
+            // 4. 備註
+            let remarksHtml = "";
+            if (rec.remarks) {
+                remarksHtml = `<div class="mt-3 pt-2 border-top small text-muted"><i class="fas fa-comment-dots me-1"></i> 備註：${rec.remarks}</div>`;
+            }
+
+            // 5. 組合最終卡片
             list.innerHTML += `
                 <div class="list-group-item mb-3 border-0 shadow-sm rounded p-4">
                     <div class="d-flex w-100 justify-content-between border-bottom pb-2 mb-3">
@@ -352,13 +368,17 @@ async function loadRecords() {
                     </div>
                     
                     <div class="record-content">
-                        ${contentHtml}
+                        ${goalsHtml}
+                        <div class="mt-3 p-2 bg-light rounded">
+                            ${detailsHtml}
+                        </div>
+                        ${remarksHtml}
                     </div>
                 </div>`;
         });
     } catch (err) {
         console.error(err);
-        list.innerHTML = "<div class='alert alert-danger'>載入失敗，請檢查 Apps Script 部署</div>";
+        list.innerHTML = "<div class='alert alert-danger'>載入失敗</div>";
     }
 }
 
