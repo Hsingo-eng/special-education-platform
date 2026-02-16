@@ -4,12 +4,62 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>特教溝通平台 | Communication Platform</title>
+    
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600;700&family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="style.css">
+    
+    <link rel="stylesheet" href="style.css?v=2">
+    
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link rel="icon" type="image/png" href="favicon.png">
+
+    <style>
+        /* 提問卡片基礎樣式 */
+        .card.question-card {
+            border: none !important;
+            border-radius: 16px !important;
+            background: #fff;
+            box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05);
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            overflow: hidden;
+            position: relative;
+            border-left: 6px solid #e2e8f0 !important; /* 預設灰邊框 */
+        }
+
+        .card.question-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
+        }
+
+        /* 左側身分識別色條 (使用 data-role) */
+        .card.question-card[data-role="teacher"] { border-left-color: #4361ee !important; }   /* 藍 */
+        .card.question-card[data-role="therapist"] { border-left-color: #2ec4b6 !important; } /* 綠 */
+        .card.question-card[data-role="parents"] { border-left-color: #ff9f1c !important; }   /* 橘 */
+
+        /* 內容排版 */
+        .card.question-card .card-body { padding: 1.5rem 1.8rem; }
+        .card.question-card h5 { font-weight: 700; color: #2c3e50; margin-bottom: 0.2rem; font-size: 1.1rem; }
+        
+        /* 提問對象 Tag */
+        .card.question-card .badge.bg-light {
+            background-color: #f1f5f9 !important;
+            color: #475569 !important;
+            border: 1px solid #e2e8f0;
+            border-radius: 50rem;
+            padding: 0.35em 0.8em;
+            font-weight: 500;
+        }
+
+        /* 回覆區塊 */
+        .card.question-card .bg-light.rounded {
+            background-color: #f8fafc !important;
+            border-left: 3px solid #cbd5e1;
+            border-radius: 0 12px 12px 0 !important;
+            padding: 1.2rem !important;
+            margin-top: 1.5rem;
+        }
+    </style>
 </head>
 <body>
 
@@ -351,39 +401,39 @@
     </div>
 
     <div class="modal fade" id="eventModal" tabindex="-1" aria-hidden="true">
-    <div class="modal-dialog">
-        <div class="modal-content border-0 shadow">
-            <div class="modal-header bg-dark text-white">
-                <h5 class="modal-title"><i class="far fa-calendar-plus me-2"></i>行事曆事件</h5>
-                <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body p-4">
-                <form id="eventForm">
-                    <input type="hidden" id="evt-id">
-                    <div class="mb-3">
-                        <label class="form-label small fw-bold text-secondary">標題</label>
-                        <input type="text" class="form-control" id="evt-title" required placeholder="例如：期末 IEP 會議">
-                    </div>
-                    <div class="row g-3 mb-3">
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-secondary">開始時間</label>
-                            <input type="datetime-local" class="form-control" id="evt-start" required>
+        <div class="modal-dialog">
+            <div class="modal-content border-0 shadow">
+                <div class="modal-header bg-dark text-white">
+                    <h5 class="modal-title"><i class="far fa-calendar-plus me-2"></i>行事曆事件</h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="eventForm">
+                        <input type="hidden" id="evt-id">
+                        <div class="mb-3">
+                            <label class="form-label small fw-bold text-secondary">標題</label>
+                            <input type="text" class="form-control" id="evt-title" required placeholder="例如：期末 IEP 會議">
                         </div>
-                        <div class="col-6">
-                            <label class="form-label small fw-bold text-secondary">結束時間</label>
-                            <input type="datetime-local" class="form-control" id="evt-end">
+                        <div class="row g-3">
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">開始時間</label>
+                                <input type="datetime-local" class="form-control" id="evt-start" required>
+                            </div>
+                            <div class="col-6">
+                                <label class="form-label small fw-bold text-secondary">結束時間</label>
+                                <input type="datetime-local" class="form-control" id="evt-end">
+                            </div>
                         </div>
-                    </div>
                     </form>
-            </div>
-            <div class="modal-footer">
-                <button type="button" class="btn btn-outline-danger d-none" id="btn-del-evt" onclick="deleteEvent()">刪除</button>
-                <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
-                <button type="button" class="btn btn-dark" onclick="saveEvent()">儲存事件</button>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-outline-danger d-none" id="btn-del-evt" onclick="deleteEvent()">刪除</button>
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-dark" onclick="saveEvent()">儲存事件</button>
+                </div>
             </div>
         </div>
     </div>
-</div>
 
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/js/bootstrap.bundle.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
