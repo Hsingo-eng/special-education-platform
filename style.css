@@ -2,6 +2,10 @@
    1. ROOT: Visual Foundation (全站視覺基底)
    ========================================= */
 :root {
+    /* --- 🧩 Puzzle Visual Assets (拼圖視覺資產) --- */
+    /* 定義拼圖紋理的 SVG (線條顏色為冷灰 #CBD5E1，透明度極低) */
+    --puzzle-pattern-url: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0c0 4.142 3.358 7.5 7.5 7.5s7.5-3.358 7.5-7.5M0 30c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5M30 60c0-4.142-3.358-7.5-7.5-7.5S15 55.858 15 60M60 30c-4.142 0-7.5-3.358-7.5-7.5S55.858 15 60 15' stroke='%2394a3b8' stroke-width='0.8' fill='none' fill-rule='evenodd' opacity='0.4'/%3E%3C/svg%3E");
+    
     /* --- 🎨 Color Palette (配色系統) --- */
     --bg-root: #F6F8FA;      
     --bg-surface: #FFFFFF;   
@@ -75,16 +79,45 @@ body {
     padding: 0 var(--container-padding);
 }
 
+/* 🧩 Puzzle Design: 通用卡片樣式優化 */
 .platform-card {
     background-color: var(--bg-surface);
     border-radius: var(--radius-card);
     box-shadow: var(--shadow-card);
-    border: var(--border-subtle);
+    border: 1px solid rgba(226, 232, 240, 0.8); /* 加強邊框質感 */
     padding: 2rem;
     width: 100%;
     position: relative;
     transform: translateZ(0); 
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
+    transition: transform 0.2s ease, box-shadow 0.2s ease, border-color 0.3s ease;
+    overflow: hidden; /* 確保裝飾不溢出 */
+}
+
+/* 🧩 Puzzle Design: 卡片 Hover 時的隱喻 (右上角出現凹槽暗示) */
+.platform-card::after {
+    content: '';
+    position: absolute;
+    top: -15px;
+    right: 30px;
+    width: 40px;
+    height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(37, 99, 235, 0.15); /* 極淡品牌藍 */
+    background: transparent;
+    pointer-events: none;
+    opacity: 0;
+    transition: all 0.4s ease;
+    transform: translateY(-5px);
+}
+
+.platform-card:hover {
+    border-color: rgba(37, 99, 235, 0.3); /* Hover 時邊框微藍 */
+}
+
+.platform-card:hover::after {
+    opacity: 1;
+    transform: translateY(0);
+    top: -25px; /* 浮現凹槽 */
 }
 
 h1, .h1-title {
@@ -116,6 +149,25 @@ h2, .h2-title {
     text-transform: uppercase;
     letter-spacing: 0.12em;
     margin-bottom: 6px;
+}
+
+/* 🧩 Puzzle Design: 分隔線優化 (接合點設計) */
+hr, .header-divider {
+    background-color: transparent;
+    border: none;
+    height: 1px;
+    background-image: linear-gradient(to right, transparent 0%, #E5E7EB 10%, #E5E7EB 90%, transparent 100%);
+    position: relative;
+    margin: 2rem 0;
+    overflow: visible;
+}
+
+/* 在分隔線中間加一個小小的「菱形接合點」 */
+hr::before {
+    content: ''; position: absolute; left: 50%; top: 50%;
+    transform: translate(-50%, -50%) rotate(45deg);
+    width: 6px; height: 6px;
+    background-color: #fff; border: 1px solid #E5E7EB; border-radius: 1px;
 }
 
 /* =========================================
@@ -153,6 +205,7 @@ h2, .h2-title {
     width: 1px; height: 24px;
     background-color: #E5E7EB;
     margin: 0 8px;
+    /* Reset gradient for header divider specifically if needed, but keeping consistent is fine */
 }
 
 .user-profile-group {
@@ -189,7 +242,15 @@ h2, .h2-title {
     min-height: 80vh; 
     display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: 4rem; 
     padding: 4rem 0;
+    
+    /* 🧩 Puzzle Design: Hero 背景紋理 */
+    position: relative;
+    background-image: 
+        radial-gradient(circle at center, rgba(246, 248, 250, 1) 40%, rgba(246, 248, 250, 0.8) 100%),
+        var(--puzzle-pattern-url);
+    background-size: cover, 120px 120px;
 }
+
 .display-text { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 2rem; }
 
 .circle-sketch { 
@@ -235,7 +296,22 @@ h2, .h2-title {
 /* =========================================
    LEVEL 1: Calendar
    ========================================= */
-#calendar-section { margin-bottom: var(--spacing-section); }
+#calendar-section { 
+    margin-bottom: var(--spacing-section); 
+    /* 🧩 Puzzle Design: 讓卡片 Hover 時也有凹槽效果 */
+}
+
+/* 🧩 Puzzle Design: Dashboard 背景裝飾 */
+#dashboard-section { position: relative; }
+#dashboard-section::before {
+    content: ''; position: absolute; top: 0; right: 0;
+    width: 300px; height: 400px;
+    background-image: var(--puzzle-pattern-url);
+    opacity: 0.4; z-index: -1;
+    mask-image: linear-gradient(to bottom left, black, transparent);
+    -webkit-mask-image: linear-gradient(to bottom left, black, transparent);
+    pointer-events: none;
+}
 
 .fc { font-family: var(--font-main); }
 .fc-toolbar-title { font-size: 1.5rem !important; font-weight: 700; color: var(--text-primary); }
@@ -265,14 +341,42 @@ h2, .h2-title {
     border-radius: var(--border-radius);
     padding: 2rem 1.5rem; 
     box-shadow: var(--card-shadow);
-    border: 1px solid rgba(0,0,0,0.02);
+    border: 1px solid rgba(226, 232, 240, 0.8); /* 與 platform-card 一致 */
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative; 
     overflow: hidden; 
     display: flex; flex-direction: column; align-items: flex-start; height: 100%;
+    
+    /* 🧩 Puzzle Design: 背景微細節 */
+    background-image: radial-gradient(circle at 90% 10%, rgba(241, 245, 249, 0.5) 0%, transparent 50%);
 }
-.nav-card:hover { transform: translateY(-5px); box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1); }
+
+.nav-card:hover { 
+    transform: translateY(-5px); 
+    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
+    border-color: rgba(37, 99, 235, 0.3); /* 品牌藍 */
+    
+    /* 🧩 Puzzle Design: Hover 時浮現紋理 */
+    background-image: 
+        var(--puzzle-pattern-url),
+        linear-gradient(to bottom right, #fff, #f8fafc);
+    background-size: 60px 60px, cover;
+    background-position: top right;
+    background-repeat: no-repeat, no-repeat;
+}
+
+/* Nav Card 的拼圖凹槽視覺 (與 platform-card 一致) */
+.nav-card::after {
+    content: '';
+    position: absolute; top: -10px; right: 20px;
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    background: transparent; pointer-events: none; opacity: 0;
+    transition: all 0.4s ease; transform: translateY(-5px);
+}
+.nav-card:hover::after { opacity: 1; transform: translateY(0); top: -20px; }
 
 .concept-number {
     font-size: 3.5rem; font-weight: 800; color: #E2E8F0; 
@@ -294,6 +398,7 @@ h2, .h2-title {
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
     padding: 3rem; min-height: 500px; 
+    /* 繼承 platform-card 的拼圖樣式 */
 }
 
 /* =========================================
@@ -343,12 +448,22 @@ h2, .h2-title {
     overflow: hidden; 
     position: relative;
     border-left: 6px solid #e2e8f0 !important; /* 預設邊框 */
+    
+    /* 🧩 Puzzle Design: 加入拼圖凹槽暗示 (與 Nav Card 一致) */
+}
+.card.question-card::after {
+    content: ''; position: absolute; top: -10px; right: 20px;
+    width: 40px; height: 40px; border-radius: 50%;
+    border: 1px solid rgba(37, 99, 235, 0.1);
+    background: transparent; pointer-events: none; opacity: 0;
+    transition: all 0.4s ease; transform: translateY(-5px);
 }
 
 .card.question-card:hover {
     transform: translateY(-3px);
     box-shadow: 0 8px 25px rgba(0, 0, 0, 0.08);
 }
+.card.question-card:hover::after { opacity: 1; transform: translateY(0); top: -20px; }
 
 /* 2. 左側身分識別色條 (使用 data-role) */
 .card.question-card[data-role="teacher"] { border-left-color: #4361ee !important; }   /* 教師：藍 */
