@@ -972,9 +972,16 @@ function openTherapyForm() {
     new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
 }
 
+// ==========================================
+// 功能 F: 治療紀錄表單整合 (Google Sheets)
+// ==========================================
+function openTherapyForm() {
+    new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
+}
+
 async function submitTherapyRecord() {
     // 🔴 請確保此處網址是您最新的 Apps Script 部署網址 (結尾是 /exec)
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbxa29p_cTCsxEhdQ6yGrTPJQ4rjJSh83OPwlJu6cSa19QIc1LmvBR41MZ7OkKwYxBh6uw/exec"; 
+    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJyvD4A63VSCo7isp_Pwmciq5nKRLM3H8otQfdWtWe_XYShVu609jruQVqm7YFt4Iw_w/exec"; 
 
     const date = document.getElementById('form-date').value;
     const duration = document.getElementById('form-duration').value;
@@ -1018,13 +1025,17 @@ async function submitTherapyRecord() {
             headers: { 'Content-Type': 'application/json' }
         });
         
-        Swal.fire('成功', '紀錄已儲存', 'success');
+        // 🟢 修改：更改成功訊息文字
+        Swal.fire('謝謝您的耐心填寫', '紀錄已儲存', 'success');
+        
         bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
         document.getElementById('therapyForm').reset();
         // 重置動態選單
         document.querySelectorAll('.area-toggle').forEach(el => {
              document.getElementById(el.dataset.target).classList.add('d-none');
         });
+        // 重新載入列表以顯示新資料
+        loadRecords(); 
         
     } catch(e) {
         Swal.fire('錯誤', '傳送失敗', 'error');
