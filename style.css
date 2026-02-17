@@ -205,7 +205,6 @@ hr::before {
     width: 1px; height: 24px;
     background-color: #E5E7EB;
     margin: 0 8px;
-    /* Reset gradient for header divider specifically if needed, but keeping consistent is fine */
 }
 
 .user-profile-group {
@@ -236,69 +235,162 @@ hr::before {
 .status-indicator { display: none !important; }
 
 /* =========================================
-   Login / Hero
+   Login / Hero (滿版無滾動修正)
    ========================================= */
-.hero {
-    min-height: 80vh; 
-    display: grid; grid-template-columns: 1.5fr 1fr; align-items: center; gap: 4rem; 
-    padding: 4rem 0;
-    
-    /* 🧩 Puzzle Design: Hero 背景紋理 */
+
+/* 1. 登入頁容器：強制滿版，禁止溢出 */
+#login-section {
+    width: 100vw;
+    height: 100vh;
+    max-width: 100vw; 
+    padding: 0 5vw; 
+    overflow: hidden; /* 禁止出現捲軸 */
     position: relative;
+    /* 確保背景紋理延伸 */
     background-image: 
         radial-gradient(circle at center, rgba(246, 248, 250, 1) 40%, rgba(246, 248, 250, 0.8) 100%),
         var(--puzzle-pattern-url);
     background-size: cover, 120px 120px;
 }
 
-.display-text { font-size: 3.5rem; font-weight: 800; line-height: 1.2; color: var(--text-primary); margin-bottom: 2rem; }
+/* 2. Hero 網格：確保高度佔滿 */
+.hero {
+    min-height: 100vh; 
+    height: 100vh;     
+    display: grid; 
+    grid-template-columns: 1.2fr 1fr; 
+    align-items: center; 
+    gap: 2rem; 
+    padding: 0;
+    margin: 0;
+}
+
+/* 3. 右側拼圖容器：絕對定位或 Flex 居中 */
+.hero-image-wrapper {
+    display: flex;
+    justify-content: center; 
+    align-items: center;     
+    height: 100%;            
+    position: relative;
+}
 
 .circle-sketch { 
     display: inline-block; position: relative; z-index: 1; white-space: nowrap; 
 }
+/* 隱藏藍色圈圈 */
 .circle-sketch::after {
-    content: ''; 
-    position: absolute; 
-    left: -10%; top: -5%; width: 120%; height: 115%;
-    border: 2px solid var(--accent-color); 
-    border-radius: 60% 40% 30% 70% / 60% 30% 70% 40%;
-    z-index: -1; 
-    transform: rotate(-2deg); 
-    pointer-events: none;
+    display: none !important;
 }
 
-.puzzle-group {
+/* 🧩 Puzzle Design: Hero 背景紋理透明度調整 */
+#login-section::before {
+    content: '';
     position: absolute;
-    top: 50%; left: 50%;
-    transform: translate(-50%, -50%) rotate(-10deg); 
-    width: 200px; height: 200px;
-    transition: transform 0.5s ease;
+    top: -5%;
+    left: -2%;
+    width: 400px;
+    height: 400px;
+    background-image: var(--puzzle-pattern-url); /* 若有特定SVG形狀可替換 */
+    background-repeat: no-repeat;
+    background-size: contain;
+    opacity: 0.1; /* 10% */
+    transform: rotate(-15deg);
+    pointer-events: none;
+    z-index: 0;
 }
-.hero-image-placeholder:hover .puzzle-group { transform: translate(-50%, -50%) rotate(0deg); }
+
+/* 標題字體加大 */
+.display-text { 
+    font-size: 3.9rem !important; 
+    font-weight: 800; 
+    line-height: 1.2; 
+    color: var(--text-primary); 
+    margin-bottom: 2rem; 
+}
+
+/* =========================================
+   🧩 右側拼圖動畫區塊 (超大擬真形狀版)
+   ========================================= */
+
+/* 1. 外層容器與群組 */
+.hero-image-placeholder {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    width: 100%;
+    height: 100%;
+    min-height: 500px; /* 確保有足夠空間 */
+}
+
+/* 2. 拼圖群組容器：調整位置與尺寸 */
+.puzzle-group {
+    position: relative;
+    width: 450px;  /* 大幅加大容器 */
+    height: 450px;
+    transform: rotate(-10deg); 
+    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
+    margin-bottom: 0; 
+    left: 50px; /* 往右推 */
+}
+
+.hero-image-placeholder:hover .puzzle-group {
+    transform: rotate(0deg);
+}
+
+/* 3. 基礎拼圖塊設定 */
 .puzzle-piece {
     position: absolute;
-    width: 100px; height: 100px;
-    border-radius: 15px;
+    width: 220px;  /* 加大至 220px */
+    height: 220px; /* 加大至 220px */
     display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 2rem;
-    box-shadow: 4px 4px 15px rgba(0,0,0,0.15);
-    transition: all 0.5s cubic-bezier(0.68, -0.55, 0.27, 1.55);
+    color: white; font-size: 3.5rem; /* 加大圖示 */
+    /* 深色濾鏡陰影，增加立體感 */
+    filter: drop-shadow(4px 6px 10px rgba(0,0,0,0.2));
+    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
     z-index: 1;
+    background-blend-mode: multiply;
 }
-.piece-blue { background-color: var(--accent-color); top: 0; left: 0; z-index: 2; border-radius: 15px 15px 30px 15px; }
-.piece-green { background-color: var(--evt-green); top: 20px; left: 85px; z-index: 1; border-radius: 15px 15px 15px 30px; }
-.piece-orange { background-color: var(--evt-orange); top: 90px; left: 45px; z-index: 3; border-radius: 30px 15px 15px 15px; border: 3px solid #fff; }
 
-.hero-image-placeholder:hover .piece-blue { transform: translate(-15px, -15px) scale(1.1); }
-.hero-image-placeholder:hover .piece-green { transform: translate(15px, -10px) scale(1.1); }
-.hero-image-placeholder:hover .piece-orange { transform: translate(0px, 15px) scale(1.1); }
+/* 4. 藍色拼圖 (左上角) - 雙凸耳角落塊 (放大路徑) */
+.piece-blue { 
+    background-color: var(--accent-color); 
+    top: 0; left: 20px; z-index: 2; 
+    clip-path: path('M15,15 L150,15 L150,62.5 C177.6,62.5 200,84.9 200,112.5 C200,140.1 177.6,162.5 150,162.5 L150,205 L102.5,205 C102.5,177.4 80.1,155 52.5,155 C24.9,155 2.5,177.4 2.5,205 L2.5,205 L15,205 L15,15 Z');
+}
+
+/* 5. 綠色拼圖 (右上角) - 雙凹槽塊 (放大路徑) */
+.piece-green { 
+    background-color: var(--evt-green); 
+    top: 30px; left: 190px; z-index: 1; /* 調整位置 */
+    clip-path: path('M52.5,15 L205,15 L205,205 L152.5,205 C152.5,177.4 130.1,155 102.5,155 C74.9,155 52.5,177.4 52.5,205 L52.5,205 L0,205 L0,162.5 C27.6,162.5 50,140.1 50,112.5 C50,84.9 27.6,62.5 0,62.5 L0,62.5 L0,15 L52.5,15 Z');
+}
+
+/* 6. 橘色拼圖 (下方) - 混合塊 (放大路徑) */
+.piece-orange { 
+    background-color: var(--evt-orange); 
+    top: 200px; left: 100px; z-index: 3; /* 調整位置 */
+    clip-path: path('M15,52.5 L62.5,52.5 C62.5,24.9 84.9,2.5 112.5,2.5 C140.1,2.5 162.5,24.9 162.5,52.5 L205,52.5 L205,205 L15,205 L15,152.5 C42.6,152.5 65,130.1 65,102.5 C65,74.9 42.6,52.5 15,52.5 L15,52.5 L15,52.5 Z');
+}
+
+/* Hover 動畫：大幅度分離與旋轉 */
+.hero-image-placeholder:hover .piece-blue { transform: translate(-40px, -40px) scale(1.05) rotate(-8deg); }
+.hero-image-placeholder:hover .piece-green { transform: translate(40px, -20px) scale(1.05) rotate(8deg); }
+.hero-image-placeholder:hover .piece-orange { transform: translate(0px, 50px) scale(1.05) rotate(0deg); }
+
+.image-caption {
+    display: block; position: relative; margin-top: 2rem;
+    font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-hint);
+    font-weight: 400; text-transform: uppercase; letter-spacing: 0.12em;
+    text-align: center; z-index: 5;
+}
 
 /* =========================================
    LEVEL 1: Calendar
    ========================================= */
 #calendar-section { 
     margin-bottom: var(--spacing-section); 
-    /* 🧩 Puzzle Design: 讓卡片 Hover 時也有凹槽效果 */
 }
 
 /* 🧩 Puzzle Design: Dashboard 背景裝飾 */
@@ -341,7 +433,7 @@ hr::before {
     border-radius: var(--border-radius);
     padding: 2rem 1.5rem; 
     box-shadow: var(--card-shadow);
-    border: 1px solid rgba(226, 232, 240, 0.8); /* 與 platform-card 一致 */
+    border: 1px solid rgba(226, 232, 240, 0.8); 
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative; 
@@ -355,7 +447,7 @@ hr::before {
 .nav-card:hover { 
     transform: translateY(-5px); 
     box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-    border-color: rgba(37, 99, 235, 0.3); /* 品牌藍 */
+    border-color: rgba(37, 99, 235, 0.3); 
     
     /* 🧩 Puzzle Design: Hover 時浮現紋理 */
     background-image: 
@@ -366,7 +458,7 @@ hr::before {
     background-repeat: no-repeat, no-repeat;
 }
 
-/* Nav Card 的拼圖凹槽視覺 (與 platform-card 一致) */
+/* Nav Card 的拼圖凹槽視覺 */
 .nav-card::after {
     content: '';
     position: absolute; top: -10px; right: 20px;
@@ -398,7 +490,6 @@ hr::before {
     border-radius: var(--border-radius);
     box-shadow: var(--card-shadow);
     padding: 3rem; min-height: 500px; 
-    /* 繼承 platform-card 的拼圖樣式 */
 }
 
 /* =========================================
@@ -443,13 +534,11 @@ hr::before {
     border: none !important;
     border-radius: 16px !important;
     background: #fff;
-    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); /* 柔和浮起 */
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.05); 
     transition: transform 0.2s ease, box-shadow 0.2s ease;
     overflow: hidden; 
     position: relative;
-    border-left: 6px solid #e2e8f0 !important; /* 預設邊框 */
-    
-    /* 🧩 Puzzle Design: 加入拼圖凹槽暗示 (與 Nav Card 一致) */
+    border-left: 6px solid #e2e8f0 !important; 
 }
 .card.question-card::after {
     content: ''; position: absolute; top: -10px; right: 20px;
@@ -502,11 +591,46 @@ hr::before {
 }
 
 /* =========================================
+   🔐 登入表單優化 (圖示整合版)
+   ========================================= */
+
+/* 1. 輸入框 Placeholder 顏色 (淡灰色) */
+/* 使用 #adb5bd (Bootstrap 的 gray-500) 既清晰又不會太搶眼 */
+.hero-content input::placeholder {
+    color: #adb5bd !important; 
+    opacity: 1;
+    font-weight: 400;
+}
+
+/* 2. 輸入框圖示顏色 */
+.hero-content .input-group-text {
+    color: #adb5bd !important; /* 讓圖示與 placeholder 顏色一致 */
+}
+
+/* 3. 輸入框聚焦時的樣式優化 */
+/* 讓背景稍微變白，圖示變深藍色，增加互動感 */
+.hero-content .input-group:focus-within {
+    background-color: #fff !important;
+    box-shadow: 0 4px 12px rgba(37, 99, 235, 0.1) !important; /* 微弱的品牌藍陰影 */
+    transition: all 0.3s ease;
+}
+
+.hero-content .input-group:focus-within .input-group-text {
+    color: var(--brand-blue) !important; /* 圖示變品牌藍 */
+    transition: color 0.3s ease;
+}
+
+/* =========================================
    RWD (Mobile Optimization) - 手機版最終精修
    ========================================= */
 @media (max-width: 900px) {
     
-    .container { padding: 0 8px; }
+    #login-section {
+        height: auto;
+        overflow: visible; /* 手機版還原滾動 */
+        padding: 2rem 1rem;
+    }
+    
     .app-header { padding: 0 16px; height: 56px; }
 
     .header-brand-sub, 
@@ -514,8 +638,26 @@ hr::before {
     .user-role-label,
     .hero-image-wrapper { display: none !important; }
     
-    .hero { grid-template-columns: 1fr; padding: 2rem 0; text-align: center; gap: 1.5rem; }
-    .display-text { font-size: 2.25rem; margin-bottom: 1rem; }
+    .hero { 
+        height: auto;
+        grid-template-columns: 1fr; /* 變回單欄 */
+        display: flex;
+        flex-direction: column-reverse; /* 拼圖在上面 */
+        padding: 2rem 0; 
+        text-align: center; 
+        gap: 1.5rem; 
+    }
+    
+    .hero-image-wrapper {
+        height: 400px;
+        width: 100%;
+    }
+    .puzzle-group {
+        left: 0; /* 手機版置中 */
+        transform: scale(0.7) rotate(-10deg); /* 手機版縮小 */
+    }
+    
+    .display-text { font-size: 2.25rem !important; margin-bottom: 1rem; }
     
     /* 📅 行事曆手機版修復 */
     #calendar-section.platform-card { padding: 16px 8px !important; }
