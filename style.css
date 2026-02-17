@@ -3,9 +3,12 @@
    ========================================= */
 :root {
     /* --- 🧩 Puzzle Visual Assets (拼圖視覺資產) --- */
-    /* 定義拼圖紋理的 SVG (線條顏色為冷灰 #CBD5E1，透明度極低) */
-    --puzzle-pattern-url: url("data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M30 0c0 4.142 3.358 7.5 7.5 7.5s7.5-3.358 7.5-7.5M0 30c4.142 0 7.5 3.358 7.5 7.5s-3.358 7.5-7.5 7.5M30 60c0-4.142-3.358-7.5-7.5-7.5S15 55.858 15 60M60 30c-4.142 0-7.5-3.358-7.5-7.5S55.858 15 60 15' stroke='%2394a3b8' stroke-width='0.8' fill='none' fill-rule='evenodd' opacity='0.4'/%3E%3C/svg%3E");
     
+    /* 🆕 實心灰色拼圖 SVG (用於功能按鈕背景) */
+    --puzzle-filled-gray: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20,20 L40,20 C40,10 45,5 50,5 C55,5 60,10 60,20 L80,20 L80,40 C90,40 95,45 95,50 C95,55 90,60 80,60 L80,80 L60,80 C60,90 55,95 50,95 C45,95 40,90 40,80 L20,80 L20,60 C10,60 5,55 5,50 C5,45 10,40 20,40 Z' fill='%23E2E8F0' stroke='none'/%3E%3C/svg%3E");
+
+    /* 線條拼圖紋理 SVG (線條顏色為冷灰 #CBD5E1，透明度極低) */
+    --puzzle-pattern-url: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 L14 20 C14 16 18 16 18 20 L18 20 L22 20 C22 16 26 16 26 20 L40 20 M20 0 L20 14 C24 14 24 18 20 18 L20 22 C24 22 24 26 20 26 L20 40' stroke='%23cbd5e1' stroke-width='0.5' fill='none' opacity='0.15'/%3E%3C/svg%3E");
     /* --- 🎨 Color Palette (配色系統) --- */
     --bg-root: #F6F8FA;      
     --bg-surface: #FFFFFF;   
@@ -394,15 +397,27 @@ hr::before {
 }
 
 /* 🧩 Puzzle Design: Dashboard 背景裝飾 */
-#dashboard-section { position: relative; }
-#dashboard-section::before {
-    content: ''; position: absolute; top: 0; right: 0;
-    width: 300px; height: 400px;
+/* =========================================
+   🧩 Dashboard Background (儀表板背景優化)
+   ========================================= */
+#dashboard-section {
+    position: relative;
+    padding-top: 2rem; 
+    padding-bottom: 5rem;
+    
+    /* 設定淡灰色拼圖線條背景 */
     background-image: var(--puzzle-pattern-url);
-    opacity: 0.4; z-index: -1;
-    mask-image: linear-gradient(to bottom left, black, transparent);
-    -webkit-mask-image: linear-gradient(to bottom left, black, transparent);
-    pointer-events: none;
+    background-size: 100px 100px; /* 調整紋理大小 */
+    background-repeat: repeat;
+    background-attachment: fixed; /* 讓背景固定，卡片滑動時更有層次感 */
+    
+    /* 確保背景圖案在最底層，不會蓋住卡片 */
+    z-index: 0;
+}
+
+/* 移除原本可能存在的 ::before 裝飾，避免干擾 */
+#dashboard-section::before {
+    display: none !important;
 }
 
 .fc { font-family: var(--font-main); }
@@ -428,59 +443,159 @@ hr::before {
 .features-nav-section { margin-bottom: var(--spacing-section); }
 .features-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 1.5rem; }
 
+/* =========================================
+   🧩 Feature Nav Cards (拼圖按鈕版)
+   ========================================= */
+
+.features-nav-section {
+    margin-bottom: var(--spacing-section);
+    position: relative;
+    z-index: 2; /* 確保浮在背景紋理之上 */
+}
+
+.features-grid {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1.5rem;
+}
+
+/* 1. 卡片容器設定 */
 .nav-card {
-    background: var(--bg-card);
+    background: #FFFFFF; /* 純白背景 */
     border-radius: var(--border-radius);
     padding: 2rem 1.5rem; 
     box-shadow: var(--card-shadow);
-    border: 1px solid rgba(226, 232, 240, 0.8); 
+    border: 1px solid rgba(226, 232, 240, 0.8);
     cursor: pointer;
     transition: all 0.3s ease;
     position: relative; 
-    overflow: hidden; 
-    display: flex; flex-direction: column; align-items: flex-start; height: 100%;
+    overflow: hidden; /* 確保拼圖不凸出去 */
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    height: 100%;
     
-    /* 🧩 Puzzle Design: 背景微細節 */
-    background-image: radial-gradient(circle at 90% 10%, rgba(241, 245, 249, 0.5) 0%, transparent 50%);
+    /* 🔴 清除舊的背景設定 (移除泡泡動畫) */
+    background-image: none !important; 
 }
 
-.nav-card:hover { 
-    transform: translateY(-5px); 
-    box-shadow: 0 10px 20px -5px rgba(0, 0, 0, 0.1);
-    border-color: rgba(37, 99, 235, 0.3); 
-    
-    /* 🧩 Puzzle Design: Hover 時浮現紋理 */
-    background-image: 
-        var(--puzzle-pattern-url),
-        linear-gradient(to bottom right, #fff, #f8fafc);
-    background-size: 60px 60px, cover;
-    background-position: top right;
-    background-repeat: no-repeat, no-repeat;
+/* Hover 效果：卡片上浮，邊框變藍 */
+.nav-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 10px 25px -5px rgba(37, 99, 235, 0.15);
+    border-color: var(--accent-color);
 }
 
-/* Nav Card 的拼圖凹槽視覺 */
-.nav-card::after {
+/* 2. 灰色拼圖底圖 (使用偽元素) */
+.nav-card::before {
     content: '';
-    position: absolute; top: -10px; right: 20px;
-    width: 40px; height: 40px;
-    border-radius: 50%;
-    border: 1px solid rgba(37, 99, 235, 0.1);
-    background: transparent; pointer-events: none; opacity: 0;
-    transition: all 0.4s ease; transform: translateY(-5px);
+    position: absolute;
+    /* 定位在右上角，數字的後方 */
+    top: -10px;
+    right: -10px;
+    width: 100px;  /* 拼圖大小 */
+    height: 100px;
+    
+    /* 匯入實心灰色拼圖 */
+    background-image: var(--puzzle-filled-gray);
+    background-size: contain;
+    background-repeat: no-repeat;
+    
+    opacity: 0.6; /* 調整深淺 */
+    transform: rotate(15deg); /* 稍微旋轉增加活潑感 */
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1); /* 彈性轉場 */
+    z-index: 0; /* 在最底層 */
 }
-.nav-card:hover::after { opacity: 1; transform: translateY(0); top: -20px; }
 
+/* Hover 時拼圖的互動：轉正並稍微變大 */
+.nav-card:hover::before {
+    transform: rotate(0deg) scale(1.1);
+    opacity: 0.8;
+}
+
+/* 移除舊的 ::after 圓框線條，保持乾淨 */
+.nav-card::after {
+    display: none;
+}
+
+/* 3. 數字設定 (疊在拼圖上) */
+/* 修改 .concept-number 的位置與對齊方式 */
 .concept-number {
-    font-size: 3.5rem; font-weight: 800; color: #E2E8F0; 
-    line-height: 1; font-family: var(--font-main);
-    position: absolute; top: 0.5rem; right: 1rem; z-index: 0; 
-    transition: color 0.3s ease, opacity 0.3s ease;
+    font-size: 2.5rem; /* 稍微縮小字體以適應拼圖 */
+    font-weight: 800; 
+    line-height: 1; 
+    font-family: var(--font-main);
+    color: #94a3b8; 
+    
+    /* 🔴 關鍵修改：讓數字容器與拼圖圖案完全重疊 */
+    position: absolute; 
+    top: -10px;    /* 與拼圖 ::before 的 top 一致 */
+    right: -10px;  /* 與拼圖 ::before 的 right 一致 */
+    width: 100px;  /* 與拼圖 ::before 的寬度一致 */
+    height: 100px; /* 與拼圖 ::before 的高度一致 */
+    
+    /* 🔴 使用 Flexbox 強制內容(數字)在拼圖正中央 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    
+    z-index: 1; 
+    transition: color 0.3s ease, transform 0.3s ease;
+    pointer-events: none; /* 讓滑鼠點擊穿透數字，確保按鈕好點 */
 }
-.nav-card:hover .concept-number { color: var(--accent-color); opacity: 0.15; }
+/* Hover 時數字變藍色 */
+.nav-card:hover .concept-number {
+    color: var(--accent-color); /* 變為品牌藍 */
+    opacity: 1;
+}
 
-.nav-icon { font-size: 1.8rem; margin-bottom: 1rem; color: var(--accent-color); position: relative; z-index: 1; }
-.nav-title { font-size: 1.25rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-primary); position: relative; z-index: 1; }
-.nav-desc { font-size: 0.9rem; color: var(--text-secondary); line-height: 1.5; position: relative; z-index: 1; }
+/* 4. 文字與圖示內容 (保持在最上層) */
+.nav-icon, .nav-title, .nav-desc {
+    position: relative;
+    z-index: 2; /* 最高層級，確保不被背景蓋住 */
+}
+
+.nav-icon { 
+    font-size: 1.8rem; 
+    margin-bottom: 1rem; 
+    color: var(--accent-color); 
+}
+
+.nav-title { 
+    font-size: 1.25rem; 
+    font-weight: 700; 
+    margin-bottom: 0.5rem; 
+    color: var(--text-primary); 
+}
+
+.nav-desc { 
+    font-size: 0.9rem; 
+    color: var(--text-secondary); 
+    line-height: 1.5; 
+}
+
+/* RWD: 手機版調整 */
+@media (max-width: 900px) {
+    .features-grid { 
+        grid-template-columns: repeat(2, 1fr); 
+        gap: 12px; 
+    }
+    
+    /* 手機版拼圖縮小 */
+    .nav-card::before {
+        width: 100px;
+        height: 100px;
+        top: -10px;
+        right: -10px;
+        opacity: 0.4; /* 手機版淡一點避免干擾 */
+    }
+    
+    .concept-number {
+        font-size: 2rem;
+        top: 0.8rem;
+        right: 0.8rem;
+    }
+}
 
 /* =========================================
    LEVEL 3: Content Stage
