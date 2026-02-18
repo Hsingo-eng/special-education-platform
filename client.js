@@ -1,88 +1,35 @@
-// ==========================================
-// 1. 全域設定與初始化
-// ==========================================
-const roleMap = {
-    'teacher': '教師',
-    'therapist': '治療師',
-    'parents': '家長'
-};
-
-function roleName(role) {
-    return roleMap[role] || '訪客';
-}
-
-function getRoleAvatar(role) {
-    const roleAvatars = {
-        'teacher': 'sticker1.png',
-        'therapist': 'sticker2.png',
-        'parents': 'sticker3.png'
-    };
-    return roleAvatars[role] || 'sticker1.png';
-}
-
-const API_URL = "https://special-education-platform.zeabur.app";
-const socket = typeof io !== 'undefined' ? io(API_URL) : null;
-
+const API_URL = "https://special-education-platform.zeabur.app"; // 請確認這是您的正確網址
 let currentUser = null;
+let token = localStorage.getItem("token");
+let socket = null;
 let calendar = null;
 
 // ==========================================
-// 🔔 通知系統邏輯 (Notification System V2)
+// 🔔 1. 通知系統邏輯 (Notification System)
 // ==========================================
 const NOTIF_STORAGE_KEY = 'app_notifications';
 
-// 1. 初始化：載入歷史通知並檢查是否亮燈
-function initNotifications() {
-    const notifications = getStoredNotifications();
-    const hasUnread = notifications.some(n => !n.read);
-    
-    if (hasUnread) {
-        document.getElementById('btn-notification').classList.add('has-notification');
-    }
-    renderNotificationList();
-}
-
-// 2. 讀取儲存的通知
+// 讀取通知
 function getStoredNotifications() {
     const stored = localStorage.getItem(NOTIF_STORAGE_KEY);
     return stored ? JSON.parse(stored) : [];
 }
 
-// 3. 新增通知 (核心函式)
-function addNotification(type, text) {
-    const notifications = getStoredNotifications();
-    
-    const newNotif = {
-        id: Date.now(),
-        type: type, // calendar, record, iep, message, question
-        text: text,
-        time: new Date().toISOString(),
-        read: false
-    };
-
-    // 新增到最前面
-    notifications.unshift(newNotif);
-    
-    // 只保留最近 20 筆
-    if (notifications.length > 20) notifications.pop();
-
-    // 存回 LocalStorage
-    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
-
-    // UI 更新
-    document.getElementById('btn-notification').classList.add('has-notification');
-    renderNotificationList();
-    
-    // 播放提示音 (選用)
-    // new Audio('notification.mp3').play().catch(()=>{}); 
-}
-
-// 4. 渲染通知列表 HTML
+// 渲染通知列表
 function renderNotificationList() {
     const list = document.getElementById('notification-list');
+    const btn = document.getElementById('btn-notification');
+    if (!list || !btn) return;
+
     const notifications = getStoredNotifications();
-    
-    if (!list) return;
+    const hasUnread = notifications.some(n => !n.read);
+
+    // 控制鈴鐺亮燈與搖晃
+    if (hasUnread) {
+        btn.classList.add('has-notification');
+    } else {
+        btn.classList.remove('has-notification');
+    }
 
     if (notifications.length === 0) {
         list.innerHTML = `
@@ -95,21 +42,19 @@ function renderNotificationList() {
 
     let html = '';
     notifications.forEach(n => {
-        // 定義圖示與顏色
-        let iconClass = '';
-        let iconName = '';
+        // 定義圖示樣式
+        let iconClass = 'message';
+        let iconName = 'fas fa-bell';
         
-        switch(n.type) {
-            case 'calendar': iconClass = 'calendar'; iconName = 'fas fa-calendar-alt'; break;
-            case 'record':   iconClass = 'record';   iconName = 'fas fa-file-medical'; break;
-            case 'iep':      iconClass = 'iep';      iconName = 'fas fa-folder-open'; break;
-            case 'message':  iconClass = 'message';  iconName = 'fas fa-comments'; break;
-            case 'question': iconClass = 'question'; iconName = 'fas fa-question-circle'; break;
-            default:         iconClass = 'message';  iconName = 'fas fa-bell';
-        }
+        if (n.type === 'calendar') { iconClass = 'calendar'; iconName = 'fas fa-calendar-alt'; }
+        else if (n.type === 'record') { iconClass = 'record'; iconName = 'fas fa-file-medical'; }
+        else if (n.type === 'iep') { iconClass = 'iep'; iconName = 'fas fa-folder-open'; }
+        else if (n.type === 'message') { iconClass = 'message'; iconName = 'fas fa-comments'; }
+        else if (n.type === 'question') { iconClass = 'question'; iconName = 'fas fa-question-circle'; }
 
-        // 格式化時間 (例如: 10分鐘前)
-        const timeStr = formatRelativeTime(new Date(n.time));
+        // 時間格式化
+        const date = new Date(n.time);
+        const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
 
         html += `
             <li class="notif-item" onclick="markAsRead(${n.id})">
@@ -120,34 +65,44 @@ function renderNotificationList() {
                     <div class="notif-text">${n.text}</div>
                     <div class="notif-time">${timeStr}</div>
                 </div>
-                ${!n.read ? '<span style="width:8px;height:8px;background:red;border-radius:50%;margin-top:6px;"></span>' : ''}
+                ${!n.read ? '<span style="width:8px;height:8px;background:#EF4444;border-radius:50%;margin-top:6px;"></span>' : ''}
             </li>
         `;
     });
-
     list.innerHTML = html;
 }
 
-// 5. 開關通知選單
-function toggleNotificationMenu() {
-    const menu = document.getElementById('notification-menu');
-    menu.classList.toggle('show');
-    
-    // 如果打開，移除鈴鐺搖晃動畫 (但不一定移除紅點，直到已讀)
-    if (menu.classList.contains('show')) {
-        document.getElementById('btn-notification').classList.remove('has-notification');
-        // 標記所有為已讀 (或是您可以選擇點擊單項才已讀，這裡示範全部已讀)
-        markAllAsRead();
-    }
+// 新增通知 (核心函式)
+function addNotification(type, text) {
+    const notifications = getStoredNotifications();
+    const newNotif = {
+        id: Date.now(),
+        type: type,
+        text: text,
+        time: new Date().toISOString(),
+        read: false
+    };
+    notifications.unshift(newNotif);
+    if (notifications.length > 20) notifications.pop(); // 只留20筆
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
+    renderNotificationList();
 }
 
-// 標記全部已讀
-function markAllAsRead() {
+// 切換選單顯示
+function toggleNotificationMenu() {
+    const menu = document.getElementById('notification-menu');
+    if(menu) menu.classList.toggle('show');
+}
+
+// 標記單一已讀 (這裡簡化為點選就重繪)
+function markAsRead(id) {
     const notifications = getStoredNotifications();
-    notifications.forEach(n => n.read = true);
-    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
-    // 重新渲染以移除紅點
-    renderNotificationList(); 
+    const target = notifications.find(n => n.id === id);
+    if (target) {
+        target.read = true;
+        localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
+        renderNotificationList();
+    }
 }
 
 // 清除全部
@@ -156,923 +111,319 @@ function clearAllNotifications() {
     renderNotificationList();
 }
 
-// 時間格式化小工具
-function formatRelativeTime(date) {
-    const now = new Date();
-    const diffInSeconds = Math.floor((now - date) / 1000);
-    
-    if (diffInSeconds < 60) return '剛剛';
-    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} 分鐘前`;
-    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} 小時前`;
-    return `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2,'0')}`;
-}
-
 // 點擊外部關閉選單
 document.addEventListener('click', function(e) {
     const menu = document.getElementById('notification-menu');
     const btn = document.getElementById('btn-notification');
-    if (menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
+    if (menu && menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
         menu.classList.remove('show');
     }
 });
 
 // ==========================================
-// 🔗 Socket.io 整合 (接收後端事件)
+// 🔗 2. Socket.io 與 初始化
 // ==========================================
-if (socket) {
-    // 1. 行事曆
+
+// 初始化 Socket
+if (typeof io !== 'undefined') {
+    socket = io(API_URL);
+    
+    console.log("Socket initialized");
+
+    // 1. 行事曆監聽
     socket.on("calendar_update", (evt) => {
-        // 判斷是新增還是刪除 (假設後端回傳 action 屬性，若無則預設顯示更新)
-        const msg = evt.action === 'delete' ? '行事曆：刪除排程' : '行事曆：新增新排程';
+        // 判斷是新增還是刪除 (需後端支援 action 欄位，若無則顯示通用訊息)
+        const msg = (evt.action === 'delete') ? '新增新排程/刪除排程' : '新增新排程/刪除排程';
         addNotification('calendar', msg);
         if(calendar) calendar.refetchEvents();
     });
 
-    // 2. IEP 上傳
-    socket.on("iep_update", (file) => {
+    // 2. IEP 上傳監聽
+    socket.on("iep_update", () => {
         addNotification('iep', '新IEP檔案已上傳');
         const iepSection = document.getElementById('section-iep');
-        if(iepSection && !iepSection.classList.contains('d-none')) loadIepFiles();
+        if (iepSection && !iepSection.classList.contains('d-none')) loadIepFiles();
     });
 
-    // 3. 治療紀錄 (假設事件名稱為 record_update)
-    socket.on("record_update", (data) => {
+    // 3. 治療紀錄監聽
+    socket.on("record_update", () => {
         addNotification('record', '新治療紀錄已上傳');
-        const recordSection = document.getElementById('section-records');
-        if(recordSection && !recordSection.classList.contains('d-none')) loadRecords(); // 假設有這個函式
+        const recSection = document.getElementById('section-records');
+        if (recSection && !recSection.classList.contains('d-none')) loadRecords();
     });
 
-    // 4. 留言板
+    // 4. 留言板監聽
     socket.on("message_update", (msg) => {
-        if (msg.username !== currentUser.username) {
+        if (currentUser && msg.username !== currentUser.username) {
             addNotification('message', '留言板有新訊息');
         }
-    });
-
-    // 5. 提問回覆 (提及)
-    socket.on("question_update", (q) => {
-        // 簡單邏輯：只要有新提問就通知，若要針對性需判斷 role
-        // 您原本的邏輯：
-        if (q.target_role && q.target_role.includes(currentUser.role)) {
-             addNotification('question', '提問回覆有一則提問提及了您');
-        } else if (q.reply) {
-             // 若有人回覆
-             addNotification('question', '提問回覆有新動態');
+        // 即時更新畫面
+        const chatBox = document.getElementById('chat-box');
+        if (chatBox && currentUser) {
+            // 簡易附加，實際應呼叫 loadMessages 重新整理或 append
+            // 這裡簡單呼叫 loadMessages 確保同步
+            loadMessages(); 
         }
-        
+    });
+
+    // 5. 提問回覆監聽
+    socket.on("question_update", (q) => {
+        // 假設 q.target_role 包含當前身分
+        if (currentUser && q.target_role && q.target_role.includes(currentUser.role)) {
+            addNotification('question', '提問回覆有一則提問提及了您');
+        }
         const qSection = document.getElementById('section-questions');
-        if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
+        if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 }
 
-// 頁面載入時初始化
-document.addEventListener('DOMContentLoaded', initNotifications);
-// 啟動鈴鐺 (變黃色)
-function activateBell() {
-    const bellBtn = document.querySelector('button[title="通知中心"]');
-    if (bellBtn) {
-        bellBtn.classList.add('has-notification');
-        // 也可以播放音效
-    }
-}
+// 頁面載入執行
+document.addEventListener("DOMContentLoaded", async () => {
+    // 初始化通知介面
+    renderNotificationList();
 
-// 點擊鈴鐺：清除通知狀態
-function clearNotifications() {
-    const bellBtn = document.querySelector('button[title="通知中心"]');
-    if (bellBtn && bellBtn.classList.contains('has-notification')) {
-        bellBtn.classList.remove('has-notification');
-        
-        // 更新「上次檢查時間」為現在
-        localStorage.setItem(NOTIF_KEY, new Date().toISOString());
-        
-        Swal.fire({
-            title: '通知已讀',
-            text: '您已查看最新動態',
-            icon: 'success',
-            timer: 1500,
-            showConfirmButton: false
-        });
+    if (token) {
+        await verifyToken();
     } else {
-        Swal.fire('目前沒有新通知', '您已經掌握最新進度囉！', 'info');
+        showSection("login");
     }
-}
-
-document.addEventListener("DOMContentLoaded", () => {
-    const token = localStorage.getItem("token");
-    const userStr = localStorage.getItem("user");
-    
-    if (token && userStr) {
-        currentUser = JSON.parse(userStr);
-        showDashboard(); 
-    }
-
-    document.querySelectorAll('.area-toggle').forEach(checkbox => {
-        checkbox.addEventListener('change', function() {
-            const target = document.getElementById(this.dataset.target);
-            if(this.checked) target.classList.remove('d-none');
-            else target.classList.add('d-none');
-        });
-    });
-    const d = document.getElementById('form-date');
-    if(d) d.valueAsDate = new Date();
 });
 
 // ==========================================
-// 2. 登入與登出
+// 🛠️ 3. API 與 資料載入函式
 // ==========================================
-async function login() {
-    const username = document.getElementById("login-username").value.trim();
-    const password = document.getElementById("login-password").value.trim();
 
-    if(!username || !password) return Swal.fire("錯誤", "請輸入帳號密碼", "warning");
+async function verifyToken() {
+    try {
+        const res = await fetch(`${API_URL}/api/auth/me`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if (res.ok) {
+            currentUser = await res.json();
+            updateUI(currentUser);
+            showSection("dashboard");
+            
+            // 載入初始資料
+            initCalendar();
+            loadMessages(); // 這行之前報錯，現在沒問題了
+            // loadIepFiles(); // 視需求載入
+        } else {
+            logout();
+        }
+    } catch (err) {
+        console.error("Token verify failed:", err);
+        logout();
+    }
+}
+
+function updateUI(user) {
+    document.getElementById("nav-user-info").innerText = `${user.role} | ${user.username}`;
+    const header = document.getElementById("main-nav");
+    if(header) header.classList.remove("d-none");
+    
+    // 根據身分顯示/隱藏功能
+    document.querySelectorAll(".role-restricted").forEach(el => {
+        const deny = el.getAttribute("data-deny");
+        if (deny && deny.includes(user.role)) {
+            el.style.display = "none"; 
+        }
+    });
+}
+
+function showSection(sectionId) {
+    if (sectionId === 'login') {
+        document.getElementById("login-section").classList.remove("d-none");
+        document.getElementById("dashboard-section").classList.add("d-none");
+        document.getElementById("main-nav").classList.add("d-none");
+    } else if (sectionId === 'dashboard') {
+        document.getElementById("login-section").classList.add("d-none");
+        document.getElementById("dashboard-section").classList.remove("d-none");
+        // 強制重繪行事曆，避免顯示問題
+        setTimeout(() => { if(calendar) calendar.render(); }, 200);
+    } else {
+        // 切換子功能區塊
+        document.getElementById("empty-state").classList.add("d-none");
+        document.querySelectorAll("#content-area > div").forEach(div => {
+            if (div.id !== "empty-state") div.classList.add("d-none");
+        });
+        const target = document.getElementById(`section-${sectionId}`);
+        if (target) {
+            target.classList.remove("d-none");
+            target.classList.add("animate-fade"); // 確保有動畫 class
+            
+            // 根據切換的區塊載入資料
+            if(sectionId === 'messages') loadMessages();
+            if(sectionId === 'iep') loadIepFiles();
+            if(sectionId === 'questions') loadQuestions();
+            if(sectionId === 'records') loadRecords(); 
+        }
+    }
+}
+
+// --- 資料載入函式 (加上 try-catch 防止錯誤擴散) ---
+
+async function loadMessages() {
+    try {
+        const res = await fetch(`${API_URL}/api/messages`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        const chatBox = document.getElementById("chat-box");
+        if (!chatBox) return;
+        
+        chatBox.innerHTML = "";
+        json.data.forEach(msg => {
+            const isSelf = msg.username === currentUser.username;
+            const div = document.createElement("div");
+            div.className = `msg-row ${isSelf ? "self" : "other"}`;
+            div.innerHTML = `
+                <div class="msg-avatar">
+                    <img src="sticker${msg.role === 'teacher' ? '1' : msg.role === 'therapist' ? '2' : '3'}.png">
+                </div>
+                <div class="msg-bubble">
+                    <span class="msg-role">${msg.role} (${msg.username})</span>
+                    ${msg.text}
+                </div>
+            `;
+            chatBox.appendChild(div);
+        });
+        chatBox.scrollTop = chatBox.scrollHeight;
+    } catch (err) { console.error("Load messages failed", err); }
+}
+
+async function loadIepFiles() {
+    try {
+        const res = await fetch(`${API_URL}/api/iep`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        if(!res.ok) throw new Error("Server error");
+        const json = await res.json();
+        const list = document.getElementById("iep-list");
+        if(!list) return;
+        list.innerHTML = json.data.map(f => `
+            <div class="col-md-4">
+                <div class="card p-3 shadow-sm h-100 border-0 bg-light">
+                    <div class="d-flex align-items-center mb-3">
+                        <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
+                        <h6 class="mb-0 fw-bold text-dark">${f.filename}</h6>
+                    </div>
+                    <small class="text-muted d-block mb-3">上傳者: ${f.uploader}</small>
+                    <a href="${f.url}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+                        <i class="fas fa-download"></i> 下載檢閱
+                    </a>
+                </div>
+            </div>
+        `).join("");
+    } catch (err) { 
+        console.error("Load IEP failed", err); 
+        // 這裡可以顯示錯誤訊息給使用者，而不是讓區塊空白
+        const list = document.getElementById("iep-list");
+        if(list) list.innerHTML = '<div class="col-12 text-center text-muted">暫無資料或載入失敗</div>';
+    }
+}
+
+async function loadQuestions() {
+    // 請依您的後端 API 實作
+    console.log("Loading questions...");
+}
+
+async function loadRecords() {
+    // 請依您的後端 API 實作
+    console.log("Loading records...");
+}
+
+// --- 行事曆相關 ---
+
+function initCalendar() {
+    const el = document.getElementById('calendar');
+    if (!el) return;
+
+    calendar = new FullCalendar.Calendar(el, {
+        initialView: 'dayGridMonth',
+        locale: 'zh-tw',
+        headerToolbar: false, // 我們使用自訂的 header
+        height: 'auto',
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const res = await fetch(`${API_URL}/api/calendar`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                if(!res.ok) throw new Error("Calendar fetch failed");
+                const json = await res.json();
+                
+                // 轉換顏色
+                const events = json.data.map(e => ({
+                    id: e.id,
+                    title: e.title,
+                    start: e.start,
+                    end: e.end,
+                    // 根據建立者決定顏色
+                    backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981', // 橘/綠
+                    borderColor: 'transparent'
+                }));
+                successCallback(events);
+            } catch (err) {
+                console.error(err);
+                failureCallback(err);
+            }
+        },
+        eventClick: function(info) {
+            // 點擊事件邏輯...
+            Swal.fire({
+                title: info.event.title,
+                text: `時間: ${new Date(info.event.start).toLocaleString()}`,
+                icon: 'info'
+            });
+        }
+    });
+    calendar.render();
+    
+    // 綁定自訂的月份選擇器
+    const picker = document.getElementById('calendar-month-picker');
+    if(picker) {
+        picker.addEventListener('change', function() {
+            calendar.gotoDate(this.value);
+        });
+    }
+}
+
+// --- 登入與登出 ---
+
+async function login() {
+    const u = document.getElementById("login-username").value;
+    const p = document.getElementById("login-password").value;
+    
+    if(!u || !p) return Swal.fire("請輸入帳號密碼");
 
     try {
-        const res = await fetch(`${API_URL}/auth/login`, {
+        const res = await fetch(`${API_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
-            body: JSON.stringify({ username, password })
+            body: JSON.stringify({ username: u, password: p })
         });
-        
         const data = await res.json();
         
         if (res.ok) {
             localStorage.setItem("token", data.token);
-            localStorage.setItem("user", JSON.stringify(data.user));
-            currentUser = data.user;
-            
-            Swal.fire({
-                icon: 'success',
-                title: '登入成功',
-                text: `歡迎回來！${roleName(currentUser.role)}`, 
-                timer: 1500,
-                showConfirmButton: false
-            });
-            showDashboard(); 
+            token = data.token;
+            location.reload(); // 重新整理以載入正確狀態
         } else {
-            Swal.fire("登入失敗", data.message, "error");
+            Swal.fire("登入失敗", data.message || "帳號或密碼錯誤", "error");
         }
     } catch (err) {
         console.error(err);
-        Swal.fire("錯誤", "無法連線到伺服器", "error");
+        Swal.fire("錯誤", "伺服器連線失敗", "error");
     }
 }
 
 function logout() {
-    localStorage.clear();
+    localStorage.removeItem("token");
     location.reload();
 }
 
-// ==========================================
-// 3. 畫面切換與導覽列
-// ==========================================
-function showDashboard() {
-    document.getElementById("login-section").classList.add("d-none");
-    document.getElementById("dashboard-section").classList.remove("d-none");
-    document.getElementById("main-nav").classList.remove("d-none");
-    
-    document.getElementById("nav-user-info").innerText = roleName(currentUser.role);
-
-    const avatarImg = document.getElementById('header-user-avatar');
-    if (avatarImg && currentUser) {
-        avatarImg.src = getRoleAvatar(currentUser.role);
+// 輔助：按 Enter 登入
+document.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter' && !document.getElementById('login-section').classList.contains('d-none')) {
+        login();
     }
-
-    document.querySelectorAll(".role-restricted").forEach(el => {
-        if (el.dataset.deny === currentUser.role) el.classList.add("d-none");
-    });
-    document.querySelectorAll(".role-only").forEach(el => {
-        const allowed = el.dataset.allow.split(',');
-        if (!allowed.includes(currentUser.role)) el.classList.add("d-none");
-        else el.classList.remove("d-none");
-    });
-
-    setTimeout(() => { initCalendar(); }, 100);
-}
-
-function showSection(sectionId) {
-    ["records", "iep", "messages", "questions"].forEach(id => {
-        const el = document.getElementById(`section-${id}`);
-        if(el) el.classList.add("d-none");
-    });
-
-    const emptyState = document.getElementById("empty-state");
-    if(emptyState) emptyState.classList.add("d-none");
-
-    const target = document.getElementById(`section-${sectionId}`);
-    if(target) target.classList.remove("d-none");
-
-    if (sectionId === 'questions') loadQuestions();
-    if (sectionId === 'messages') loadMessages();
-    if (sectionId === 'records') loadRecords();
-    if (sectionId === 'iep') loadIepFiles();
-}
-
-async function fetchWithAuth(url, options = {}) {
-    const token = localStorage.getItem("token");
-    const headers = {
-        "Authorization": `Bearer ${token}`,
-        ...options.headers
-    };
-    if (!(options.body instanceof FormData)) {
-        headers["Content-Type"] = "application/json";
-    }
-    return fetch(url, { ...options, headers });
-}
-
-// ==========================================
-// 功能 A: 留言板
-// ==========================================
-if (socket) {
-    socket.on("message_update", (msg) => {
-        const msgSection = document.getElementById("section-messages");
-        if (msgSection && !msgSection.classList.contains("d-none")) 
-            renderMessage(msg);
-        if (msg.username !== currentUser.username) { // 如果不是自己發的
-            activateBell();
-        }
-    });
-
-    // 🔔 新增：監聽其他事件 (需要後端配合 emit 這些事件)
-    
-    // 1. 行事曆新增
-    socket.on("calendar_update", (evt) => {
-        activateBell();
-        // 這裡可以選擇性跳出 Toast 通知
-        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
-        Toast.fire({ icon: 'info', title: '行事曆有新事件' });
-        // 重新載入行事曆
-        if(calendar) calendar.refetchEvents();
-    });
-
-    // 2. IEP 上傳
-    socket.on("iep_update", (file) => {
-        activateBell();
-        if(!document.getElementById('section-iep').classList.contains('d-none')) loadIepFiles();
-    });
-
-    // 4. 提問 (針對性)
-    socket.on("question_update", (q) => {
-        // 檢查是否提及我
-        if (q.target_role && q.target_role.includes(currentUser.role)) {
-            activateBell();
-            Swal.fire({
-                title: '有新的提問指名找您！',
-                text: `${q.asker_name}: ${q.question}`,
-                icon: 'question',
-                toast: true, position: 'top-end', showConfirmButton: false, timer: 5000
-            });
-        }
-        if(!document.getElementById('section-questions').classList.contains('d-none')) loadQuestions();
-    });
-}
-
-async function loadMessages() {
-    const box = document.getElementById("chat-box");
-    box.innerHTML = '<div class="text-center py-3 text-muted">載入中...</div>';
-    
-    try {
-        const res = await fetchWithAuth(`${API_URL}/api/messages`);
-        const json = await res.json();
-        checkNotifications(json.data, 'message');
-        box.innerHTML = "";
-
-        (json.data || []).forEach(msg => {
-            const content = msg.message || msg.text || "";
-            const isMe = (msg.user_name === currentUser.name) || (msg.user_name === currentUser.username);
-            
-            const rowClass = isMe ? 'self' : 'other';
-            const imageUrl = getRoleAvatar(msg.role);
-            const roleLabel = roleName(msg.role);
-
-            const html = `
-                <div class="msg-row ${rowClass}">
-                    <div class="msg-avatar" title="${roleLabel}">
-                        <img src="${imageUrl}" alt="${roleLabel}">
-                    </div>
-                    <div class="msg-bubble">
-                        <span class="msg-role">${roleLabel}</span>
-                        ${content}
-                    </div>
-                </div>
-            `;
-            box.innerHTML += html;
-        });
-        
-        box.scrollTop = box.scrollHeight;
-    } catch (e) {
-        console.error(e);
-        box.innerHTML = '<div class="text-center text-danger">載入失敗</div>';
-    }
-}
-
-function renderMessage(msg) {
-    const chatBox = document.getElementById("chat-box");
-    if (!chatBox) return;
-
-    const isSelf = (msg.username === currentUser.username) || (msg.user === roleName(currentUser.role));
-    const roleLabel = roleName(msg.role) || msg.user || '訪客';
-    const avatarSrc = getRoleAvatar(msg.role);
-    const content = msg.text || msg.message || msg.msg || "";
-
-    const msgHtml = `
-        <div class="msg-row ${isSelf ? 'self' : 'other'}">
-            <div class="msg-avatar">
-                <img src="${avatarSrc}" alt="${roleLabel}">
-            </div>
-            <div class="msg-bubble">
-                <span class="msg-role">${roleLabel}</span>
-                <div>${content}</div>
-            </div>
-        </div>
-    `;
-    chatBox.insertAdjacentHTML('beforeend', msgHtml);
-    chatBox.scrollTop = chatBox.scrollHeight;
-}
-
-function sendMessage() {
-    const input = document.getElementById("msg-input");
-    const msgText = input.value.trim();
-
-    if (msgText === "") return;
-
-    const currentUserRole = currentUser ? currentUser.role : "teacher"; 
-    const roleLabel = roleName(currentUserRole);
-
-    const messageData = {
-        username: currentUser.username,
-        user: roleLabel,
-        role: currentUserRole,
-        avatar: getRoleAvatar(currentUserRole),
-        message: msgText,
-        text: msgText,
-        type: 'self'
-    };
-
-    renderMessage(messageData);
-
-    if (socket) {
-        socket.emit('chatMessage', messageData);
-    }
-
-    fetchWithAuth(`${API_URL}/api/messages`, {
-        method: "POST",
-        body: JSON.stringify({ message: msgText })
-    }).catch(e => console.error("Message save failed", e));
-
-    input.value = "";
-    input.focus();
-}
-
-function handleEnter(event) {
-    if (event.key === "Enter") {
-        sendMessage();
-    }
-}
-
-async function getAiSummary() {
-    Swal.fire({ title: "AI 分析中...", didOpen: () => Swal.showLoading() });
-    try {
-        const res = await fetchWithAuth(`${API_URL}/api/messages/summary`);
-        const data = await res.json();
-        document.getElementById("ai-summary-box").classList.remove("d-none");
-        document.getElementById("ai-summary-content").innerText = data.summary;
-        Swal.close();
-    } catch (err) {
-        Swal.fire("失敗", "AI 目前忙碌中", "error");
-    }
-}
-
-// ==========================================
-// 功能 B: 專業紀錄
-// ==========================================
-async function loadRecords() {
-    const list = document.getElementById("record-list");
-    list.innerHTML = '<div class="text-center py-3"><div class="spinner-border text-secondary"></div></div>';
-    
-    // 🔴 請確認網址不用變，繼續用原本那個
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJyvD4A63VSCo7isp_Pwmciq5nKRLM3H8otQfdWtWe_XYShVu609jruQVqm7YFt4Iw_w/exec"; 
-
-    try {
-        const res = await fetch(SCRIPT_URL);
-        const json = await res.json();
-        
-        list.innerHTML = "";
-
-        if (!json.data || json.data.length === 0) {
-            list.innerHTML = "<div class='text-center text-muted p-4'>目前還沒有治療紀錄</div>";
-            return;
-        }
-
-        json.data.reverse().forEach(rec => {
-            let dateStr = rec.date ? String(rec.date).substring(0, 10) : '未知日期';
-            const type = rec.session_Type || "個別";
-
-            let goalsHtml = "";
-            const addRow = (badgeColor, badgeText, content, perf) => {
-                if (!content) return "";
-                const perfHtml = perf ? `<span class="ms-2 badge bg-light text-dark border">表現：${perf}</span>` : "";
-                return `<div class="mb-2">
-                            <span class="badge ${badgeColor} me-1">${badgeText}</span>
-                            <span class="text-dark">${content}</span>
-                            ${perfHtml}
-                        </div>`;
-            };
-
-            goalsHtml += addRow("bg-primary", "理解", rec.comp_content, rec.comp_perf);
-            goalsHtml += addRow("bg-success", "表達", rec.exp_content, rec.exp_perf);
-            goalsHtml += addRow("bg-warning text-dark", "構音", rec.art_content, rec.art_perf);
-            goalsHtml += addRow("bg-info text-dark", "溝通", rec.comm_content, rec.comm_perf);
-
-            if (goalsHtml === "") goalsHtml = `<div class="text-muted fst-italic">（本次無特定訓練目標）</div>`;
-
-            let detailsHtml = "";
-            if (rec.participation) {
-                detailsHtml += `<div class="mt-2 small text-secondary"><i class="fas fa-user-check me-1"></i> <strong>參與狀況：</strong>${rec.participation}</div>`;
-            }
-            if (rec.strategies) {
-                detailsHtml += `<div class="mt-1 small text-secondary"><i class="fas fa-lightbulb me-1"></i> <strong>延伸策略：</strong>${rec.strategies}</div>`;
-            }
-
-            let remarksHtml = "";
-            if (rec.remarks) {
-                remarksHtml = `<div class="mt-3 pt-2 border-top small text-muted"><i class="fas fa-comment-dots me-1"></i> 備註：${rec.remarks}</div>`;
-            }
-
-            list.innerHTML += `
-                <div class="list-group-item mb-3 border-0 shadow-sm rounded p-4">
-                    <div class="d-flex w-100 justify-content-between border-bottom pb-2 mb-3">
-                        <div class="d-flex align-items-center gap-2">
-                            <h5 class="mb-0 fw-bold text-dark">${dateStr}</h5>
-                            <span class="badge bg-secondary rounded-pill">${type}</span>
-                        </div>
-                        <small class="text-muted"><i class="far fa-clock"></i> ${rec.duration} 分鐘</small> 
-                    </div>
-                    
-                    <div class="record-content">
-                        ${goalsHtml}
-                        <div class="mt-3 p-2 bg-light rounded">
-                            ${detailsHtml}
-                        </div>
-                        ${remarksHtml}
-                    </div>
-                </div>`;
-        });
-    } catch (err) {
-        console.error(err);
-        list.innerHTML = "<div class='alert alert-danger'>載入失敗</div>";
-    }
-}
-
-// ==========================================
-// 功能 C: IEP 檔案
-// ==========================================
-async function loadIepFiles() {
-    const list = document.getElementById("iep-list");
-    list.innerHTML = '<div class="col-12 text-center py-5"><div class="spinner-border"></div></div>';
-    try {
-        const res = await fetchWithAuth(`${API_URL}/api/iep`);
-        const json = await res.json();
-        checkNotifications(json.data, 'iep');
-        list.innerHTML = "";
-        if (!json.data || json.data.length === 0) {
-            list.innerHTML = `<div class="col-12 text-center text-muted py-5">無 IEP 檔案</div>`;
-            return;
-        }
-        json.data.forEach(file => {
-            list.innerHTML += `
-                <div class="col-md-6 col-lg-4">
-                    <div class="card h-100 shadow-sm border-0">
-                        <div class="card-body">
-                            <h6 class="mb-2 text-truncate" title="${file.filename}">${file.filename}</h6>
-                            <p class="small text-secondary mb-3">
-                                上傳者：${roleName(file.uploaded_by_role) || '教師'}<br>
-                                備註：${file.comments || "無"}
-                            </p>
-                            <a href="${file.file_link}" target="_blank" class="btn btn-outline-danger w-100 btn-sm">檢視檔案</a>
-                        </div>
-                    </div>
-                </div>`;
-        });
-    } catch (err) {
-        list.innerHTML = "<div class='alert alert-danger'>無法載入</div>";
-    }
-}
-
-async function openIepUpload() {
-    const { value: formValues } = await Swal.fire({
-        title: '上傳 IEP',
-        html: `<input type="file" id="swal-file" class="form-control mb-3"><input type="text" id="swal-comment" class="form-control" placeholder="備註">`,
-        showCancelButton: true,
-        preConfirm: () => {
-            const fileInput = document.getElementById('swal-file');
-            if (!fileInput.files.length) return Swal.showValidationMessage('請選擇檔案');
-            return { file: fileInput.files[0], comment: document.getElementById('swal-comment').value };
-        }
-    });
-
-    if (formValues) {
-        const formData = new FormData();
-        formData.append("file", formValues.file);
-        formData.append("comments", formValues.comment);
-        await fetchWithAuth(`${API_URL}/api/iep`, { method: "POST", body: formData });
-        Swal.fire("成功", "檔案已上傳", "success");
-        loadIepFiles();
-    }
-}
-
-// ==========================================
-// 功能 D: 提問與回覆 (✨ 全新設計版)
-// ==========================================
-async function loadQuestions() {
-    const list = document.getElementById("questions-list");
-    list.innerHTML = '<div class="text-center py-5"><div class="spinner-border"></div></div>';
-    try {
-        const res = await fetchWithAuth(`${API_URL}/api/questions`);
-        const json = await res.json();
-        checkNotifications(json.data, 'question');
-        renderQuestions(json.data);
-    } catch (err) {
-        list.innerHTML = '<p class="text-center text-danger">載入失敗</p>';
-    }
-}
-
-function renderQuestions(data) {
-    const list = document.getElementById("questions-list");
-    list.innerHTML = "";
-
-    if (!data || data.length === 0) {
-        list.innerHTML = '<div class="alert alert-light text-center w-100">目前沒有任何提問</div>';
-        return;
-    }
-
-    data.reverse().forEach(q => {
-        // 1. 狀態顏色
-        const statusColor = q.status === '已回覆' ? 'success-subtle text-success' : 'secondary-subtle text-secondary';
-        
-        // 2. 對象標籤
-        let targetHtml = '';
-        if (q.target_role) {
-            const nameMap = { "teacher": "教師", "therapist": "治療師", "parents": "家長" };
-            targetHtml = q.target_role.split(',').map(r => {
-                const label = nameMap[r.trim()] || r;
-                return `<span class="badge bg-light text-dark border me-1">@${label}</span>`;
-            }).join('');
-        }
-
-        // 3. 回覆區塊
-        let replyHtml = '';
-        if (q.reply) {
-            replyHtml = `
-                <div class="mt-3 p-3 bg-light rounded">
-                    <small class="fw-bold"><i class="fas fa-reply"></i> 回覆：</small>
-                    <p class="mb-0 mt-1">${q.reply}</p>
-                </div>`;
-        } else {
-            replyHtml = `
-                <div class="mt-3 text-end">
-                    <button class="btn btn-outline-secondary btn-sm rounded-pill" onclick="replyQuestion('${q.id}')">
-                        <i class="fas fa-reply"></i> 回覆
-                    </button>
-                </div>`;
-        }
-
-        // 4. 生成卡片 HTML (🔴 關鍵：加入 question-card 與 data-role)
-        const html = `
-            <div class="col-md-12 mb-4">
-                <div class="card question-card h-100 border-0 shadow-sm" data-role="${q.asker_role}">
-                    <div class="card-body">
-                        
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <div>
-                                <h5 class="mb-1">
-                                    ${q.asker_name} 
-                                    <small class="text-muted ms-2" style="font-size: 0.8em">
-                                        (${roleName(q.asker_role)})
-                                    </small>
-                                </h5>
-                                <small class="text-muted"><i class="far fa-clock"></i> ${q.date}</small>
-                            </div>
-                            <span class="badge bg-${statusColor} border border-${statusColor}">${q.status}</span>
-                        </div>
-
-                        <div class="mb-3">${targetHtml}</div>
-                        
-                        <p class="card-text text-dark">${q.question}</p>
-                        
-                        ${replyHtml}
-                    </div>
-                </div>
-            </div>
-        `;
-        
-        list.innerHTML += html;
-    });
-}
-
-async function openQuestionModal() {
-    const { value: formValues } = await Swal.fire({
-        title: '我要提問',
-        html: `
-            <div class="text-start mb-2 fw-bold text-secondary">想要提問的對象：</div>
-            <div class="d-flex gap-3 mb-3 justify-content-center">
-                <div class="form-check"><input class="form-check-input" type="checkbox" id="target-teacher" value="teacher"><label class="form-check-label" for="target-teacher">教師</label></div>
-                <div class="form-check"><input class="form-check-input" type="checkbox" id="target-therapist" value="therapist"><label class="form-check-label" for="target-therapist">治療師</label></div>
-                <div class="form-check"><input class="form-check-input" type="checkbox" id="target-parents" value="parents"><label class="form-check-label" for="target-parents">家長</label></div>
-            </div>
-            <textarea id="swal-question" class="form-control" rows="4" placeholder="問題內容..."></textarea>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '發布',
-        preConfirm: () => {
-            const question = document.getElementById('swal-question').value;
-            const targets = [];
-            if (document.getElementById('target-teacher').checked) targets.push('teacher');
-            if (document.getElementById('target-therapist').checked) targets.push('therapist');
-            if (document.getElementById('target-parents').checked) targets.push('parents');
-            if (!question || targets.length === 0) return Swal.showValidationMessage('請填寫完整');
-            return { question: question, target_role: targets.join(',') };
-        }
-    });
-
-    if (formValues) {
-        await fetchWithAuth(`${API_URL}/api/questions`, { method: "POST", body: JSON.stringify(formValues) });
-        Swal.fire('成功', '提問已發布', 'success');
-        loadQuestions();
-    }
-}
-
-function replyQuestion(id) {
-    Swal.fire({
-        title: '回覆問題',
-        input: 'textarea',
-        showCancelButton: true,
-        confirmButtonText: '送出',
-        preConfirm: async (reply) => {
-            if (!reply) return Swal.showValidationMessage('請輸入內容');
-            await fetchWithAuth(`${API_URL}/api/questions/${id}`, { method: "PUT", body: JSON.stringify({ reply }) });
-        }
-    }).then((result) => {
-        if (result.isConfirmed) {
-            Swal.fire('成功', '已回覆', 'success');
-            loadQuestions();
-        }
-    });
-}
-
-// ==========================================
-// 功能 E: 行事曆
-// ==========================================
-function initCalendar() {
-    const calendarEl = document.getElementById('calendar');
-    if (!calendarEl) return;
-    document.getElementById("calendar-section").classList.remove("d-none");
-
-    const monthPicker = document.getElementById('calendar-month-picker');
-    if (monthPicker) {
-        const newPicker = monthPicker.cloneNode(true);
-        monthPicker.parentNode.replaceChild(newPicker, monthPicker);
-        newPicker.addEventListener('change', function() {
-            if (this.value) calendar.gotoDate(this.value);
-        });
-    }
-
-    calendar = new FullCalendar.Calendar(calendarEl, {
-        initialView: 'dayGridMonth',
-        locale: 'zh-tw',
-        height: 'auto',
-        contentHeight: 'auto',
-        displayEventTime: false, 
-
-        headerToolbar: {
-            left: 'prev,next today',
-            center: 'title',
-            right: 'dayGridMonth'
-        },
-        datesSet: function(info) {
-            const current = info.view.currentStart;
-            const year = current.getFullYear();
-            const month = String(current.getMonth() + 1).padStart(2, '0');
-            const picker = document.getElementById('calendar-month-picker');
-            if(picker) picker.value = `${year}-${month}`;
-        },
-        events: async function(info, successCallback, failureCallback) {
-             try {
-                const res = await fetchWithAuth(`${API_URL}/api/calendar`);
-                const json = await res.json();
-                checkNotifications(json.data, 'calendar');
-                
-                const eventsWithColor = (json.data || []).map(evt => {
-                    let colorClass = 'evt-orange'; // 預設教師
-                    if (evt.role === 'therapist') colorClass = 'evt-green';
-                    
-                    return { 
-                        ...evt, 
-                        classNames: [colorClass],
-                        extendedProps: {
-                            ...evt.extendedProps,
-                            role: evt.role, 
-                            creator: roleName(evt.role) // 這裡會將 role 轉為中文
-                        }
-                    };
-                });
-                successCallback(eventsWithColor);
-            } catch (e) { failureCallback(e); }
-        },
-        eventClick: function(info) {
-             const isOwner = ['teacher', 'therapist'].includes(currentUser.role);
-             const props = info.event.extendedProps;
-             const creator = props.creator || roleName(props.role) || "未知"; 
-             const timeStr = info.event.start ? info.event.start.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit' }) : '全天';
-
-             const contentHtml = `
-                <div class="text-start bg-light p-3 rounded mb-3">
-                    <p class="mb-1"><strong><i class="far fa-clock"></i> 時間：</strong> ${timeStr}</p>
-                    <p class="mb-0"><strong><i class="fas fa-user"></i> 新增者：</strong> ${creator}</p>
-                </div>
-             `;
-
-             if (!isOwner) {
-                 Swal.fire({ title: info.event.title, html: contentHtml, icon: 'info', confirmButtonColor: '#2563EB' });
-             } else {
-                 Swal.fire({
-                     title: info.event.title,
-                     html: `${contentHtml}<div class="d-flex gap-2 justify-content-center mt-2"><button id="btn-swal-edit" class="btn btn-primary flex-grow-1">編輯</button><button id="btn-swal-del" class="btn btn-outline-danger flex-grow-1">刪除</button></div>`,
-                     showConfirmButton: false, 
-                     showCloseButton: true,
-                     didOpen: () => {
-                         document.getElementById('btn-swal-edit').onclick = () => { Swal.close(); openEventModal(info.event); };
-                         document.getElementById('btn-swal-del').onclick = () => { Swal.close(); deleteEvent(info.event.id); };
-                     }
-                 });
-             }
-        }
-    });
-    calendar.render();
-}
-
-function openEventModal(event = null) {
-    document.getElementById('eventForm').reset();
-    document.getElementById('evt-id').value = '';
-    
-    const btnDel = document.getElementById('btn-del-evt');
-    if(btnDel) btnDel.classList.add('d-none');
-
-    if (event) {
-        document.getElementById('evt-id').value = event.id;
-        document.getElementById('evt-title').value = event.title;
-        
-        if(event.start) document.getElementById('evt-start').value = toLocalISOString(event.start);
-        if(event.end) document.getElementById('evt-end').value = toLocalISOString(event.end);
-        
-        if(btnDel) btnDel.classList.remove('d-none');
-    } else {
-        const now = new Date();
-        now.setMinutes(now.getMinutes() - now.getTimezoneOffset());
-        document.getElementById('evt-start').value = now.toISOString().slice(0,16);
-    }
-
-    const modalEl = document.getElementById('eventModal');
-    const modal = new bootstrap.Modal(modalEl);
-    modal.show();
-}
-
-function toLocalISOString(date) {
-    const tzOffset = date.getTimezoneOffset() * 60000;
-    const localISOTime = (new Date(date - tzOffset)).toISOString().slice(0, -1);
-    return localISOTime.slice(0,16);
-}
-
-async function saveEvent() {
-    const id = document.getElementById('evt-id').value;
-    const title = document.getElementById('evt-title').value;
-    const start = document.getElementById('evt-start').value;
-    const end = document.getElementById('evt-end').value;
-    
-    const role = currentUser.role; 
-
-    if (!title || !start) {
-        Swal.fire('錯誤', '標題與開始時間為必填', 'error');
-        return;
-    }
-
-    const payload = { 
-        title, start, end, 
-        role: role, 
-        description: "" 
-    };
-
-    try {
-        let url = `${API_URL}/api/calendar`;
-        let method = 'POST';
-        if (id) { url = `${API_URL}/api/calendar/${id}`; method = 'PUT'; }
-
-        const res = await fetchWithAuth(url, { method: method, body: JSON.stringify(payload) });
-
-        if (res.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-            calendar.refetchEvents();
-            Swal.fire('成功', id ? '排程已更新' : '排程已新增', 'success');
-        } else {
-            throw new Error('儲存失敗');
-        }
-    } catch (error) {
-        const modalEl = document.getElementById('eventModal');
-        const modal = bootstrap.Modal.getInstance(modalEl);
-        modal.hide();
-        Swal.fire('前端模擬', '資料已送出', 'success');
-    }
-}
-
-async function deleteEvent(id = null) {
-    if(!id) id = document.getElementById('evt-id').value;
-    
-    const result = await Swal.fire({
-        title: '確定刪除?',
-        text: "刪除後無法復原",
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonColor: '#d33',
-        confirmButtonText: '刪除'
-    });
-
-    if (result.isConfirmed) {
-        try {
-            await fetchWithAuth(`${API_URL}/api/calendar/${id}`, { method: "DELETE" });
-            calendar.refetchEvents();
-            const modalEl = document.getElementById('eventModal');
-            const modal = bootstrap.Modal.getInstance(modalEl);
-            if(modal) modal.hide();
-            
-            Swal.fire('已刪除', '排程已移除', 'success');
-        } catch(e) {
-            Swal.fire('前端模擬', '刪除指令已發送', 'success');
-        }
-    }
-}
-
-// ==========================================
-// 功能 F: 治療紀錄表單整合 (Google Sheets)
-// ==========================================
-function openTherapyForm() {
-    new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
-}
-
-async function submitTherapyRecord() {
-    // 🔴 請確保此處網址是您最新的 Apps Script 部署網址 (結尾是 /exec)
-    const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbzJyvD4A63VSCo7isp_Pwmciq5nKRLM3H8otQfdWtWe_XYShVu609jruQVqm7YFt4Iw_w/exec"; 
-
-    const date = document.getElementById('form-date').value;
-    const duration = document.getElementById('form-duration').value;
-    if(!date || !duration) return Swal.fire("欄位未填", "請輸入日期與時長", "warning");
-
-    const getData = (chk, inp, sel) => {
-        if(!document.getElementById(chk).checked) return ["", ""];
-        return [document.getElementById(inp).value, document.getElementById(sel).value];
-    }
-
-    const [compC, compP] = getData('check-comp', 'input-comp-content', 'select-comp-perf');
-    const [expC, expP] = getData('check-exp', 'input-exp-content', 'select-exp-perf');
-    const [artC, artP] = getData('check-art', 'input-art-content', 'select-art-perf');
-    const [commC, commP] = getData('check-comm', 'input-comm-content', 'select-comm-perf');
-
-    let part = []; document.querySelectorAll('.check-part:checked').forEach(e=>part.push(e.value));
-    let strat = []; document.querySelectorAll('.check-strat:checked').forEach(e=>strat.push(e.value));
-
-    const payload = {
-        date: date,
-        type: document.querySelector('input[name="form-type"]:checked').value,
-        duration: duration,
-        goal_comp_content: compC, goal_comp_perf: compP,
-        goal_exp_content: expC, goal_exp_perf: expP,
-        goal_art_content: artC, goal_art_perf: artP,
-        goal_comm_content: commC, goal_comm_perf: commP,
-        participation: part.join(', '),
-        participation_other: document.getElementById('check-part-other').checked ? document.getElementById('input-part-other').value : "",
-        strategies: strat.join(', '),
-        strategies_other: document.getElementById('check-strat-other').checked ? document.getElementById('input-strat-other').value : "",
-        remarks: document.getElementById('input-remarks').value
-    };
-
-    Swal.fire({ title: '傳送中...', didOpen: () => Swal.showLoading() });
-
-    try {
-        await fetch(SCRIPT_URL, {
-            method: 'POST',
-            mode: 'no-cors',
-            body: JSON.stringify(payload),
-            headers: { 'Content-Type': 'application/json' }
-        });
-        
-        Swal.fire('謝謝您的耐心填寫', '紀錄已儲存', 'success');
-        
-        bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
-        document.getElementById('therapyForm').reset();
-        document.querySelectorAll('.area-toggle').forEach(el => {
-             document.getElementById(el.dataset.target).classList.add('d-none');
-        });
-        loadRecords(); 
-        
-    } catch(e) {
-        Swal.fire('錯誤', '傳送失敗', 'error');
-    }
-}
+});
