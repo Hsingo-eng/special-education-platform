@@ -218,29 +218,119 @@ function updateUI(user) {
     });
 }
 
+// ==========================================
+// 🟢 修復：完整的 showSection 函式 (負責切換畫面)
+// ==========================================
 function showSection(sectionId) {
+    // 1. 切換到登入頁
     if (sectionId === 'login') {
-        // ... (登入頁切換邏輯不變) ...
-    } else if (sectionId === 'dashboard') {
-        // ... (儀表板切換邏輯不變) ...
-    } else {
-        // 切換子功能
+        document.getElementById("login-section").classList.remove("d-none");
+        document.getElementById("dashboard-section").classList.add("d-none");
+        document.getElementById("main-nav").classList.add("d-none");
+    } 
+    // 2. 切換到儀表板 (登入成功後)
+    else if (sectionId === 'dashboard') {
+        document.getElementById("login-section").classList.add("d-none");
+        document.getElementById("dashboard-section").classList.remove("d-none");
+        
+        // 確保行事曆在畫面顯示後重新渲染，避免跑版
+        setTimeout(() => { if(calendar) calendar.render(); }, 200);
+    } 
+    // 3. 切換子功能 (點擊功能卡片時)
+    else {
+        // 先隱藏所有內容區塊
         document.getElementById("empty-state").classList.add("d-none");
         document.querySelectorAll("#content-area > div").forEach(div => {
             if (div.id !== "empty-state") div.classList.add("d-none");
         });
+
+        // 顯示目標區塊
         const target = document.getElementById(`section-${sectionId}`);
         if (target) {
             target.classList.remove("d-none");
             target.classList.add("animate-fade");
             
-            // 🟢 修正重點：確保每個區塊都有對應的載入函式
+            // 🟢 根據切換的區塊載入對應資料
             if(sectionId === 'messages') loadMessages();
             if(sectionId === 'iep') loadIepFiles();
-            if(sectionId === 'questions') loadQuestions(); // 取消註解
-            if(sectionId === 'records') loadRecords();     // 新增這行
+            if(sectionId === 'questions') loadQuestions(); 
+            if(sectionId === 'records') loadRecords();     
         }
     }
+}
+
+// ==========================================
+// 🟢 補齊：缺少的資料載入函式 (讓按鈕有反應)
+// ==========================================
+
+async function loadQuestions() {
+    try {
+        const res = await fetch(`${API_URL}/api/questions`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        const list = document.getElementById("questions-list");
+        if (!list) return;
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = '<div class="col-12 text-center text-muted py-5">目前沒有提問資料</div>';
+            return;
+        }
+
+        list.innerHTML = json.data.map(q => `
+            <div class="col-md-6">
+                <div class="card question-card h-100" data-role="${q.asker_role}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-light text-dark mb-2">${q.target_role === 'teacher' ? 'To: 老師' : 'To: 治療師'}</span>
+                            <small class="text-muted">${q.date}</small>
+                        </div>
+                        <h5 class="card-title">${q.asker_name} 問：</h5>
+                        <p class="card-text">${q.question}</p>
+                        ${q.reply ? `
+                            <div class="bg-light rounded p-3 mt-3">
+                                <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name} 回覆：</small>
+                                <p class="mb-0 mt-1 text-secondary">${q.reply}</p>
+                            </div>
+                        ` : `<span class="badge bg-warning text-dark">待回覆</span>`}
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    } catch (err) { console.error("Load questions failed:", err); }
+}
+
+async function loadRecords() {
+    try {
+        const res = await fetch(`${API_URL}/api/records`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        const list = document.getElementById("record-list");
+        if (!list) return;
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = '<div class="text-center text-muted py-5">暫無治療紀錄</div>';
+            return;
+        }
+
+        list.innerHTML = json.data.map(r => `
+            <div class="list-group-item p-4 mb-3 border rounded-3 shadow-sm bg-white">
+                <div class="d-flex w-100 justify-content-between mb-2">
+                    <h5 class="mb-1 fw-bold text-primary"><i class="fas fa-notes-medical me-2"></i>治療紀錄</h5>
+                    <small class="text-muted">${r.date}</small>
+                </div>
+                <p class="mb-1 text-dark" style="white-space: pre-line;">${r.content}</p>
+                <small class="text-muted">治療師：${r.therapist_name}</small>
+                ${r.teacher_reply ? `
+                    <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
+                        <small class="fw-bold text-success">老師回覆：</small>
+                        <p class="mb-0 mt-1">${r.teacher_reply}</p>
+                    </div>
+                ` : ''}
+            </div>
+        `).join("");
+    } catch (err) { console.error("Load records failed:", err); }
 }
 
 // --- 資料載入 API (已移除 checkNotifications 呼叫) ---
@@ -408,3 +498,76 @@ document.addEventListener('keypress', function (e) {
         login();
     }
 });
+// ==========================================
+// 補齊缺失的載入函式
+// ==========================================
+
+async function loadQuestions() {
+    try {
+        const res = await fetch(`${API_URL}/api/questions`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        const list = document.getElementById("questions-list");
+        if (!list) return;
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = '<div class="col-12 text-center text-muted">暫無提問</div>';
+            return;
+        }
+
+        list.innerHTML = json.data.map(q => `
+            <div class="col-md-6">
+                <div class="card question-card h-100" data-role="${q.asker_role}">
+                    <div class="card-body">
+                        <div class="d-flex justify-content-between align-items-start mb-2">
+                            <span class="badge bg-light text-dark mb-2">${q.target_role === 'teacher' ? 'To: 老師' : 'To: 治療師'}</span>
+                            <small class="text-muted">${q.date}</small>
+                        </div>
+                        <h5 class="card-title">${q.asker_name} 問：</h5>
+                        <p class="card-text">${q.question}</p>
+                        ${q.reply ? `
+                            <div class="bg-light rounded p-3 mt-3">
+                                <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name} 回覆：</small>
+                                <p class="mb-0 mt-1 text-secondary">${q.reply}</p>
+                            </div>
+                        ` : `<span class="badge bg-warning text-dark">待回覆</span>`}
+                    </div>
+                </div>
+            </div>
+        `).join("");
+    } catch (err) { console.error(err); }
+}
+
+async function loadRecords() {
+    try {
+        const res = await fetch(`${API_URL}/api/records`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+        const json = await res.json();
+        const list = document.getElementById("record-list");
+        if (!list) return;
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = '<div class="text-center text-muted py-4">暫無治療紀錄</div>';
+            return;
+        }
+
+        list.innerHTML = json.data.map(r => `
+            <div class="list-group-item p-4 mb-3 border rounded-3 shadow-sm bg-white">
+                <div class="d-flex w-100 justify-content-between mb-2">
+                    <h5 class="mb-1 fw-bold text-primary"><i class="fas fa-notes-medical me-2"></i>治療紀錄</h5>
+                    <small class="text-muted">${r.date}</small>
+                </div>
+                <p class="mb-1 text-dark" style="white-space: pre-line;">${r.content}</p>
+                <small class="text-muted">治療師：${r.therapist_name}</small>
+                ${r.teacher_reply ? `
+                    <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
+                        <small class="fw-bold text-success">老師回覆：</small>
+                        <p class="mb-0 mt-1">${r.teacher_reply}</p>
+                    </div>
+                ` : ''}
+            </div>
+        `).join("");
+    } catch (err) { console.error(err); }
+}
