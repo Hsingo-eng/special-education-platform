@@ -76,6 +76,18 @@
             <button class="header-icon-btn" id="btn-notification" title="通知中心" onclick="clearNotifications()">
                 <i class="far fa-bell"></i>
             </button>
+            <div id="notification-menu" class="notification-dropdown">
+                <div class="notif-header">
+                    <span>通知中心</span>
+                    <button class="btn btn-link btn-sm text-secondary p-0 text-decoration-none" onclick="clearAllNotifications()">清除全部</button>
+                </div>
+                <ul id="notification-list" class="notif-list">
+                    <div class="notif-empty">
+                        <i class="far fa-bell-slash fa-2x mb-2"></i>
+                        <p class="mb-0 small">目前沒有新通知</p>
+                    </div>
+                </ul>
+            </div>
 
             <button class="header-icon-btn" id="btn-logout" onclick="logout()" title="登出系統">
                 <i class="fas fa-sign-out-alt"></i>

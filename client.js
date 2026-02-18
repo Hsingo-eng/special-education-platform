@@ -27,38 +27,206 @@ let currentUser = null;
 let calendar = null;
 
 // ==========================================
-// 🔔 通知系統邏輯 (Notification System)
+// 🔔 通知系統邏輯 (Notification System V2)
 // ==========================================
-const NOTIF_KEY = 'last_notification_check';
+const NOTIF_STORAGE_KEY = 'app_notifications';
 
-// 初始化：檢查是否有新通知
-function checkNotifications(dataList = [], type = 'general') {
-    const lastCheck = localStorage.getItem(NOTIF_KEY) || new Date(0).toISOString();
-    const lastCheckDate = new Date(lastCheck);
+// 1. 初始化：載入歷史通知並檢查是否亮燈
+function initNotifications() {
+    const notifications = getStoredNotifications();
+    const hasUnread = notifications.some(n => !n.read);
     
-    // 判斷是否有比「上次檢查時間」更新的資料
-    const hasNew = dataList.some(item => {
-        // 假設資料中有 created_at 或 date 欄位，若無則使用 id (假設 id 越大越新) 或當下時間
-        // 這裡為了相容性，我們先嘗試讀取 date 或 created_at
-        let itemTime = new Date(item.created_at || item.date || item.timestamp || 0);
+    if (hasUnread) {
+        document.getElementById('btn-notification').classList.add('has-notification');
+    }
+    renderNotificationList();
+}
+
+// 2. 讀取儲存的通知
+function getStoredNotifications() {
+    const stored = localStorage.getItem(NOTIF_STORAGE_KEY);
+    return stored ? JSON.parse(stored) : [];
+}
+
+// 3. 新增通知 (核心函式)
+function addNotification(type, text) {
+    const notifications = getStoredNotifications();
+    
+    const newNotif = {
+        id: Date.now(),
+        type: type, // calendar, record, iep, message, question
+        text: text,
+        time: new Date().toISOString(),
+        read: false
+    };
+
+    // 新增到最前面
+    notifications.unshift(newNotif);
+    
+    // 只保留最近 20 筆
+    if (notifications.length > 20) notifications.pop();
+
+    // 存回 LocalStorage
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
+
+    // UI 更新
+    document.getElementById('btn-notification').classList.add('has-notification');
+    renderNotificationList();
+    
+    // 播放提示音 (選用)
+    // new Audio('notification.mp3').play().catch(()=>{}); 
+}
+
+// 4. 渲染通知列表 HTML
+function renderNotificationList() {
+    const list = document.getElementById('notification-list');
+    const notifications = getStoredNotifications();
+    
+    if (!list) return;
+
+    if (notifications.length === 0) {
+        list.innerHTML = `
+            <div class="notif-empty">
+                <i class="far fa-bell-slash fa-2x mb-2" style="color:#cbd5e1;"></i>
+                <p class="mb-0 small">目前沒有新通知</p>
+            </div>`;
+        return;
+    }
+
+    let html = '';
+    notifications.forEach(n => {
+        // 定義圖示與顏色
+        let iconClass = '';
+        let iconName = '';
         
-        // 特殊規則 4: 提問回覆 (針對特定身分)
-        if (type === 'question') {
-            const isTarget = item.target_role && item.target_role.includes(currentUser.role);
-            // 如果是針對我的提問，且還沒回覆，且時間較新
-            if (isTarget && !item.reply && itemTime > lastCheckDate) return true;
-            // 或者，如果我是提問者，有人回覆了我 (且回覆時間較新) - 這裡需後端支援回覆時間，暫略
-            return false;
+        switch(n.type) {
+            case 'calendar': iconClass = 'calendar'; iconName = 'fas fa-calendar-alt'; break;
+            case 'record':   iconClass = 'record';   iconName = 'fas fa-file-medical'; break;
+            case 'iep':      iconClass = 'iep';      iconName = 'fas fa-folder-open'; break;
+            case 'message':  iconClass = 'message';  iconName = 'fas fa-comments'; break;
+            case 'question': iconClass = 'question'; iconName = 'fas fa-question-circle'; break;
+            default:         iconClass = 'message';  iconName = 'fas fa-bell';
         }
 
-        return itemTime > lastCheckDate;
+        // 格式化時間 (例如: 10分鐘前)
+        const timeStr = formatRelativeTime(new Date(n.time));
+
+        html += `
+            <li class="notif-item" onclick="markAsRead(${n.id})">
+                <div class="notif-icon-box ${iconClass}">
+                    <i class="${iconName}"></i>
+                </div>
+                <div class="notif-content">
+                    <div class="notif-text">${n.text}</div>
+                    <div class="notif-time">${timeStr}</div>
+                </div>
+                ${!n.read ? '<span style="width:8px;height:8px;background:red;border-radius:50%;margin-top:6px;"></span>' : ''}
+            </li>
+        `;
     });
 
-    if (hasNew) {
-        activateBell();
+    list.innerHTML = html;
+}
+
+// 5. 開關通知選單
+function toggleNotificationMenu() {
+    const menu = document.getElementById('notification-menu');
+    menu.classList.toggle('show');
+    
+    // 如果打開，移除鈴鐺搖晃動畫 (但不一定移除紅點，直到已讀)
+    if (menu.classList.contains('show')) {
+        document.getElementById('btn-notification').classList.remove('has-notification');
+        // 標記所有為已讀 (或是您可以選擇點擊單項才已讀，這裡示範全部已讀)
+        markAllAsRead();
     }
 }
 
+// 標記全部已讀
+function markAllAsRead() {
+    const notifications = getStoredNotifications();
+    notifications.forEach(n => n.read = true);
+    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
+    // 重新渲染以移除紅點
+    renderNotificationList(); 
+}
+
+// 清除全部
+function clearAllNotifications() {
+    localStorage.removeItem(NOTIF_STORAGE_KEY);
+    renderNotificationList();
+}
+
+// 時間格式化小工具
+function formatRelativeTime(date) {
+    const now = new Date();
+    const diffInSeconds = Math.floor((now - date) / 1000);
+    
+    if (diffInSeconds < 60) return '剛剛';
+    if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)} 分鐘前`;
+    if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)} 小時前`;
+    return `${date.getMonth()+1}/${date.getDate()} ${date.getHours()}:${date.getMinutes().toString().padStart(2,'0')}`;
+}
+
+// 點擊外部關閉選單
+document.addEventListener('click', function(e) {
+    const menu = document.getElementById('notification-menu');
+    const btn = document.getElementById('btn-notification');
+    if (menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
+        menu.classList.remove('show');
+    }
+});
+
+// ==========================================
+// 🔗 Socket.io 整合 (接收後端事件)
+// ==========================================
+if (socket) {
+    // 1. 行事曆
+    socket.on("calendar_update", (evt) => {
+        // 判斷是新增還是刪除 (假設後端回傳 action 屬性，若無則預設顯示更新)
+        const msg = evt.action === 'delete' ? '行事曆：刪除排程' : '行事曆：新增新排程';
+        addNotification('calendar', msg);
+        if(calendar) calendar.refetchEvents();
+    });
+
+    // 2. IEP 上傳
+    socket.on("iep_update", (file) => {
+        addNotification('iep', '新IEP檔案已上傳');
+        const iepSection = document.getElementById('section-iep');
+        if(iepSection && !iepSection.classList.contains('d-none')) loadIepFiles();
+    });
+
+    // 3. 治療紀錄 (假設事件名稱為 record_update)
+    socket.on("record_update", (data) => {
+        addNotification('record', '新治療紀錄已上傳');
+        const recordSection = document.getElementById('section-records');
+        if(recordSection && !recordSection.classList.contains('d-none')) loadRecords(); // 假設有這個函式
+    });
+
+    // 4. 留言板
+    socket.on("message_update", (msg) => {
+        if (msg.username !== currentUser.username) {
+            addNotification('message', '留言板有新訊息');
+        }
+    });
+
+    // 5. 提問回覆 (提及)
+    socket.on("question_update", (q) => {
+        // 簡單邏輯：只要有新提問就通知，若要針對性需判斷 role
+        // 您原本的邏輯：
+        if (q.target_role && q.target_role.includes(currentUser.role)) {
+             addNotification('question', '提問回覆有一則提問提及了您');
+        } else if (q.reply) {
+             // 若有人回覆
+             addNotification('question', '提問回覆有新動態');
+        }
+        
+        const qSection = document.getElementById('section-questions');
+        if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
+    });
+}
+
+// 頁面載入時初始化
+document.addEventListener('DOMContentLoaded', initNotifications);
 // 啟動鈴鐺 (變黃色)
 function activateBell() {
     const bellBtn = document.querySelector('button[title="通知中心"]');
