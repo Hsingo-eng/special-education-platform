@@ -72,10 +72,12 @@
             </div>
         </div>
 
-        <div class="header-right">
-            <button class="header-icon-btn" id="btn-notification" title="通知中心" onclick="clearNotifications()">
+        <div class="header-right" style="position: relative;">
+    
+            <button class="header-icon-btn" id="btn-notification" title="通知中心" onclick="toggleNotificationMenu()">
                 <i class="far fa-bell"></i>
             </button>
+
             <div id="notification-menu" class="notification-dropdown">
                 <div class="notif-header">
                     <span>通知中心</span>
@@ -83,21 +85,32 @@
                 </div>
                 <ul id="notification-list" class="notif-list">
                     <div class="notif-empty">
-                        <i class="far fa-bell-slash fa-2x mb-2"></i>
+                        <i class="far fa-bell-slash fa-2x mb-2" style="color:#cbd5e1;"></i>
                         <p class="mb-0 small">目前沒有新通知</p>
                     </div>
                 </ul>
             </div>
 
-            <button class="header-icon-btn" id="btn-logout" onclick="logout()" title="登出系統">
-                <i class="fas fa-sign-out-alt"></i>
-            </button>
+    <button class="header-icon-btn" id="btn-logout" onclick="logout()" title="登出系統">
+        <i class="fas fa-sign-out-alt"></i>
+    </button>
 
-            <div class="header-divider"></div>
+    <div class="header-divider"></div>
 
-            <div class="user-profile-group">
-                </div>
+    <div class="user-profile-group">
+        <div>
+            <span id="nav-user-info" class="user-role-text">載入中...</span>
         </div>
+
+        <div class="avatar-wrapper" title="個人設定">
+            <div class="header-avatar">
+                <img id="header-user-avatar" src="sticker1.png" alt="User">
+            </div>
+            <div class="status-indicator"></div>
+        </div>
+    </div>
+
+</div>
 
             <div class="header-divider"></div>
 

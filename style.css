@@ -936,7 +936,7 @@ hr::before {
 }
 
 /* 顯示時的 class */
-.notification-dropdown.show {
+.show {
     display: block;
 }
 
