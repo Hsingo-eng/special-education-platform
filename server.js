@@ -11,6 +11,7 @@ const stream = require("stream");
 
 // 載入環境變數
 dotenv.config();
+console.log("👉 程式讀到的 Sheet ID:", process.env.GOOGLE_SHEET_ID);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
