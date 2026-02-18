@@ -17,19 +17,23 @@ const PORT = process.env.PORT || 8080; // Zeabur 預設 Port 為 8080，保留�
 
 // CORS 設定：允許前端存取
 app.use(cors({
-    origin: "*", // 生產環境建議改為您前端的實際網域
-    methods: ["GET", "POST", "PUT", "DELETE"],
+    origin: "*", 
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
 app.use(express.json());
 
 // 設定 Socket.io
 const server = http.createServer(app);
+// 2. 修改 Socket.io 設定 (允許所有來源)
 const io = new Server(server, {
     cors: {
-        origin: "*",
-        methods: ["GET", "POST", "PUT"]
-    }
+        origin: "*", // 允許從任何網址連線 (包含 127.0.0.1)
+        methods: ["GET", "POST", "PUT"],
+        allowedHeaders: ["Content-Type", "Authorization"],
+        credentials: true
+    },
+    allowEIO3: true // 增加相容性
 });
 
 // --- 設定 ---
