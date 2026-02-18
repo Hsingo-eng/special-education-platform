@@ -1,4 +1,4 @@
-const API_URL = "https://special-education-platform.zeabur.app"; // 您的後端網址
+const API_URL = "http://localhost:8080"; 
 let currentUser = null;
 let token = localStorage.getItem("token");
 let socket = null;
