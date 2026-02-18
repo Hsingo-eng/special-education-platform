@@ -220,14 +220,9 @@ function updateUI(user) {
 
 function showSection(sectionId) {
     if (sectionId === 'login') {
-        document.getElementById("login-section").classList.remove("d-none");
-        document.getElementById("dashboard-section").classList.add("d-none");
-        document.getElementById("main-nav").classList.add("d-none");
+        // ... (登入頁切換邏輯不變) ...
     } else if (sectionId === 'dashboard') {
-        document.getElementById("login-section").classList.add("d-none");
-        document.getElementById("dashboard-section").classList.remove("d-none");
-        // 確保行事曆正確渲染
-        setTimeout(() => { if(calendar) calendar.render(); }, 200);
+        // ... (儀表板切換邏輯不變) ...
     } else {
         // 切換子功能
         document.getElementById("empty-state").classList.add("d-none");
@@ -239,10 +234,11 @@ function showSection(sectionId) {
             target.classList.remove("d-none");
             target.classList.add("animate-fade");
             
-            // 切換時載入對應資料
+            // 🟢 修正重點：確保每個區塊都有對應的載入函式
             if(sectionId === 'messages') loadMessages();
             if(sectionId === 'iep') loadIepFiles();
-            // if(sectionId === 'questions') loadQuestions(); // 若有實作
+            if(sectionId === 'questions') loadQuestions(); // 取消註解
+            if(sectionId === 'records') loadRecords();     // 新增這行
         }
     }
 }
