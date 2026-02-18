@@ -491,8 +491,8 @@ hr::before {
     content: '';
     position: absolute;
     /* 定位在右上角，數字的後方 */
-    top: -10px;
-    right: -10px;
+    top: 1rem;
+    right: 1rem;
     width: 100px;  /* 拼圖大小 */
     height: 100px;
     
@@ -529,8 +529,8 @@ hr::before {
     
     /* 🔴 關鍵修改：讓數字容器與拼圖圖案完全重疊 */
     position: absolute; 
-    top: -10px;    /* 與拼圖 ::before 的 top 一致 */
-    right: -10px;  /* 與拼圖 ::before 的 right 一致 */
+    top: 1rem;    /* 與拼圖 ::before 的 top 一致 */
+    right: 1rem;  /* 與拼圖 ::before 的 right 一致 */
     width: 100px;  /* 與拼圖 ::before 的寬度一致 */
     height: 100px; /* 與拼圖 ::before 的高度一致 */
     
