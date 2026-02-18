@@ -879,3 +879,37 @@ hr::before {
     .content-stage-card { padding: 1.5rem; }
 
 } /* End of @media */
+
+/* =========================================
+   🔔 Notification Bell (通知鈴鐺樣式)
+   ========================================= */
+
+/* 當有通知時，鈴鐺變為亮黃色 */
+.header-icon-btn.has-notification {
+    color: #F59E0B !important; /* Amber-500 亮黃色 */
+    position: relative;
+    animation: swing 2s ease infinite; /* 輕微搖晃動畫 */
+}
+
+/* 在鈴鐺右上角加一個小紅點 */
+.header-icon-btn.has-notification::after {
+    content: '';
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 8px;
+    height: 8px;
+    background-color: #EF4444; /* 紅色 */
+    border-radius: 50%;
+    border: 1px solid #fff;
+}
+
+/* 搖晃動畫關鍵影格 */
+@keyframes swing {
+    0%, 100% { transform: rotate(0deg); }
+    10% { transform: rotate(10deg); }
+    20% { transform: rotate(-10deg); }
+    30% { transform: rotate(5deg); }
+    40% { transform: rotate(-5deg); }
+    50% { transform: rotate(0deg); }
+}

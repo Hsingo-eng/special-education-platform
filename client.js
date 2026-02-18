@@ -26,6 +26,69 @@ const socket = typeof io !== 'undefined' ? io(API_URL) : null;
 let currentUser = null;
 let calendar = null;
 
+// ==========================================
+// 🔔 通知系統邏輯 (Notification System)
+// ==========================================
+const NOTIF_KEY = 'last_notification_check';
+
+// 初始化：檢查是否有新通知
+function checkNotifications(dataList = [], type = 'general') {
+    const lastCheck = localStorage.getItem(NOTIF_KEY) || new Date(0).toISOString();
+    const lastCheckDate = new Date(lastCheck);
+    
+    // 判斷是否有比「上次檢查時間」更新的資料
+    const hasNew = dataList.some(item => {
+        // 假設資料中有 created_at 或 date 欄位，若無則使用 id (假設 id 越大越新) 或當下時間
+        // 這裡為了相容性，我們先嘗試讀取 date 或 created_at
+        let itemTime = new Date(item.created_at || item.date || item.timestamp || 0);
+        
+        // 特殊規則 4: 提問回覆 (針對特定身分)
+        if (type === 'question') {
+            const isTarget = item.target_role && item.target_role.includes(currentUser.role);
+            // 如果是針對我的提問，且還沒回覆，且時間較新
+            if (isTarget && !item.reply && itemTime > lastCheckDate) return true;
+            // 或者，如果我是提問者，有人回覆了我 (且回覆時間較新) - 這裡需後端支援回覆時間，暫略
+            return false;
+        }
+
+        return itemTime > lastCheckDate;
+    });
+
+    if (hasNew) {
+        activateBell();
+    }
+}
+
+// 啟動鈴鐺 (變黃色)
+function activateBell() {
+    const bellBtn = document.querySelector('button[title="通知中心"]');
+    if (bellBtn) {
+        bellBtn.classList.add('has-notification');
+        // 也可以播放音效
+    }
+}
+
+// 點擊鈴鐺：清除通知狀態
+function clearNotifications() {
+    const bellBtn = document.querySelector('button[title="通知中心"]');
+    if (bellBtn && bellBtn.classList.contains('has-notification')) {
+        bellBtn.classList.remove('has-notification');
+        
+        // 更新「上次檢查時間」為現在
+        localStorage.setItem(NOTIF_KEY, new Date().toISOString());
+        
+        Swal.fire({
+            title: '通知已讀',
+            text: '您已查看最新動態',
+            icon: 'success',
+            timer: 1500,
+            showConfirmButton: false
+        });
+    } else {
+        Swal.fire('目前沒有新通知', '您已經掌握最新進度囉！', 'info');
+    }
+}
+
 document.addEventListener("DOMContentLoaded", () => {
     const token = localStorage.getItem("token");
     const userStr = localStorage.getItem("user");
@@ -154,9 +217,44 @@ async function fetchWithAuth(url, options = {}) {
 if (socket) {
     socket.on("message_update", (msg) => {
         const msgSection = document.getElementById("section-messages");
-        if (msgSection && !msgSection.classList.contains("d-none")) {
+        if (msgSection && !msgSection.classList.contains("d-none")) 
             renderMessage(msg);
+        if (msg.username !== currentUser.username) { // 如果不是自己發的
+            activateBell();
         }
+    });
+
+    // 🔔 新增：監聽其他事件 (需要後端配合 emit 這些事件)
+    
+    // 1. 行事曆新增
+    socket.on("calendar_update", (evt) => {
+        activateBell();
+        // 這裡可以選擇性跳出 Toast 通知
+        const Toast = Swal.mixin({ toast: true, position: 'top-end', showConfirmButton: false, timer: 3000 });
+        Toast.fire({ icon: 'info', title: '行事曆有新事件' });
+        // 重新載入行事曆
+        if(calendar) calendar.refetchEvents();
+    });
+
+    // 2. IEP 上傳
+    socket.on("iep_update", (file) => {
+        activateBell();
+        if(!document.getElementById('section-iep').classList.contains('d-none')) loadIepFiles();
+    });
+
+    // 4. 提問 (針對性)
+    socket.on("question_update", (q) => {
+        // 檢查是否提及我
+        if (q.target_role && q.target_role.includes(currentUser.role)) {
+            activateBell();
+            Swal.fire({
+                title: '有新的提問指名找您！',
+                text: `${q.asker_name}: ${q.question}`,
+                icon: 'question',
+                toast: true, position: 'top-end', showConfirmButton: false, timer: 5000
+            });
+        }
+        if(!document.getElementById('section-questions').classList.contains('d-none')) loadQuestions();
     });
 }
 
@@ -167,6 +265,7 @@ async function loadMessages() {
     try {
         const res = await fetchWithAuth(`${API_URL}/api/messages`);
         const json = await res.json();
+        checkNotifications(json.data, 'message');
         box.innerHTML = "";
 
         (json.data || []).forEach(msg => {
@@ -365,6 +464,7 @@ async function loadIepFiles() {
     try {
         const res = await fetchWithAuth(`${API_URL}/api/iep`);
         const json = await res.json();
+        checkNotifications(json.data, 'iep');
         list.innerHTML = "";
         if (!json.data || json.data.length === 0) {
             list.innerHTML = `<div class="col-12 text-center text-muted py-5">無 IEP 檔案</div>`;
@@ -421,6 +521,7 @@ async function loadQuestions() {
     try {
         const res = await fetchWithAuth(`${API_URL}/api/questions`);
         const json = await res.json();
+        checkNotifications(json.data, 'question');
         renderQuestions(json.data);
     } catch (err) {
         list.innerHTML = '<p class="text-center text-danger">載入失敗</p>';
@@ -590,6 +691,7 @@ function initCalendar() {
              try {
                 const res = await fetchWithAuth(`${API_URL}/api/calendar`);
                 const json = await res.json();
+                checkNotifications(json.data, 'calendar');
                 
                 const eventsWithColor = (json.data || []).map(evt => {
                     let colorClass = 'evt-orange'; // 預設教師
