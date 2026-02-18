@@ -13,9 +13,6 @@
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link rel="icon" type="image/png" href="favicon.png">
-    <button class="header-icon-btn" id="btn-notification" title="通知中心" onclick="clearNotifications()">
-        <i class="far fa-bell"></i>
-    </button>
     <style>
         /* 提問卡片基礎樣式 */
         .card.question-card {
@@ -64,7 +61,6 @@
     </style>
 </head>
 <body>
-
     <header id="main-nav" class="app-header d-none">
         <div class="header-left">
             <div class="header-logo-icon">
@@ -77,12 +73,19 @@
         </div>
 
         <div class="header-right">
-            <button class="header-icon-btn" title="通知中心">
+            <button class="header-icon-btn" id="btn-notification" title="通知中心" onclick="clearNotifications()">
                 <i class="far fa-bell"></i>
             </button>
+
             <button class="header-icon-btn" id="btn-logout" onclick="logout()" title="登出系統">
                 <i class="fas fa-sign-out-alt"></i>
             </button>
+
+            <div class="header-divider"></div>
+
+            <div class="user-profile-group">
+                </div>
+        </div>
 
             <div class="header-divider"></div>
 
