@@ -1,11 +1,11 @@
-const API_URL = "https://special-education-platform.zeabur.app"; // 請確認這是您的正確網址
+const API_URL = "https://special-education-platform.zeabur.app"; // 您的後端網址
 let currentUser = null;
 let token = localStorage.getItem("token");
 let socket = null;
 let calendar = null;
 
 // ==========================================
-// 🔔 1. 通知系統邏輯 (Notification System)
+// 🔔 1. 通知系統邏輯 (新版)
 // ==========================================
 const NOTIF_STORAGE_KEY = 'app_notifications';
 
@@ -94,7 +94,7 @@ function toggleNotificationMenu() {
     if(menu) menu.classList.toggle('show');
 }
 
-// 標記單一已讀 (這裡簡化為點選就重繪)
+// 標記單一已讀
 function markAsRead(id) {
     const notifications = getStoredNotifications();
     const target = notifications.find(n => n.id === id);
@@ -121,66 +121,59 @@ document.addEventListener('click', function(e) {
 });
 
 // ==========================================
-// 🔗 2. Socket.io 與 初始化
+// 🔗 2. Socket.io 初始化 (事件監聽)
 // ==========================================
 
-// 初始化 Socket
 if (typeof io !== 'undefined') {
     socket = io(API_URL);
     
-    console.log("Socket initialized");
-
-    // 1. 行事曆監聽
+    // 1. 行事曆
     socket.on("calendar_update", (evt) => {
-        // 判斷是新增還是刪除 (需後端支援 action 欄位，若無則顯示通用訊息)
-        const msg = (evt.action === 'delete') ? '新增新排程/刪除排程' : '新增新排程/刪除排程';
-        addNotification('calendar', msg);
+        addNotification('calendar', '新增新排程/刪除排程');
         if(calendar) calendar.refetchEvents();
     });
 
-    // 2. IEP 上傳監聽
+    // 2. IEP
     socket.on("iep_update", () => {
         addNotification('iep', '新IEP檔案已上傳');
-        const iepSection = document.getElementById('section-iep');
-        if (iepSection && !iepSection.classList.contains('d-none')) loadIepFiles();
+        const section = document.getElementById('section-iep');
+        if(section && !section.classList.contains('d-none')) loadIepFiles();
     });
 
-    // 3. 治療紀錄監聽
+    // 3. 治療紀錄
     socket.on("record_update", () => {
         addNotification('record', '新治療紀錄已上傳');
-        const recSection = document.getElementById('section-records');
-        if (recSection && !recSection.classList.contains('d-none')) loadRecords();
+        // 這裡您可以加上重新載入紀錄的函式
     });
 
-    // 4. 留言板監聽
+    // 4. 留言板
     socket.on("message_update", (msg) => {
         if (currentUser && msg.username !== currentUser.username) {
             addNotification('message', '留言板有新訊息');
         }
-        // 即時更新畫面
+        // 即時更新畫面 (如果正在看留言板)
         const chatBox = document.getElementById('chat-box');
-        if (chatBox && currentUser) {
-            // 簡易附加，實際應呼叫 loadMessages 重新整理或 append
-            // 這裡簡單呼叫 loadMessages 確保同步
-            loadMessages(); 
+        if (chatBox && !document.getElementById('section-messages').classList.contains('d-none')) {
+            loadMessages();
         }
     });
 
-    // 5. 提問回覆監聽
+    // 5. 提問回覆
     socket.on("question_update", (q) => {
-        // 假設 q.target_role 包含當前身分
-        if (currentUser && q.target_role && q.target_role.includes(currentUser.role)) {
-            addNotification('question', '提問回覆有一則提問提及了您');
-        }
+        // 這裡簡化邏輯，只要有更新就通知
+        addNotification('question', '提問回覆有一則提問提及了您');
+        // 重新載入
         const qSection = document.getElementById('section-questions');
-        if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
+        if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 }
 
-// 頁面載入執行
+// ==========================================
+// 🛠️ 3. 頁面邏輯與資料載入
+// ==========================================
+
 document.addEventListener("DOMContentLoaded", async () => {
-    // 初始化通知介面
-    renderNotificationList();
+    renderNotificationList(); // 初始化通知介面
 
     if (token) {
         await verifyToken();
@@ -188,10 +181,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         showSection("login");
     }
 });
-
-// ==========================================
-// 🛠️ 3. API 與 資料載入函式
-// ==========================================
 
 async function verifyToken() {
     try {
@@ -203,15 +192,14 @@ async function verifyToken() {
             updateUI(currentUser);
             showSection("dashboard");
             
-            // 載入初始資料
+            // 登入成功後載入初始資料
             initCalendar();
-            loadMessages(); // 這行之前報錯，現在沒問題了
-            // loadIepFiles(); // 視需求載入
+            loadMessages(); 
         } else {
             logout();
         }
     } catch (err) {
-        console.error("Token verify failed:", err);
+        console.error("Auth check failed:", err);
         logout();
     }
 }
@@ -221,7 +209,7 @@ function updateUI(user) {
     const header = document.getElementById("main-nav");
     if(header) header.classList.remove("d-none");
     
-    // 根據身分顯示/隱藏功能
+    // 權限控制
     document.querySelectorAll(".role-restricted").forEach(el => {
         const deny = el.getAttribute("data-deny");
         if (deny && deny.includes(user.role)) {
@@ -238,10 +226,10 @@ function showSection(sectionId) {
     } else if (sectionId === 'dashboard') {
         document.getElementById("login-section").classList.add("d-none");
         document.getElementById("dashboard-section").classList.remove("d-none");
-        // 強制重繪行事曆，避免顯示問題
+        // 確保行事曆正確渲染
         setTimeout(() => { if(calendar) calendar.render(); }, 200);
     } else {
-        // 切換子功能區塊
+        // 切換子功能
         document.getElementById("empty-state").classList.add("d-none");
         document.querySelectorAll("#content-area > div").forEach(div => {
             if (div.id !== "empty-state") div.classList.add("d-none");
@@ -249,18 +237,17 @@ function showSection(sectionId) {
         const target = document.getElementById(`section-${sectionId}`);
         if (target) {
             target.classList.remove("d-none");
-            target.classList.add("animate-fade"); // 確保有動畫 class
+            target.classList.add("animate-fade");
             
-            // 根據切換的區塊載入資料
+            // 切換時載入對應資料
             if(sectionId === 'messages') loadMessages();
             if(sectionId === 'iep') loadIepFiles();
-            if(sectionId === 'questions') loadQuestions();
-            if(sectionId === 'records') loadRecords(); 
+            // if(sectionId === 'questions') loadQuestions(); // 若有實作
         }
     }
 }
 
-// --- 資料載入函式 (加上 try-catch 防止錯誤擴散) ---
+// --- 資料載入 API (已移除 checkNotifications 呼叫) ---
 
 async function loadMessages() {
     try {
@@ -276,9 +263,14 @@ async function loadMessages() {
             const isSelf = msg.username === currentUser.username;
             const div = document.createElement("div");
             div.className = `msg-row ${isSelf ? "self" : "other"}`;
+            // 根據角色顯示不同頭像
+            let sticker = 'sticker3.png'; // 預設家長
+            if (msg.role === 'teacher') sticker = 'sticker1.png';
+            if (msg.role === 'therapist') sticker = 'sticker2.png';
+
             div.innerHTML = `
                 <div class="msg-avatar">
-                    <img src="sticker${msg.role === 'teacher' ? '1' : msg.role === 'therapist' ? '2' : '3'}.png">
+                    <img src="${sticker}">
                 </div>
                 <div class="msg-bubble">
                     <span class="msg-role">${msg.role} (${msg.username})</span>
@@ -296,43 +288,34 @@ async function loadIepFiles() {
         const res = await fetch(`${API_URL}/api/iep`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
-        if(!res.ok) throw new Error("Server error");
+        if(!res.ok) throw new Error("API Error");
         const json = await res.json();
         const list = document.getElementById("iep-list");
         if(!list) return;
+        
+        if (json.data.length === 0) {
+            list.innerHTML = '<div class="col-12 text-center text-muted">暫無檔案</div>';
+            return;
+        }
+
         list.innerHTML = json.data.map(f => `
             <div class="col-md-4">
                 <div class="card p-3 shadow-sm h-100 border-0 bg-light">
                     <div class="d-flex align-items-center mb-3">
                         <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
-                        <h6 class="mb-0 fw-bold text-dark">${f.filename}</h6>
+                        <h6 class="mb-0 fw-bold text-dark text-truncate">${f.filename}</h6>
                     </div>
-                    <small class="text-muted d-block mb-3">上傳者: ${f.uploader}</small>
-                    <a href="${f.url}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+                    <small class="text-muted d-block mb-3">上傳者: ${f.uploader || f.uploaded_by}</small>
+                    <a href="${f.url || f.file_link}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
                         <i class="fas fa-download"></i> 下載檢閱
                     </a>
                 </div>
             </div>
         `).join("");
-    } catch (err) { 
-        console.error("Load IEP failed", err); 
-        // 這裡可以顯示錯誤訊息給使用者，而不是讓區塊空白
-        const list = document.getElementById("iep-list");
-        if(list) list.innerHTML = '<div class="col-12 text-center text-muted">暫無資料或載入失敗</div>';
-    }
+    } catch (err) { console.error(err); }
 }
 
-async function loadQuestions() {
-    // 請依您的後端 API 實作
-    console.log("Loading questions...");
-}
-
-async function loadRecords() {
-    // 請依您的後端 API 實作
-    console.log("Loading records...");
-}
-
-// --- 行事曆相關 ---
+// --- 行事曆功能 ---
 
 function initCalendar() {
     const el = document.getElementById('calendar');
@@ -341,34 +324,28 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(el, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
-        headerToolbar: false, // 我們使用自訂的 header
+        headerToolbar: false, 
         height: 'auto',
         events: async function(info, successCallback, failureCallback) {
             try {
                 const res = await fetch(`${API_URL}/api/calendar`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                if(!res.ok) throw new Error("Calendar fetch failed");
+                if(!res.ok) throw new Error("Fetch failed");
                 const json = await res.json();
                 
-                // 轉換顏色
                 const events = json.data.map(e => ({
                     id: e.id,
                     title: e.title,
                     start: e.start,
                     end: e.end,
-                    // 根據建立者決定顏色
-                    backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981', // 橘/綠
+                    backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981',
                     borderColor: 'transparent'
                 }));
                 successCallback(events);
-            } catch (err) {
-                console.error(err);
-                failureCallback(err);
-            }
+            } catch (err) { failureCallback(err); }
         },
         eventClick: function(info) {
-            // 點擊事件邏輯...
             Swal.fire({
                 title: info.event.title,
                 text: `時間: ${new Date(info.event.start).toLocaleString()}`,
@@ -378,7 +355,7 @@ function initCalendar() {
     });
     calendar.render();
     
-    // 綁定自訂的月份選擇器
+    // 綁定月份選擇器
     const picker = document.getElementById('calendar-month-picker');
     if(picker) {
         picker.addEventListener('change', function() {
@@ -387,7 +364,7 @@ function initCalendar() {
     }
 }
 
-// --- 登入與登出 ---
+// --- 登入/登出 ---
 
 async function login() {
     const u = document.getElementById("login-username").value;
@@ -396,23 +373,31 @@ async function login() {
     if(!u || !p) return Swal.fire("請輸入帳號密碼");
 
     try {
+        // 🟢 這裡已經修正為 /api/auth/login
         const res = await fetch(`${API_URL}/api/auth/login`, {
             method: "POST",
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: u, password: p })
         });
+        
+        // 處理非 JSON 回應 (例如 404 HTML)
+        const contentType = res.headers.get("content-type");
+        if (!contentType || !contentType.includes("application/json")) {
+            throw new Error("伺服器回應錯誤 (可能是路徑不對)");
+        }
+
         const data = await res.json();
         
         if (res.ok) {
             localStorage.setItem("token", data.token);
             token = data.token;
-            location.reload(); // 重新整理以載入正確狀態
+            location.reload(); 
         } else {
             Swal.fire("登入失敗", data.message || "帳號或密碼錯誤", "error");
         }
     } catch (err) {
         console.error(err);
-        Swal.fire("錯誤", "伺服器連線失敗", "error");
+        Swal.fire("錯誤", "伺服器連線失敗或路徑錯誤", "error");
     }
 }
 
@@ -421,7 +406,7 @@ function logout() {
     location.reload();
 }
 
-// 輔助：按 Enter 登入
+// 綁定 Enter 鍵登入
 document.addEventListener('keypress', function (e) {
     if (e.key === 'Enter' && !document.getElementById('login-section').classList.contains('d-none')) {
         login();
