@@ -221,6 +221,9 @@ function updateUI(user) {
 // ==========================================
 // 🟢 修復：完整的 showSection 函式 (負責切換畫面)
 // ==========================================
+// ==========================================
+// 🟢 這是完整的 showSection，請複製並覆蓋舊的
+// ==========================================
 function showSection(sectionId) {
     // 1. 切換到登入頁
     if (sectionId === 'login') {
@@ -233,12 +236,12 @@ function showSection(sectionId) {
         document.getElementById("login-section").classList.add("d-none");
         document.getElementById("dashboard-section").classList.remove("d-none");
         
-        // 確保行事曆在畫面顯示後重新渲染，避免跑版
+        // 確保行事曆重新渲染
         setTimeout(() => { if(calendar) calendar.render(); }, 200);
     } 
     // 3. 切換子功能 (點擊功能卡片時)
     else {
-        // 先隱藏所有內容區塊
+        // 先隱藏所有內容
         document.getElementById("empty-state").classList.add("d-none");
         document.querySelectorAll("#content-area > div").forEach(div => {
             if (div.id !== "empty-state") div.classList.add("d-none");
@@ -250,7 +253,7 @@ function showSection(sectionId) {
             target.classList.remove("d-none");
             target.classList.add("animate-fade");
             
-            // 🟢 根據切換的區塊載入對應資料
+            // 載入對應資料
             if(sectionId === 'messages') loadMessages();
             if(sectionId === 'iep') loadIepFiles();
             if(sectionId === 'questions') loadQuestions(); 
