@@ -218,25 +218,37 @@ function updateUI(user) {
     });
 }
 
-
 // ==========================================
 // 🟢 畫面切換控制功能
 // ==========================================
 function showSection(sectionId) {
-    // 1. 先把所有畫面都隱藏起來
+    // --- 1. 處理大畫面切換 (登入頁 vs 儀表板) ---
+    if (sectionId === 'login') {
+        document.getElementById('login-section').classList.remove('d-none');
+        document.getElementById('dashboard-section').classList.add('d-none');
+        return; // 切換大畫面後就停在這裡
+    } 
+    if (sectionId === 'dashboard') {
+        document.getElementById('login-section').classList.add('d-none');
+        document.getElementById('dashboard-section').classList.remove('d-none');
+        return; // 切換大畫面後就停在這裡
+    }
+
+    // --- 2. 處理四大功能卡片的切換 ---
+    // 先隱藏所有內容
     document.getElementById('empty-state').classList.add('d-none');
     document.getElementById('section-records').classList.add('d-none');
     document.getElementById('section-iep').classList.add('d-none');
     document.getElementById('section-messages').classList.add('d-none');
     document.getElementById('section-questions').classList.add('d-none');
 
-    // 2. 把你要看的那個畫面顯示出來
+    // 顯示點擊的內容
     const targetSection = document.getElementById('section-' + sectionId);
     if (targetSection) {
         targetSection.classList.remove('d-none');
     }
 
-    // 3. 切換過去時，順便跟後端要最新的資料
+    // 自動載入該區塊的資料
     if (sectionId === 'messages' && typeof loadMessages === 'function') loadMessages();
     if (sectionId === 'questions' && typeof loadQuestions === 'function') loadQuestions();
     if (sectionId === 'records' && typeof loadRecords === 'function') loadRecords();
