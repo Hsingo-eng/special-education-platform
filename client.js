@@ -278,17 +278,17 @@ async function loadQuestions() {
                 <div class="card question-card h-100" data-role="${q.asker_role}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge bg-light text-dark mb-2">${q.target_role === 'teacher' ? 'To: 老師' : 'To: 治療師'}</span>
+                            <span class="badge bg-light text-dark mb-2">To: ${q.target_role || '所有人'}</span>
                             <small class="text-muted">${q.date}</small>
                         </div>
                         <h5 class="card-title">${q.asker_name} 問：</h5>
                         <p class="card-text">${q.question}</p>
                         ${q.reply ? `
                             <div class="bg-light rounded p-3 mt-3">
-                                <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name} 回覆：</small>
+                                <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name || '回覆者'} 回覆：</small>
                                 <p class="mb-0 mt-1 text-secondary">${q.reply}</p>
                             </div>
-                        ` : `<span class="badge bg-warning text-dark">待回覆</span>`}
+                        ` : `<span class="badge bg-warning text-dark mt-2">待回覆</span>`}
                     </div>
                 </div>
             </div>
@@ -310,18 +310,27 @@ async function loadRecords() {
             return;
         }
 
+        // 🟢 對齊：使用您截圖中豐富的專項欄位來組合畫面
         list.innerHTML = json.data.map(r => `
             <div class="list-group-item p-4 mb-3 border rounded-3 shadow-sm bg-white">
-                <div class="d-flex w-100 justify-content-between mb-2">
-                    <h5 class="mb-1 fw-bold text-primary"><i class="fas fa-notes-medical me-2"></i>治療紀錄</h5>
-                    <small class="text-muted">${r.date}</small>
+                <div class="d-flex w-100 justify-content-between mb-3">
+                    <h5 class="mb-1 fw-bold text-success"><i class="fas fa-notes-medical me-2"></i>治療紀錄 (${r.session_Type || '未分類'})</h5>
+                    <span class="badge bg-light text-dark border">${r.date}</span>
                 </div>
-                <p class="mb-1 text-dark" style="white-space: pre-line;">${r.content}</p>
-                <small class="text-muted">治療師：${r.therapist_name}</small>
-                ${r.teacher_reply ? `
-                    <div class="mt-3 p-3 bg-light rounded border-start border-4 border-success">
-                        <small class="fw-bold text-success">老師回覆：</small>
-                        <p class="mb-0 mt-1">${r.teacher_reply}</p>
+                <div class="mb-3 text-dark" style="font-size: 0.95rem; line-height: 1.6;">
+                    ${r.comp_content ? `<div><strong class="text-primary">語言理解：</strong>${r.comp_content} <span class="text-muted">(${r.comp_perf})</span></div>` : ''}
+                    ${r.exp_content ? `<div><strong class="text-success">語言表達：</strong>${r.exp_content} <span class="text-muted">(${r.exp_perf})</span></div>` : ''}
+                    ${r.art_content ? `<div><strong class="text-warning">構音練習：</strong>${r.art_content} <span class="text-muted">(${r.art_perf})</span></div>` : ''}
+                    ${r.comm_content ? `<div><strong class="text-info">溝通互動：</strong>${r.comm_content} <span class="text-muted">(${r.comm_perf})</span></div>` : ''}
+                </div>
+                <div class="d-flex gap-2 mb-2">
+                    <span class="badge bg-secondary">參與度: ${r.participation || '無紀錄'}</span>
+                    <span class="badge bg-secondary">策略: ${r.strategies || '無紀錄'}</span>
+                </div>
+                ${r.remarks ? `
+                    <div class="mt-3 p-3 bg-light rounded border-start border-4 border-secondary">
+                        <small class="fw-bold text-secondary">補充事項：</small>
+                        <p class="mb-0 mt-1">${r.remarks}</p>
                     </div>
                 ` : ''}
             </div>
@@ -342,11 +351,12 @@ async function loadMessages() {
         
         chatBox.innerHTML = "";
         json.data.forEach(msg => {
-            const isSelf = msg.username === currentUser.username;
+            // 🟢 對齊：使用 user_name
+            const isSelf = msg.user_name === currentUser.username; 
             const div = document.createElement("div");
             div.className = `msg-row ${isSelf ? "self" : "other"}`;
-            // 根據角色顯示不同頭像
-            let sticker = 'sticker3.png'; // 預設家長
+            
+            let sticker = 'sticker3.png'; 
             if (msg.role === 'teacher') sticker = 'sticker1.png';
             if (msg.role === 'therapist') sticker = 'sticker2.png';
 
@@ -355,9 +365,8 @@ async function loadMessages() {
                     <img src="${sticker}">
                 </div>
                 <div class="msg-bubble">
-                    <span class="msg-role">${msg.role} (${msg.username})</span>
-                    ${msg.text}
-                </div>
+                    <span class="msg-role">${msg.role} (${msg.user_name})</span>
+                    ${msg.message} </div>
             `;
             chatBox.appendChild(div);
         });
@@ -387,8 +396,8 @@ async function loadIepFiles() {
                         <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
                         <h6 class="mb-0 fw-bold text-dark text-truncate">${f.filename}</h6>
                     </div>
-                    <small class="text-muted d-block mb-3">上傳者: ${f.uploader || f.uploaded_by}</small>
-                    <a href="${f.url || f.file_link}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+                    <small class="text-muted d-block mb-3">上傳者: ${f.uploaded_by}</small>
+                    <a href="${f.file_link}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
                         <i class="fas fa-download"></i> 下載檢閱
                     </a>
                 </div>
