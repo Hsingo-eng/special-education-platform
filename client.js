@@ -328,6 +328,9 @@ async function loadRecords() {
     } catch (err) { console.error("Load records failed:", err); }
 }
 
+// ==========================================
+// 💬 載入留言板 (修正靠右判斷與純中文身分)
+// ==========================================
 async function loadMessages() {
     try {
         const res = await fetch(`${API_URL}/api/messages`, {
@@ -339,18 +342,27 @@ async function loadMessages() {
         
         chatBox.innerHTML = "";
         json.data.forEach(msg => {
-            const isSelf = msg.user_name === currentUser.username; 
+            // 🟢 強化判斷：只要角色一樣就當作自己發的，解決 teacher 與 老師 文字不對等的問題
+            const isSelf = (msg.user_name === currentUser.username) || (msg.role === currentUser.role); 
             const div = document.createElement("div");
             div.className = `msg-row ${isSelf ? "self" : "other"}`;
             
             let sticker = 'sticker3.png'; 
-            if (msg.role === 'teacher') sticker = 'sticker1.png';
-            if (msg.role === 'therapist') sticker = 'sticker2.png';
+            let displayRole = '家長'; // 🟢 設定純中文身分
 
+            if (msg.role === 'teacher') {
+                sticker = 'sticker1.png';
+                displayRole = '教師';
+            } else if (msg.role === 'therapist') {
+                sticker = 'sticker2.png';
+                displayRole = '治療師';
+            }
+
+            // 🟢 移除了括號與英文，只顯示純中文身分
             div.innerHTML = `
                 <div class="msg-avatar"><img src="${sticker}"></div>
                 <div class="msg-bubble">
-                    <span class="msg-role">${msg.role} (${msg.user_name})</span>
+                    <span class="msg-role">${displayRole}</span>
                     ${msg.message}
                 </div>
             `;
@@ -558,26 +570,52 @@ function handleEnter(e) {
     }
 }
 
-// 3️⃣ 提問功能 (彈出精美輸入框)
+// ==========================================
+// ❓ 新增提問 (改為多選 checkbox)
+// ==========================================
 function openQuestionModal() { 
     Swal.fire({
         title: '新增提問',
         html: `
-            <select id="swal-q-target" class="swal2-select" style="width: 80%; font-size: 16px;">
-                <option value="teacher">問老師</option>
-                <option value="therapist">問治療師</option>
-                <option value="parents">問家長</option>
-            </select>
-            <textarea id="swal-q-text" class="swal2-textarea" placeholder="請輸入您的問題..." style="width: 80%;"></textarea>
+            <div class="mb-3 text-start" style="width: 80%; margin: 0 auto;">
+                <label class="form-label text-secondary small fw-bold mb-2">選擇提問對象 (可複選)：</label>
+                <div class="d-flex justify-content-start gap-4 mb-3">
+                    <div class="form-check">
+                        <input class="form-check-input q-target-cb" type="checkbox" value="teacher" id="q-tgt-teacher">
+                        <label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;">老師</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input q-target-cb" type="checkbox" value="therapist" id="q-tgt-therapist">
+                        <label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;">治療師</label>
+                    </div>
+                    <div class="form-check">
+                        <input class="form-check-input q-target-cb" type="checkbox" value="parents" id="q-tgt-parents">
+                        <label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;">家長</label>
+                    </div>
+                </div>
+            </div>
+            <textarea id="swal-q-text" class="swal2-textarea mt-0" placeholder="請輸入您的問題..." style="width: 80%;"></textarea>
         `,
         showCancelButton: true,
         confirmButtonText: '送出提問',
         cancelButtonText: '取消',
         preConfirm: () => {
-            const target = document.getElementById('swal-q-target').value;
+            // 🟢 抓取所有被打勾的選項
+            const checkedBoxes = document.querySelectorAll('.q-target-cb:checked');
+            const targets = Array.from(checkedBoxes).map(cb => cb.value).join(',');
             const question = document.getElementById('swal-q-text').value.trim();
-            if (!question) Swal.showValidationMessage('問題內容不能為空白！');
-            return { target_role: target, question: question };
+            
+            // 阻擋未填寫狀態
+            if (!targets) {
+                Swal.showValidationMessage('請至少勾選一個提問對象！');
+                return false;
+            }
+            if (!question) {
+                Swal.showValidationMessage('問題內容不能為空白！');
+                return false;
+            }
+            
+            return { target_role: targets, question: question };
         }
     }).then(async (result) => {
         if (result.isConfirmed) {
