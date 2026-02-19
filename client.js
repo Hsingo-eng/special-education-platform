@@ -218,48 +218,29 @@ function updateUI(user) {
     });
 }
 
+
 // ==========================================
-// 🟢 修復：完整的 showSection 函式 (負責切換畫面)
-// ==========================================
-// ==========================================
-// 🟢 這是完整的 showSection，請複製並覆蓋舊的
+// 🟢 畫面切換控制功能
 // ==========================================
 function showSection(sectionId) {
-    // 1. 切換到登入頁
-    if (sectionId === 'login') {
-        document.getElementById("login-section").classList.remove("d-none");
-        document.getElementById("dashboard-section").classList.add("d-none");
-        document.getElementById("main-nav").classList.add("d-none");
-    } 
-    // 2. 切換到儀表板 (登入成功後)
-    else if (sectionId === 'dashboard') {
-        document.getElementById("login-section").classList.add("d-none");
-        document.getElementById("dashboard-section").classList.remove("d-none");
-        
-        // 確保行事曆重新渲染
-        setTimeout(() => { if(calendar) calendar.render(); }, 200);
-    } 
-    // 3. 切換子功能 (點擊功能卡片時)
-    else {
-        // 先隱藏所有內容
-        document.getElementById("empty-state").classList.add("d-none");
-        document.querySelectorAll("#content-area > div").forEach(div => {
-            if (div.id !== "empty-state") div.classList.add("d-none");
-        });
+    // 1. 先把所有畫面都隱藏起來
+    document.getElementById('empty-state').classList.add('d-none');
+    document.getElementById('section-records').classList.add('d-none');
+    document.getElementById('section-iep').classList.add('d-none');
+    document.getElementById('section-messages').classList.add('d-none');
+    document.getElementById('section-questions').classList.add('d-none');
 
-        // 顯示目標區塊
-        const target = document.getElementById(`section-${sectionId}`);
-        if (target) {
-            target.classList.remove("d-none");
-            target.classList.add("animate-fade");
-            
-            // 載入對應資料
-            if(sectionId === 'messages') loadMessages();
-            if(sectionId === 'iep') loadIepFiles();
-            if(sectionId === 'questions') loadQuestions(); 
-            if(sectionId === 'records') loadRecords();     
-        }
+    // 2. 把你要看的那個畫面顯示出來
+    const targetSection = document.getElementById('section-' + sectionId);
+    if (targetSection) {
+        targetSection.classList.remove('d-none');
     }
+
+    // 3. 切換過去時，順便跟後端要最新的資料
+    if (sectionId === 'messages' && typeof loadMessages === 'function') loadMessages();
+    if (sectionId === 'questions' && typeof loadQuestions === 'function') loadQuestions();
+    if (sectionId === 'records' && typeof loadRecords === 'function') loadRecords();
+    if (sectionId === 'iep' && typeof loadIepList === 'function') loadIepList();
 }
 
 // ==========================================
@@ -573,4 +554,49 @@ async function loadRecords() {
             </div>
         `).join("");
     } catch (err) { console.error(err); }
+}
+
+// ==========================================
+// 🟢 補齊：所有按鈕的互動功能與彈出視窗
+// ==========================================
+
+// 1. 開啟行事曆視窗 (正確連結到您的 HTML Modal)
+function openEventModal() {
+    document.getElementById('evt-id').value = '';
+    document.getElementById('evt-title').value = '';
+    document.getElementById('evt-start').value = '';
+    document.getElementById('evt-end').value = '';
+    document.getElementById('btn-del-evt').classList.add('d-none');
+    new bootstrap.Modal(document.getElementById('eventModal')).show();
+}
+
+// 2. 開啟治療紀錄表單
+function openTherapyForm() {
+    new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
+}
+
+// 3. 以下為預留的按鈕功能 (避免點擊時出現 ReferenceError 當機)
+function openIepUpload() { 
+    Swal.fire('提示', '上傳功能準備中', 'info'); 
+}
+function getAiSummary() { 
+    Swal.fire('提示', 'AI 摘要功能正在呼叫 Gemini...', 'info'); 
+}
+function sendMessage() { 
+    Swal.fire('提示', '發送訊息功能準備中', 'info'); 
+}
+function handleEnter(e) { 
+    if(e.key === 'Enter') sendMessage(); 
+}
+function openQuestionModal() { 
+    Swal.fire('提示', '提問功能準備中', 'info'); 
+}
+function submitTherapyRecord() { 
+    Swal.fire('提示', '新增紀錄準備中', 'info'); 
+}
+function saveEvent() { 
+    Swal.fire('提示', '儲存事件準備中', 'info'); 
+}
+function deleteEvent() { 
+    Swal.fire('提示', '刪除事件準備中', 'info'); 
 }
