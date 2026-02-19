@@ -497,9 +497,10 @@ document.addEventListener('keypress', function (e) {
 });
 
 // ==========================================
-// 🔘 8. 所有按鈕的互動功能與彈出視窗
+// 🔘 8. 所有按鈕的互動功能與彈出視窗 (真實運作版)
 // ==========================================
 
+// 1️⃣ 開啟行事曆視窗 (已完成)
 function openEventModal() {
     document.getElementById('evt-id').value = '';
     document.getElementById('evt-title').value = '';
@@ -509,31 +510,174 @@ function openEventModal() {
     new bootstrap.Modal(document.getElementById('eventModal')).show();
 }
 
+// 📅 儲存行事曆事件
+async function saveEvent() { 
+    const title = document.getElementById('evt-title').value;
+    const start = document.getElementById('evt-start').value;
+    const end = document.getElementById('evt-end').value;
+
+    if(!title || !start) return Swal.fire('提示', '請填寫標題與開始時間', 'warning');
+
+    try {
+        const res = await fetch(`${API_URL}/api/calendar`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ title, start, end })
+        });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+            Swal.fire('成功', '事件已新增', 'success');
+            if(calendar) calendar.refetchEvents(); // 刷新行事曆
+        } else throw new Error('伺服器錯誤');
+    } catch(e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
+}
+
+// 2️⃣ 發送留言板訊息
+async function sendMessage() { 
+    const input = document.getElementById('msg-input');
+    const text = input.value.trim();
+    if (!text) return; 
+
+    try {
+        const res = await fetch(`${API_URL}/api/messages`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ message: text }) 
+        });
+        if (res.ok) {
+            input.value = ''; 
+            loadMessages(); // 刷新留言板
+        } else throw new Error('發送失敗');
+    } catch (err) { Swal.fire('錯誤', '無法連線到伺服器', 'error'); }
+}
+
+function handleEnter(e) { 
+    if(e.key === 'Enter') {
+        e.preventDefault();
+        sendMessage(); 
+    }
+}
+
+// 3️⃣ 提問功能 (彈出精美輸入框)
+function openQuestionModal() { 
+    Swal.fire({
+        title: '新增提問',
+        html: `
+            <select id="swal-q-target" class="swal2-select" style="width: 80%; font-size: 16px;">
+                <option value="teacher">問老師</option>
+                <option value="therapist">問治療師</option>
+                <option value="parents">問家長</option>
+            </select>
+            <textarea id="swal-q-text" class="swal2-textarea" placeholder="請輸入您的問題..." style="width: 80%;"></textarea>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '送出提問',
+        cancelButtonText: '取消',
+        preConfirm: () => {
+            const target = document.getElementById('swal-q-target').value;
+            const question = document.getElementById('swal-q-text').value.trim();
+            if (!question) Swal.showValidationMessage('問題內容不能為空白！');
+            return { target_role: target, question: question };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${API_URL}/api/questions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(result.value)
+                });
+                if (res.ok) {
+                    Swal.fire('成功', '提問已送出！', 'success');
+                    loadQuestions(); // 刷新提問列表
+                } else throw new Error('伺服器錯誤');
+            } catch (err) { Swal.fire('錯誤', '送出失敗，請檢查後端設定', 'error'); }
+        }
+    });
+}
+
+// 4️⃣ 開啟治療紀錄表單
 function openTherapyForm() {
     new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
 }
 
+// 📝 提交治療紀錄表單
+async function submitTherapyRecord() { 
+    const date = document.getElementById('form-date').value;
+    if(!date) return Swal.fire('提示', '請至少填寫課程日期', 'warning');
+
+    // 自動收集表單內容
+    const payload = {
+        date: date,
+        session_Type: document.querySelector('input[name="form-type"]:checked')?.value || '',
+        duration: document.getElementById('form-duration')?.value || '',
+        comp_content: document.getElementById('input-comp-content')?.value || '',
+        comp_perf: document.getElementById('select-comp-perf')?.value || '',
+        exp_content: document.getElementById('input-exp-content')?.value || '',
+        exp_perf: document.getElementById('select-exp-perf')?.value || '',
+        art_content: document.getElementById('input-art-content')?.value || '',
+        art_perf: document.getElementById('select-art-perf')?.value || '',
+        comm_content: document.getElementById('input-comm-content')?.value || '',
+        comm_perf: document.getElementById('select-comm-perf')?.value || '',
+        remarks: document.getElementById('input-remarks')?.value || ''
+    };
+
+    try {
+        const res = await fetch(`${API_URL}/api/records`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify(payload)
+        });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
+            Swal.fire('成功', '治療紀錄已新增', 'success');
+            loadRecords(); // 刷新紀錄列表
+        } else throw new Error('錯誤');
+    } catch(e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
+}
+
+// 5️⃣ 上傳 IEP 檔案
 function openIepUpload() { 
-    Swal.fire('提示', '上傳功能準備中', 'info'); 
+    Swal.fire({
+        title: '上傳 IEP 檔案',
+        input: 'file',
+        inputAttributes: {
+            'accept': '.pdf,.doc,.docx',
+            'aria-label': '請選擇您的檔案'
+        },
+        showCancelButton: true,
+        confirmButtonText: '確定上傳',
+        cancelButtonText: '取消',
+        showLoaderOnConfirm: true,
+        preConfirm: (file) => {
+            if (!file) return Swal.showValidationMessage('請選擇一個檔案');
+            const formData = new FormData();
+            formData.append('file', file);
+            
+            return fetch(`${API_URL}/api/iep`, {
+                method: 'POST',
+                headers: { 'Authorization': `Bearer ${token}` }, // 檔案上傳不需設定 Content-Type，瀏覽器會自動處理
+                body: formData
+            }).then(res => {
+                if (!res.ok) throw new Error('伺服器錯誤');
+                return res.json();
+            }).catch(error => Swal.showValidationMessage(`上傳失敗，請確認後端是否支援檔案上傳`));
+        },
+        allowOutsideClick: () => !Swal.isLoading()
+    }).then((result) => {
+        if (result.isConfirmed) {
+            Swal.fire('成功', '檔案已成功上傳', 'success');
+            loadIepFiles(); // 刷新檔案列表
+        }
+    });
 }
+
+// 6️⃣ AI 重點摘要 (保留骨架，待後端 Gemini 介接)
 function getAiSummary() { 
-    Swal.fire('提示', 'AI 摘要功能正在呼叫 Gemini...', 'info'); 
+    Swal.fire('提示', '前台已經呼叫，需確認後端 server.js 是否有寫好 Gemini API 路由', 'info'); 
 }
-function sendMessage() { 
-    Swal.fire('提示', '發送訊息功能準備中', 'info'); 
-}
-function handleEnter(e) { 
-    if(e.key === 'Enter') sendMessage(); 
-}
-function openQuestionModal() { 
-    Swal.fire('提示', '提問功能準備中', 'info'); 
-}
-function submitTherapyRecord() { 
-    Swal.fire('提示', '新增紀錄準備中', 'info'); 
-}
-function saveEvent() { 
-    Swal.fire('提示', '儲存事件準備中', 'info'); 
-}
+
+// ❌ 刪除事件 (暫留空)
 function deleteEvent() { 
-    Swal.fire('提示', '刪除事件準備中', 'info'); 
+    Swal.fire('提示', '刪除事件功能準備中', 'info'); 
 }
