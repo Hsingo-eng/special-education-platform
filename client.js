@@ -185,10 +185,27 @@ async function verifyToken() {
 }
 
 function updateUI(user) {
-    document.getElementById("nav-user-info").innerText = `${user.role} | ${user.username}`;
+    // 1. 判斷中文身分與對應的小怪獸頭貼
+    let roleName = '家長';
+    let avatarSrc = 'sticker3.png'; // 預設家長怪獸
+    
+    if (user.role === 'teacher') {
+        roleName = '教師';
+        avatarSrc = 'sticker1.png'; // 教師怪獸
+    } else if (user.role === 'therapist') {
+        roleName = '治療師';
+        avatarSrc = 'sticker2.png'; // 治療師怪獸
+    }
+
+    // 2. 更新右上角的文字與頭貼
+    document.getElementById("nav-user-info").innerText = `${roleName} | ${user.username}`;
+    document.getElementById("header-user-avatar").src = avatarSrc;
+
+    // 3. 顯示 Header
     const header = document.getElementById("main-nav");
     if(header) header.classList.remove("d-none");
     
+    // 4. 權限控制 (隱藏無權限的按鈕)
     document.querySelectorAll(".role-restricted").forEach(el => {
         const deny = el.getAttribute("data-deny");
         if (deny && deny.includes(user.role)) {
@@ -387,7 +404,12 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(el, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
-        headerToolbar: false, 
+        // 🟢 把隱藏的工具列打開，左邊放切換箭頭，中間放月份標題！
+        headerToolbar: {
+            left: 'prev,next today',
+            center: 'title',
+            right: 'dayGridMonth,timeGridWeek'
+        },
         height: 'auto',
         events: async function(info, successCallback, failureCallback) {
             try {
