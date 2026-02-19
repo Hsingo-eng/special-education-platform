@@ -309,28 +309,21 @@
                 <div class="modal-body p-4" style="background-color: #F6F8FA;">
                     <form id="therapyForm">
                         <div class="platform-card mb-3 p-3">
-                            <h6 class="fw-bold text-primary mb-3">▍課程基本資訊</h6>
-                            <div class="row g-3">
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-secondary">課程日期</label>
-                                    <input type="date" class="form-control" id="form-date" required>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-secondary">形式</label>
-                                    <div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="form-type" value="小組" id="type-group">
-                                            <label class="form-check-label" for="type-group">小組</label>
+                            <h6 class="fw-bold text-primary mb-2">▍幼兒參與狀況</h6>
+                            <div class="row g-2">
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="積極參與" id="part-active"><label class="form-check-label" for="part-active">積極參與</label></div></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="感興趣" id="part-interest"><label class="form-check-label" for="part-interest">感興趣</label></div></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="易分心" id="part-distracted"><label class="form-check-label" for="part-distracted">易分心</label></div></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="投入度低" id="part-low"><label class="form-check-label" for="part-low">投入度低</label></div></div>
+                                
+                                <div class="col-12 mt-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check mb-0 me-2">
+                                            <input class="form-check-input" type="checkbox" id="check-part-other" onchange="document.getElementById('input-part-other').disabled = !this.checked">
+                                            <label class="form-check-label" for="check-part-other">其他</label>
                                         </div>
-                                        <div class="form-check form-check-inline">
-                                            <input class="form-check-input" type="radio" name="form-type" value="個別" id="type-indiv" checked>
-                                            <label class="form-check-label" for="type-indiv">個別</label>
-                                        </div>
+                                        <input type="text" class="form-control form-control-sm" id="input-part-other" placeholder="請填寫其他狀況" disabled style="max-width: 250px;">
                                     </div>
-                                </div>
-                                <div class="col-md-4">
-                                    <label class="form-label small fw-bold text-secondary">時長 (分鐘)</label>
-                                    <input type="number" class="form-control" id="form-duration" placeholder="例如: 30">
                                 </div>
                             </div>
                         </div>
@@ -339,9 +332,12 @@
                             <h6 class="fw-bold text-primary mb-2">▍本堂課程學習內容及目標</h6>
                             
                             <div class="mb-3 border-bottom pb-3">
-                                <div class="form-check"><input class="form-check-input area-toggle" type="checkbox" id="check-comp" data-target="area-comp"><label class="form-check-label fw-bold" for="check-comp">語言理解</label></div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-comp" onchange="document.getElementById('area-comp').classList.toggle('d-none', !this.checked)">
+                                    <label class="form-check-label fw-bold" for="check-comp">語言理解</label>
+                                </div>
                                 <div id="area-comp" class="d-none mt-2 ps-3 border-start border-3 border-primary bg-white p-2">
-                                    <input type="text" class="form-control form-control-sm mb-2" id="input-comp-content" placeholder="活動內容">
+                                    <input type="text" class="form-control form-control-sm mb-2" id="input-comp-content" placeholder="請填寫學習內容">
                                     <select class="form-select form-select-sm" id="select-comp-perf">
                                         <option value="" disabled selected class="text-secondary">選擇幼兒表現</option>
                                         <option>能獨立完成</option><option>在少量提醒下完成</option><option>需較多引導</option><option>仍需練習</option>
@@ -349,9 +345,12 @@
                                 </div>
                             </div>
                             <div class="mb-3 border-bottom pb-3">
-                                <div class="form-check"><input class="form-check-input area-toggle" type="checkbox" id="check-exp" data-target="area-exp"><label class="form-check-label fw-bold" for="check-exp">語言表達</label></div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-exp" onchange="document.getElementById('area-exp').classList.toggle('d-none', !this.checked)">
+                                    <label class="form-check-label fw-bold" for="check-exp">語言表達</label>
+                                </div>
                                 <div id="area-exp" class="d-none mt-2 ps-3 border-start border-3 border-success bg-white p-2">
-                                    <input type="text" class="form-control form-control-sm mb-2" id="input-exp-content" placeholder="活動內容">
+                                    <input type="text" class="form-control form-control-sm mb-2" id="input-exp-content" placeholder="請填寫學習內容">
                                     <select class="form-select form-select-sm" id="select-exp-perf">
                                         <option value="" disabled selected class="text-secondary">選擇幼兒表現</option>
                                         <option>能獨立完成</option><option>在少量提醒下完成</option><option>需較多引導</option><option>仍需練習</option>
@@ -359,9 +358,12 @@
                                 </div>
                             </div>
                             <div class="mb-3 border-bottom pb-3">
-                                <div class="form-check"><input class="form-check-input area-toggle" type="checkbox" id="check-art" data-target="area-art"><label class="form-check-label fw-bold" for="check-art">構音練習</label></div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-art" onchange="document.getElementById('area-art').classList.toggle('d-none', !this.checked)">
+                                    <label class="form-check-label fw-bold" for="check-art">構音練習</label>
+                                </div>
                                 <div id="area-art" class="d-none mt-2 ps-3 border-start border-3 border-warning bg-white p-2">
-                                    <input type="text" class="form-control form-control-sm mb-2" id="input-art-content" placeholder="活動內容">
+                                    <input type="text" class="form-control form-control-sm mb-2" id="input-art-content" placeholder="請填寫學習內容">
                                     <select class="form-select form-select-sm" id="select-art-perf">
                                         <option value="" disabled selected class="text-secondary">選擇幼兒表現</option>
                                         <option>能獨立完成</option><option>在少量提醒下完成</option><option>需較多引導</option><option>仍需練習</option>
@@ -369,9 +371,12 @@
                                 </div>
                             </div>
                             <div class="mb-3">
-                                <div class="form-check"><input class="form-check-input area-toggle" type="checkbox" id="check-comm" data-target="area-comm"><label class="form-check-label fw-bold" for="check-comm">溝通互動</label></div>
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" id="check-comm" onchange="document.getElementById('area-comm').classList.toggle('d-none', !this.checked)">
+                                    <label class="form-check-label fw-bold" for="check-comm">溝通互動</label>
+                                </div>
                                 <div id="area-comm" class="d-none mt-2 ps-3 border-start border-3 border-info bg-white p-2">
-                                    <input type="text" class="form-control form-control-sm mb-2" id="input-comm-content" placeholder="活動內容">
+                                    <input type="text" class="form-control form-control-sm mb-2" id="input-comm-content" placeholder="請填寫學習內容">
                                     <select class="form-select form-select-sm" id="select-comm-perf">
                                         <option value="" disabled selected class="text-secondary">選擇幼兒表現</option>
                                         <option>能獨立完成</option><option>在少量提醒下完成</option><option>需較多引導</option><option>仍需練習</option>
@@ -381,31 +386,33 @@
                         </div>
 
                         <div class="platform-card mb-3 p-3">
-                            <h6 class="fw-bold text-primary mb-2">▍參與狀況</h6>
+                            <h6 class="fw-bold text-primary mb-2">▍幼兒參與狀況</h6>
                             <div class="row g-2">
-                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="積極參與"><label class="form-check-label">積極參與</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="感興趣"><label class="form-check-label">感興趣</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="易分心"><label class="form-check-label">易分心</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="投入度低"><label class="form-check-label">投入度低</label></div></div>
-                                <div class="col-12 input-group input-group-sm"><div class="input-group-text"><input type="checkbox" id="check-part-other" class="form-check-input mt-0"> 其他</div><input type="text" id="input-part-other" class="form-control"></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="積極參與" id="part-active"><label class="form-check-label" for="part-active">積極參與</label></div></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="感興趣" id="part-interest"><label class="form-check-label" for="part-interest">感興趣</label></div></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="易分心" id="part-distracted"><label class="form-check-label" for="part-distracted">易分心</label></div></div>
+                                <div class="col-6"><div class="form-check"><input class="check-part form-check-input" type="checkbox" value="投入度低" id="part-low"><label class="form-check-label" for="part-low">投入度低</label></div></div>
+                                
+                                <div class="col-12 mt-2">
+                                    <div class="d-flex align-items-center">
+                                        <div class="form-check mb-0 me-2">
+                                            <input class="form-check-input" type="checkbox" id="check-part-other" onchange="document.getElementById('input-part-other').disabled = !this.checked">
+                                            <label class="form-check-label" for="check-part-other">其他</label>
+                                        </div>
+                                        <input type="text" class="form-control form-control-sm" id="input-part-other" placeholder="請填寫其他狀況" disabled style="max-width: 250px;">
+                                    </div>
+                                </div>
                             </div>
                         </div>
 
                         <div class="platform-card mb-3 p-3">
-                            <h6 class="fw-bold text-primary mb-2">▍延伸策略</h6>
-                            <div class="row g-2">
-                                <div class="col-6"><div class="form-check"><input class="check-strat form-check-input" type="checkbox" value="無"><label class="form-check-label">無</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-strat form-check-input" type="checkbox" value="指令搭配動作"><label class="form-check-label">指令搭配動作</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-strat form-check-input" type="checkbox" value="放慢語速"><label class="form-check-label">放慢語速</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-strat form-check-input" type="checkbox" value="鼓勵思考"><label class="form-check-label">鼓勵思考</label></div></div>
-                                <div class="col-6"><div class="form-check"><input class="check-strat form-check-input" type="checkbox" value="正確示範"><label class="form-check-label">正確示範</label></div></div>
-                                <div class="col-12 input-group input-group-sm"><div class="input-group-text"><input type="checkbox" id="check-strat-other" class="form-check-input mt-0"> 其他</div><input type="text" id="input-strat-other" class="form-control"></div>
-                            </div>
+                            <h6 class="fw-bold text-primary mb-2">▍班級延伸策略或建議事項</h6>
+                            <textarea class="form-control" id="input-strategies" rows="3" placeholder="請填寫班級延伸策略或建議事項"></textarea>
                         </div>
 
                         <div class="platform-card p-3">
                             <h6 class="fw-bold text-primary mb-2">▍補充事項</h6>
-                            <textarea class="form-control" id="input-remarks" rows="3" placeholder="若無可留空"></textarea>
+                            <textarea class="form-control" id="input-remarks" rows="2" placeholder="若無可留空"></textarea>
                         </div>
                     </form>
                 </div>

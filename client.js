@@ -250,11 +250,12 @@ function showSection(sectionId) {
 // 🟢 5. 四大功能資料載入 (已對齊您的 Excel 欄位)
 // ==========================================
 
+// ==========================================
+// ❓ 載入提問列表 (改為單欄排版 + 加入回覆按鈕)
+// ==========================================
 async function loadQuestions() {
     try {
-        const res = await fetch(`${API_URL}/api/questions`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await fetch(`${API_URL}/api/questions`, { headers: { "Authorization": `Bearer ${token}` } });
         const json = await res.json();
         const list = document.getElementById("questions-list");
         if (!list) return;
@@ -265,8 +266,7 @@ async function loadQuestions() {
         }
 
         list.innerHTML = json.data.map(q => `
-            <div class="col-md-6">
-                <div class="card question-card h-100" data-role="${q.asker_role}">
+            <div class="col-12 mb-3"> <div class="card question-card h-100" data-role="${q.asker_role}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
                             <span class="badge bg-light text-dark mb-2">To: ${q.target_role || '所有人'}</span>
@@ -274,12 +274,20 @@ async function loadQuestions() {
                         </div>
                         <h5 class="card-title">${q.asker_name} 問：</h5>
                         <p class="card-text">${q.question}</p>
+                        
                         ${q.reply ? `
                             <div class="bg-light rounded p-3 mt-3">
                                 <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name || '回覆者'} 回覆：</small>
                                 <p class="mb-0 mt-1 text-secondary">${q.reply}</p>
                             </div>
-                        ` : `<span class="badge bg-warning text-dark mt-2">待回覆</span>`}
+                        ` : `
+                            <div class="mt-3">
+                                <span class="badge bg-warning text-dark me-2">待回覆</span>
+                                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openReplyModal('${q.id}')">
+                                    <i class="fas fa-reply"></i> 我要回覆
+                                </button>
+                            </div>
+                        `}
                     </div>
                 </div>
             </div>
@@ -287,11 +295,52 @@ async function loadQuestions() {
     } catch (err) { console.error("Load questions failed:", err); }
 }
 
+// ==========================================
+// ↩️ 回覆問題的彈出視窗
+// ==========================================
+function openReplyModal(questionId) {
+    Swal.fire({
+        title: '回覆提問',
+        input: 'textarea',
+        inputPlaceholder: '請輸入您的回覆內容...',
+        showCancelButton: true,
+        confirmButtonText: '送出回覆',
+        cancelButtonText: '取消',
+        preConfirm: (text) => {
+            if (!text || !text.trim()) {
+                Swal.showValidationMessage('回覆內容不能為空白！');
+                return false;
+            }
+            return text.trim();
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                // 將回覆內容送到後端 (假設後端使用 PUT 方法更新該題)
+                const res = await fetch(`${API_URL}/api/questions/${questionId}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify({ reply: result.value })
+                });
+                
+                if (res.ok) {
+                    Swal.fire('成功', '回覆已送出！', 'success');
+                    loadQuestions(); // 重新整理畫面，讓回覆顯示出來
+                } else throw new Error('伺服器錯誤');
+            } catch (err) { 
+                console.error(err);
+                Swal.fire('錯誤', '送出失敗，請確認後端 server.js 是否有設定回覆路由', 'error'); 
+            }
+        }
+    });
+}
+
+// ==========================================
+// 📋 載入治療紀錄 (🟢 套用截圖中的簡潔文字排版)
+// ==========================================
 async function loadRecords() {
     try {
-        const res = await fetch(`${API_URL}/api/records`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await fetch(`${API_URL}/api/records`, { headers: { "Authorization": `Bearer ${token}` } });
         const json = await res.json();
         const list = document.getElementById("record-list");
         if (!list) return;
@@ -301,30 +350,48 @@ async function loadRecords() {
             return;
         }
 
-        list.innerHTML = json.data.map(r => `
-            <div class="list-group-item p-4 mb-3 border rounded-3 shadow-sm bg-white">
-                <div class="d-flex w-100 justify-content-between mb-3">
-                    <h5 class="mb-1 fw-bold text-success"><i class="fas fa-notes-medical me-2"></i>治療紀錄 (${r.session_Type || '未分類'})</h5>
-                    <span class="badge bg-light text-dark border">${r.date}</span>
+        list.innerHTML = json.data.map(r => {
+            // 整理學習內容 (只顯示有勾選的類別名稱，保持畫面乾淨)
+            let learningContent = [];
+            if(r.comp_content) learningContent.push(`語言理解`);
+            if(r.exp_content) learningContent.push(`語言表達`);
+            if(r.art_content) learningContent.push(`構音練習`);
+            if(r.comm_content) learningContent.push(`溝通互動`);
+            let learningStr = learningContent.length > 0 ? learningContent.join(' / ') : '無';
+
+            return `
+            <div class="list-group-item p-4 mb-4 border rounded-3 shadow-sm bg-white position-relative">
+                <div class="position-absolute top-0 end-0 p-3">
+                    <span class="text-secondary small">${r.date}</span>
                 </div>
-                <div class="mb-3 text-dark" style="font-size: 0.95rem; line-height: 1.6;">
-                    ${r.comp_content ? `<div><strong class="text-primary">語言理解：</strong>${r.comp_content} <span class="text-muted">(${r.comp_perf})</span></div>` : ''}
-                    ${r.exp_content ? `<div><strong class="text-success">語言表達：</strong>${r.exp_content} <span class="text-muted">(${r.exp_perf})</span></div>` : ''}
-                    ${r.art_content ? `<div><strong class="text-warning">構音練習：</strong>${r.art_content} <span class="text-muted">(${r.art_perf})</span></div>` : ''}
-                    ${r.comm_content ? `<div><strong class="text-info">溝通互動：</strong>${r.comm_content} <span class="text-muted">(${r.comm_perf})</span></div>` : ''}
+                
+                <h5 class="mb-4 text-dark fw-bold" style="letter-spacing: 1px;">治療紀錄</h5>
+                
+                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
+                    <span class="fw-bold me-1">形式：</span>${r.session_Type || '未填寫'}
                 </div>
-                <div class="d-flex gap-2 mb-2">
-                    <span class="badge bg-secondary">參與度: ${r.participation || '無'}</span>
-                    <span class="badge bg-secondary">策略: ${r.strategies || '無'}</span>
+                
+                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
+                    <span class="fw-bold me-1">學習內容：</span>${learningStr}
                 </div>
-                ${r.remarks ? `
-                    <div class="mt-3 p-3 bg-light rounded border-start border-4 border-secondary">
-                        <small class="fw-bold text-secondary">補充事項：</small>
-                        <p class="mb-0 mt-1">${r.remarks}</p>
-                    </div>
-                ` : ''}
+                
+                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
+                    <span class="fw-bold me-1">參與度：</span>${r.participation || '無'}
+                </div>
+                
+                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
+                    <span class="fw-bold me-1">延伸策略：</span>${r.strategies || '無'}
+                </div>
+                
+                <div class="mb-1 text-dark" style="font-size: 1.05rem;">
+                    <span class="fw-bold me-1">補充事項：</span>${r.remarks || '無'}
+                </div>
+                
+                <div class="mt-4 text-end text-muted small">
+                    治療師：${r.therapist_name || '未記錄'}
+                </div>
             </div>
-        `).join("");
+        `}).join("");
     } catch (err) { console.error("Load records failed:", err); }
 }
 
@@ -644,11 +711,19 @@ async function submitTherapyRecord() {
     const date = document.getElementById('form-date').value;
     if(!date) return Swal.fire('提示', '請至少填寫課程日期', 'warning');
 
-    // 自動收集表單內容
+    // 🟢 抓取「幼兒參與狀況」有打勾的項目，並包含「其他」輸入框內的文字
+    let partChecked = Array.from(document.querySelectorAll('.check-part:checked')).map(cb => cb.value);
+    const otherCheckbox = document.getElementById('check-part-other');
+    if (otherCheckbox && otherCheckbox.checked) {
+        const otherText = document.getElementById('input-part-other').value.trim();
+        if (otherText) partChecked.push(otherText);
+    }
+
     const payload = {
         date: date,
         session_Type: document.querySelector('input[name="form-type"]:checked')?.value || '',
         duration: document.getElementById('form-duration')?.value || '',
+        
         comp_content: document.getElementById('input-comp-content')?.value || '',
         comp_perf: document.getElementById('select-comp-perf')?.value || '',
         exp_content: document.getElementById('input-exp-content')?.value || '',
@@ -657,6 +732,9 @@ async function submitTherapyRecord() {
         art_perf: document.getElementById('select-art-perf')?.value || '',
         comm_content: document.getElementById('input-comm-content')?.value || '',
         comm_perf: document.getElementById('select-comm-perf')?.value || '',
+        
+        participation: partChecked.join('、'), // 🟢 用頓號串接所有勾選的狀況
+        strategies: document.getElementById('input-strategies')?.value || '', 
         remarks: document.getElementById('input-remarks')?.value || ''
     };
 
@@ -670,6 +748,10 @@ async function submitTherapyRecord() {
             bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
             Swal.fire('成功', '治療紀錄已新增', 'success');
             loadRecords(); // 刷新紀錄列表
+            document.getElementById('therapyForm').reset();
+            document.querySelectorAll('[id^="area-"]').forEach(el => el.classList.add('d-none'));
+            const partOtherInput = document.getElementById('input-part-other');
+            if(partOtherInput) partOtherInput.disabled = true; // 鎖回輸入框
         } else throw new Error('錯誤');
     } catch(e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
 }
