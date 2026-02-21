@@ -58,6 +58,37 @@
             padding: 1.2rem !important;
             margin-top: 1.5rem;
         }
+        /* 🟢 修復功能選單卡片與背景數字的排版 */
+        .nav-card {
+            position: relative !important;
+            overflow: hidden !important;
+            z-index: 1;
+        }
+        /* 確保卡片內的「文字與圖示」永遠在最上層 */
+        .nav-card .nav-title, 
+        .nav-card .nav-desc, 
+        .nav-card .nav-icon {
+            position: relative;
+            z-index: 2;
+        }
+        /* 將「背景數字」壓到最底層，並調淡顏色 */
+        .nav-card .concept-number {
+            position: absolute !important;
+            right: 10px !important;
+            bottom: -5px !important;
+            font-size: 5rem !important;
+            opacity: 0.15 !important; /* 降低透明度變成浮水印，避免蓋住文字 */
+            z-index: 0 !important;
+            pointer-events: none;
+        }
+        
+        /* 手機版排版微調 */
+        @media (max-width: 768px) {
+            .nav-card .concept-number {
+                font-size: 3.5rem !important; /* 手機版數字縮小 */
+                right: 5px !important;
+            }
+        }
     </style>
 </head>
 <body>

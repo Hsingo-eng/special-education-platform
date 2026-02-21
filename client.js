@@ -258,6 +258,9 @@ function showSection(sectionId) {
 // ==========================================
 // ❓ 載入提問列表 (統一稱呼教師 + 支援多次回覆)
 // ==========================================
+// ==========================================
+// ❓ 載入提問列表 (優化回覆框高度與靠左對齊)
+// ==========================================
 async function loadQuestions() {
     try {
         const res = await fetch(`${API_URL}/api/questions`, { headers: { "Authorization": `Bearer ${token}` } });
@@ -271,15 +274,12 @@ async function loadQuestions() {
         }
 
         list.innerHTML = json.data.map(q => {
-            // 🟢 將英文角色翻譯成純中文 (統一使用「教師」)
             let targetStr = (q.target_role || '所有人')
                 .replace(/teacher/g, '教師')
                 .replace(/therapist/g, '治療師')
                 .replace(/parents/g, '家長');
             
-            let askerStr = q.asker_name.replace(/老師/g, '教師'); // 把提問者名字裡的老師也換掉
-
-            // 將現有的回覆內容編碼，安全地傳遞給回覆彈出視窗
+            let askerStr = q.asker_name.replace(/老師/g, '教師');
             let safeReply = encodeURIComponent(q.reply || '');
 
             return `
@@ -294,14 +294,14 @@ async function loadQuestions() {
                         <p class="card-text">${q.question}</p>
                         
                         ${q.reply ? `
-                            <div class="bg-light rounded p-3 mt-3 mb-3" style="white-space: pre-wrap;">
+                            <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #cbd5e1;">
                                 ${q.reply}
                             </div>
                         ` : `
-                            <div class="mt-3 mb-3"><span class="badge bg-warning text-dark">待回覆</span></div>
+                            <div class="mt-2 mb-2"><span class="badge bg-warning text-dark">待回覆</span></div>
                         `}
                         
-                        <div class="text-end">
+                        <div class="text-end mt-2">
                             <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openReplyModal('${q.id}', '${safeReply}')">
                                 <i class="fas fa-reply"></i> 我要回覆
                             </button>
@@ -607,26 +607,53 @@ function openEventModal() {
     new bootstrap.Modal(document.getElementById('eventModal')).show();
 }
 
-// 📅 儲存行事曆事件
+// ==========================================
+// 📅 儲存行事曆事件 (加入防呆機制與時間格式轉換)
+// ==========================================
 async function saveEvent() { 
     const title = document.getElementById('evt-title').value;
-    const start = document.getElementById('evt-start').value;
-    const end = document.getElementById('evt-end').value;
+    const startInput = document.getElementById('evt-start').value;
+    const endInput = document.getElementById('evt-end').value;
 
-    if(!title || !start) return Swal.fire('提示', '請填寫標題與開始時間', 'warning');
+    if(!title || !startInput) {
+        return Swal.fire('提示', '請填寫標題與開始時間', 'warning');
+    }
+
+    // 🟢 處理時間格式，確保後端絕對看得懂
+    let startDate = new Date(startInput);
+    let endDate;
+
+    if (endInput) {
+        // 如果有填結束時間，直接轉換
+        endDate = new Date(endInput);
+    } else {
+        // 【防呆小幫手】如果沒填結束時間，預設為開始時間的 1 小時後
+        endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
+    }
 
     try {
         const res = await fetch(`${API_URL}/api/calendar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ title, start, end })
+            // 將時間轉換成標準 ISO 格式送給後端，徹底解決 Invalid time value 錯誤
+            body: JSON.stringify({ 
+                title: title, 
+                start: startDate.toISOString(), 
+                end: endDate.toISOString() 
+            })
         });
+        
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
-            Swal.fire('成功', '事件已新增', 'success');
-            if(calendar) calendar.refetchEvents(); // 刷新行事曆
-        } else throw new Error('伺服器錯誤');
-    } catch(e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
+            Swal.fire('成功', '事件已順利新增！', 'success');
+            if(calendar) calendar.refetchEvents(); // 自動重新載入行事曆畫面
+        } else {
+            throw new Error('伺服器錯誤');
+        }
+    } catch(e) { 
+        console.error(e);
+        Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); 
+    }
 }
 
 // 2️⃣ 發送留言板訊息
