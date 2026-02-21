@@ -610,36 +610,32 @@ function openEventModal() {
 // ==========================================
 // 📅 儲存行事曆事件 (加入防呆機制與時間格式轉換)
 // ==========================================
+// ==========================================
+// 📅 儲存行事曆事件 (修正欄位名稱與後端對齊)
+// ==========================================
 async function saveEvent() { 
     const title = document.getElementById('evt-title').value;
     const startInput = document.getElementById('evt-start').value;
-    const endInput = document.getElementById('evt-end').value;
 
     if(!title || !startInput) {
         return Swal.fire('提示', '請填寫標題與開始時間', 'warning');
     }
 
-    // 🟢 處理時間格式，確保後端絕對看得懂
-    let startDate = new Date(startInput);
-    let endDate;
-
-    if (endInput) {
-        // 如果有填結束時間，直接轉換
-        endDate = new Date(endInput);
-    } else {
-        // 【防呆小幫手】如果沒填結束時間，預設為開始時間的 1 小時後
-        endDate = new Date(startDate.getTime() + 60 * 60 * 1000);
-    }
+    // 🟢 HTML 的時間長這樣: "2026-02-21T11:02"
+    // 我們把它一分為二，變成後端認識的 "date" 和 "time"
+    const datePart = startInput.split('T')[0]; // 取得 2026-02-21
+    const timePart = startInput.split('T')[1]; // 取得 11:02
 
     try {
         const res = await fetch(`${API_URL}/api/calendar`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            // 將時間轉換成標準 ISO 格式送給後端，徹底解決 Invalid time value 錯誤
+            // 🟢 恢復使用後端原本設定好的名稱：date 和 time
             body: JSON.stringify({ 
                 title: title, 
-                start: startDate.toISOString(), 
-                end: endDate.toISOString() 
+                date: datePart, 
+                time: timePart,
+                description: "" 
             })
         });
         

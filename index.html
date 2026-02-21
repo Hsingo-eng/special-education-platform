@@ -58,35 +58,53 @@
             padding: 1.2rem !important;
             margin-top: 1.5rem;
         }
-        /* 🟢 修復功能選單卡片與背景數字的排版 */
+        /* 🟢 修正功能選單卡片與拼圖數字的排版 (精緻版) */
         .nav-card {
             position: relative !important;
             overflow: hidden !important;
             z-index: 1;
+            /* 讓卡片本身的 Hover 有平滑過渡 */
+            transition: all 0.3s ease;
         }
-        /* 確保卡片內的「文字與圖示」永遠在最上層 */
+
+        /* 確保卡片內的文字與圖示在最上層 */
         .nav-card .nav-title, 
         .nav-card .nav-desc, 
         .nav-card .nav-icon {
             position: relative;
             z-index: 2;
         }
-        /* 將「背景數字」壓到最底層，並調淡顏色 */
+        
+        /* 🟢 重新設計數字樣式：縮小比例、移至右上角、加深顏色 */
         .nav-card .concept-number {
             position: absolute !important;
-            right: 10px !important;
-            bottom: -5px !important;
-            font-size: 5rem !important;
-            opacity: 0.15 !important; /* 降低透明度變成浮水印，避免蓋住文字 */
-            z-index: 0 !important;
+            right: 20px !important; /* 改放到右上角，視覺較平衡 */
+            top: 15px !important;
+            bottom: auto !important;
+            /* 大幅縮小字體，讓比例更協調 */
+            font-size: 2.2rem !important; 
+            font-weight: 900 !important; /* 加粗，更有拼圖塊的感覺 */
+            /* 改用淺藍色實體字，而非透明浮水印 */
+            color: #cfe2ff !important; 
+            opacity: 1 !important; 
+            z-index: 2 !important;
             pointer-events: none;
+            /* 加入平滑過渡效果 */
+            transition: all 0.3s ease;
+        }
+
+        /* 🟢 滑鼠移上去時，數字變為深藍色並稍微放大 */
+        .nav-card:hover .concept-number {
+            color: #0d6efd !important; /* Bootstrap 的標準深藍色 */
+            transform: scale(1.15) rotate(5deg); /* 稍微放大並旋轉一點點，增加活潑感 */
         }
         
-        /* 手機版排版微調 */
+        /* 🟢 手機版排版微調 (確保不會跑版) */
         @media (max-width: 768px) {
             .nav-card .concept-number {
-                font-size: 3.5rem !important; /* 手機版數字縮小 */
-                right: 5px !important;
+                font-size: 1.8rem !important; /* 手機版再稍微縮小一點 */
+                right: 15px !important;
+                top: 12px !important;
             }
         }
     </style>
