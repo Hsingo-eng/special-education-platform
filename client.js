@@ -142,8 +142,13 @@ if (typeof io !== 'undefined') {
         }
     });
 
+    // 5. 提問回覆 (🟢 修正為精準通知)
     socket.on("question_update", (q) => {
-        addNotification('question', '提問回覆有一則提問提及了您');
+        // 判斷後端傳來的提問對象 (target_role) 中，是否包含當前登入者的身分
+        if (q && q.target_role && q.target_role.includes(currentUser.role)) {
+            addNotification('question', '提問回覆有一則提問提及了您');
+        }
+        // 重新載入畫面 (不管有沒有通知，畫面都要更新最新資料)
         const qSection = document.getElementById('section-questions');
         if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
@@ -251,7 +256,7 @@ function showSection(sectionId) {
 // ==========================================
 
 // ==========================================
-// ❓ 載入提問列表 (改為單欄排版 + 加入回覆按鈕)
+// ❓ 載入提問列表 (統一稱呼教師 + 支援多次回覆)
 // ==========================================
 async function loadQuestions() {
     try {
@@ -265,33 +270,46 @@ async function loadQuestions() {
             return;
         }
 
-        list.innerHTML = json.data.map(q => `
-            <div class="col-12 mb-3"> <div class="card question-card h-100" data-role="${q.asker_role}">
+        list.innerHTML = json.data.map(q => {
+            // 🟢 將英文角色翻譯成純中文 (統一使用「教師」)
+            let targetStr = (q.target_role || '所有人')
+                .replace(/teacher/g, '教師')
+                .replace(/therapist/g, '治療師')
+                .replace(/parents/g, '家長');
+            
+            let askerStr = q.asker_name.replace(/老師/g, '教師'); // 把提問者名字裡的老師也換掉
+
+            // 將現有的回覆內容編碼，安全地傳遞給回覆彈出視窗
+            let safeReply = encodeURIComponent(q.reply || '');
+
+            return `
+            <div class="col-12 mb-3">
+                <div class="card question-card h-100" data-role="${q.asker_role}">
                     <div class="card-body">
                         <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge bg-light text-dark mb-2">To: ${q.target_role || '所有人'}</span>
+                            <span class="badge bg-light text-dark mb-2">To: ${targetStr}</span>
                             <small class="text-muted">${q.date}</small>
                         </div>
-                        <h5 class="card-title">${q.asker_name} 問：</h5>
+                        <h5 class="card-title">${askerStr} 問：</h5>
                         <p class="card-text">${q.question}</p>
                         
                         ${q.reply ? `
-                            <div class="bg-light rounded p-3 mt-3">
-                                <small class="fw-bold text-success"><i class="fas fa-check-circle"></i> ${q.replier_name || '回覆者'} 回覆：</small>
-                                <p class="mb-0 mt-1 text-secondary">${q.reply}</p>
+                            <div class="bg-light rounded p-3 mt-3 mb-3" style="white-space: pre-wrap;">
+                                ${q.reply}
                             </div>
                         ` : `
-                            <div class="mt-3">
-                                <span class="badge bg-warning text-dark me-2">待回覆</span>
-                                <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openReplyModal('${q.id}')">
-                                    <i class="fas fa-reply"></i> 我要回覆
-                                </button>
-                            </div>
+                            <div class="mt-3 mb-3"><span class="badge bg-warning text-dark">待回覆</span></div>
                         `}
+                        
+                        <div class="text-end">
+                            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                                <i class="fas fa-reply"></i> 我要回覆
+                            </button>
+                        </div>
                     </div>
                 </div>
             </div>
-        `).join("");
+        `}).join("");
     } catch (err) { console.error("Load questions failed:", err); }
 }
 
