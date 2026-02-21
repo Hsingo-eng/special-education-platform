@@ -111,29 +111,36 @@ document.addEventListener('click', function(e) {
 });
 
 // ==========================================
-// 🔗 2. Socket.io 初始化
+// 🔗 2. Socket.io 初始化與精準通知
 // ==========================================
 
 if (typeof io !== 'undefined') {
     socket = io(API_URL);
     
+    // 1. 行事曆
     socket.on("calendar_update", (evt) => {
         addNotification('calendar', '新增新排程/刪除排程');
         if(calendar) calendar.refetchEvents();
     });
 
+    // 2. IEP
     socket.on("iep_update", () => {
         addNotification('iep', '新IEP檔案已上傳');
         const section = document.getElementById('section-iep');
         if(section && !section.classList.contains('d-none')) loadIepFiles();
     });
 
+    // 3. 治療紀錄
     socket.on("record_update", () => {
         addNotification('record', '新治療紀錄已上傳');
+        const rSection = document.getElementById('section-records');
+        if (rSection && !rSection.classList.contains('d-none')) loadRecords();
     });
 
+    // 4. 留言板
     socket.on("message_update", (msg) => {
-        if (currentUser && msg.username !== currentUser.username) {
+        // 如果是別人發的訊息才通知
+        if (currentUser && msg && msg.username !== currentUser.username) {
             addNotification('message', '留言板有新訊息');
         }
         const chatBox = document.getElementById('chat-box');
@@ -142,13 +149,12 @@ if (typeof io !== 'undefined') {
         }
     });
 
-    // 5. 提問回覆 (🟢 修正為精準通知)
+    // 5. 提問回覆 (🟢 精準提及判斷)
     socket.on("question_update", (q) => {
-        // 判斷後端傳來的提問對象 (target_role) 中，是否包含當前登入者的身分
-        if (q && q.target_role && q.target_role.includes(currentUser.role)) {
+        // 只有當傳過來的對象包含當前登入者身分時，才跳通知
+        if (currentUser && q && q.target_role && q.target_role.includes(currentUser.role)) {
             addNotification('question', '提問回覆有一則提問提及了您');
         }
-        // 重新載入畫面 (不管有沒有通知，畫面都要更新最新資料)
         const qSection = document.getElementById('section-questions');
         if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
