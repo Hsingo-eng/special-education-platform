@@ -300,8 +300,11 @@ async function loadQuestions() {
                         <p class="card-text">${q.question}</p>
                         
                         ${q.reply ? `
-                            <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="white-space: pre-wrap; font-size: 0.95rem; border-left: 4px solid #cbd5e1;">
-                                ${q.reply}
+                            <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
+                                <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
+                                    <i class="fas fa-comment-dots"></i> ${q.replier_name || '回覆者'} 回覆：
+                                </div>
+                                <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${q.reply}</div>
                             </div>
                         ` : `
                             <div class="mt-2 mb-2"><span class="badge bg-warning text-dark">待回覆</span></div>
@@ -533,10 +536,23 @@ function initCalendar() {
                 successCallback(events);
             } catch (err) { failureCallback(err); }
         },
+        // 🟢 修改點擊事件：顯示精準的時間區間
         eventClick: function(info) {
+            // 建立一個小工具來格式化時間 (例如轉換成: 上午11:35)
+            const formatTime = (date) => {
+                if (!date) return '';
+                return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+            };
+
+            const startTimeStr = formatTime(info.event.start);
+            // 如果沒有結束時間，預設為開始時間的 1 小時後
+            const endTimeStr = info.event.end 
+                ? formatTime(info.event.end) 
+                : formatTime(new Date(info.event.start.getTime() + 60 * 60 * 1000));
+
             Swal.fire({
                 title: info.event.title,
-                text: `時間: ${new Date(info.event.start).toLocaleString()}`,
+                text: `時間: ${startTimeStr} - ${endTimeStr}`,
                 icon: 'info'
             });
         }
@@ -839,9 +855,47 @@ function openIepUpload() {
     });
 }
 
-// 6️⃣ AI 重點摘要 (保留骨架，待後端 Gemini 介接)
-function getAiSummary() { 
-    Swal.fire('提示', '前台已經呼叫，需確認後端 server.js 是否有寫好 Gemini API 路由', 'info'); 
+// ==========================================
+// 🤖 呼叫 AI 重點摘要功能
+// ==========================================
+async function getAiSummary() { 
+    try {
+        // 1. 顯示載入中的動畫
+        Swal.fire({
+            title: '正在生成 AI 摘要...',
+            text: 'Gemini 正在為您統整留言板重點，請稍候',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        // 2. 呼叫後端 API (假設後端路由設定為 /api/summary)
+        const res = await fetch(`${API_URL}/api/summary`, {
+            headers: { "Authorization": `Bearer ${token}` }
+        });
+
+        if (res.ok) {
+            const data = await res.json();
+            Swal.close(); // 關閉載入動畫
+            
+            // 3. 將資料填入畫面上隱藏的 AI 框塊，並顯示出來
+            const summaryBox = document.getElementById('ai-summary-box');
+            const summaryContent = document.getElementById('ai-summary-content');
+            if (summaryBox && summaryContent) {
+                summaryBox.classList.remove('d-none');
+                // 將換行符號轉換成 HTML 的 <br> 讓排版整齊
+                summaryContent.innerHTML = data.summary.replace(/\n/g, '<br>'); 
+            }
+        } else {
+            throw new Error('無法取得摘要');
+        }
+    } catch (err) {
+        console.error(err);
+        Swal.fire({
+            title: '提示',
+            text: '前端已經準備好囉！但後端 (server.js) 似乎還沒接上 Gemini API 或是發生錯誤。',
+            icon: 'info'
+        });
+    }
 }
 
 // ❌ 刪除事件 (暫留空)
