@@ -1,11 +1,11 @@
 const express = require("express");
+const { GoogleGenerativeAI } = require("@google/generative-ai");
 const cors = require("cors");
 const dotenv = require("dotenv");
 const { google } = require("googleapis");
 const jwt = require("jsonwebtoken");
 const http = require("http");
 const { Server } = require("socket.io");
-const { GoogleGenerativeAI } = require("@google/generative-ai");
 const multer = require("multer");
 const stream = require("stream");
 
@@ -331,22 +331,47 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 
 // --- AI 摘要 API ---
 
-app.get("/api/messages/summary", verifyToken, async (req, res) => {
+// ==========================================
+// 🤖 AI 留言板重點摘要 API
+// ==========================================
+app.get('/api/summary', authenticateToken, async (req, res) => {
     try {
-        const allMessages = await getSheetData("messages");
-        const recentMsgs = allMessages.slice(-10);
-        if (recentMsgs.length === 0) return res.json({ summary: "目前沒有留言可總結。" });
+        // 1. 從 Google Sheet 抓取所有留言
+        const response = await sheets.spreadsheets.values.get({
+            spreadsheetId: process.env.GOOGLE_SHEET_ID,
+            range: 'messages!A:D', // 讀取 A到D 欄 (包含名字與內容)
+        });
+        
+        const rows = response.data.values;
+        if (!rows || rows.length <= 1) {
+            return res.json({ summary: "目前還沒有足夠的留言可以產生摘要喔！" });
+        }
 
-        const promptText = recentMsgs.map(m => `${m.role} ${m.user_name} 說: ${m.message}`).join("\n");
-        const finalPrompt = `請扮演一位專業的特教個案管理師。以下是親師與治療師的最近溝通紀錄：\n---\n${promptText}\n---\n請幫我用條列式摘要以上溝通的重點 (100字以內)：`;
+        // 2. 將留言組合成「劇本」給 AI 看
+        let conversation = "";
+        for (let i = 1; i < rows.length; i++) {
+            // 格式： 角色 (名字): 留言內容 (避免抓到空行報錯，加上判斷)
+            if (rows[i][1] && rows[i][3]) {
+                conversation += `${rows[i][2]} (${rows[i][1]}): ${rows[i][3]}\n`;
+            }
+        }
 
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
-        const result = await model.generateContent(finalPrompt);
-        const response = await result.response;
-        res.json({ summary: response.text() });
+        // 3. 呼叫 Gemini AI
+        const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY);
+        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" }); 
+        
+        // 4. 給 AI 的神奇指令 (Prompt)
+        const prompt = `你是一個專業的特教溝通平台助理。請閱讀以下家長、教師與治療師的對話紀錄，並用繁體中文寫出一段約 100~150 字的「重點摘要」。\n\n【留言紀錄】\n${conversation}\n\n【摘要要求】\n1. 語氣溫和專業\n2. 點出目前討論的重點(如孩子的狀況、建議策略)\n3. 使用條列式呈現，讓人一目了然`;
+
+        const result = await model.generateContent(prompt);
+        const aiResponse = result.response.text();
+
+        // 5. 將摘要結果送回給網頁
+        res.json({ summary: aiResponse });
+
     } catch (error) {
-        console.error("AI 錯誤:", error);
-        res.status(500).json({ message: "AI 總結失敗", error: error.message });
+        console.error("AI 摘要發生錯誤:", error);
+        res.status(500).json({ error: "生成摘要失敗" });
     }
 });
 

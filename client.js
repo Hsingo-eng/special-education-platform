@@ -261,11 +261,9 @@ function showSection(sectionId) {
 // 🟢 5. 四大功能資料載入 (已對齊您的 Excel 欄位)
 // ==========================================
 
+
 // ==========================================
-// ❓ 載入提問列表 (統一稱呼教師 + 支援多次回覆)
-// ==========================================
-// ==========================================
-// ❓ 載入提問列表 (優化回覆框高度與靠左對齊)
+// ❓ 載入提問列表 (支援多重回覆獨立泡泡呈現)
 // ==========================================
 async function loadQuestions() {
     try {
@@ -288,6 +286,42 @@ async function loadQuestions() {
             let askerStr = q.asker_name.replace(/老師/g, '教師');
             let safeReply = encodeURIComponent(q.reply || '');
 
+            // 🟢 解析每一則回覆，把它們變成獨立的精美泡泡
+            let replyHTML = '';
+            if (q.reply) {
+                // 如果是我們新版帶有「✅ 【」格式的接續留言
+                if (q.reply.includes('✅ 【')) {
+                    const chunks = q.reply.split('✅ 【').filter(c => c.trim() !== '');
+                    replyHTML = chunks.map(chunk => {
+                        const parts = chunk.split('】回覆：\n');
+                        if(parts.length === 2) {
+                            return `
+                                <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
+                                    <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
+                                        <i class="fas fa-comment-dots"></i> ${parts[0]} 回覆：
+                                    </div>
+                                    <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${parts[1].trim()}</div>
+                                </div>
+                            `;
+                        } else {
+                            return `<div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="white-space: pre-wrap;">${chunk.trim()}</div>`;
+                        }
+                    }).join('');
+                } else {
+                    // 相容舊的測試資料格式
+                    replyHTML = `
+                        <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
+                            <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
+                                <i class="fas fa-comment-dots"></i> ${q.replier_name || '回覆者'} 回覆：
+                            </div>
+                            <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${q.reply.trim()}</div>
+                        </div>
+                    `;
+                }
+            } else {
+                replyHTML = `<div class="mt-2 mb-2"><span class="badge bg-warning text-dark">待回覆</span></div>`;
+            }
+
             return `
             <div class="col-12 mb-3">
                 <div class="card question-card h-100" data-role="${q.asker_role}">
@@ -299,16 +333,7 @@ async function loadQuestions() {
                         <h5 class="card-title">${askerStr} 問：</h5>
                         <p class="card-text">${q.question}</p>
                         
-                        ${q.reply ? `
-                            <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
-                                <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
-                                    <i class="fas fa-comment-dots"></i> ${q.replier_name || '回覆者'} 回覆：
-                                </div>
-                                <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${q.reply}</div>
-                            </div>
-                        ` : `
-                            <div class="mt-2 mb-2"><span class="badge bg-warning text-dark">待回覆</span></div>
-                        `}
+                        ${replyHTML}
                         
                         <div class="text-end mt-2">
                             <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openReplyModal('${q.id}', '${safeReply}')">
