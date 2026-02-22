@@ -435,7 +435,7 @@ app.put("/api/questions/:id", verifyToken, async (req, res) => {
 // ==========================================
 // 🤖 AI 留言板重點摘要 API
 // ==========================================
-app.get('/api/summary', authenticateToken, async (req, res) => {
+app.get('/api/summary', verifyToken, async (req, res) => {
     try {
         // 1. 從 Google Sheet 抓取所有留言
         const response = await sheets.spreadsheets.values.get({
