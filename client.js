@@ -1,4 +1,4 @@
-const API_URL = "http://localhost:3000"; 
+const API_URL = "http://special-education-platform.zeabur.app"; 
 let currentUser = null;
 let token = localStorage.getItem("token");
 let socket = null;
@@ -261,9 +261,8 @@ function showSection(sectionId) {
 // 🟢 5. 四大功能資料載入 (已對齊您的 Excel 欄位)
 // ==========================================
 
-
 // ==========================================
-// ❓ 載入提問列表 (支援多重回覆獨立泡泡呈現)
+// ❓ 載入提問列表 (終極多重回覆版)
 // ==========================================
 async function loadQuestions() {
     try {
@@ -284,40 +283,46 @@ async function loadQuestions() {
                 .replace(/parents/g, '家長');
             
             let askerStr = q.asker_name.replace(/老師/g, '教師');
+            
+            // 安全編碼，以便傳遞給按鈕的 onclick 事件
             let safeReply = encodeURIComponent(q.reply || '');
 
-            // 🟢 解析每一則回覆，把它們變成獨立的精美泡泡
+            // 🟢 解析每一則回覆 (支援舊版與新版多重回覆)
             let replyHTML = '';
-            if (q.reply) {
-                // 如果是我們新版帶有「✅ 【」格式的接續留言
-                if (q.reply.includes('✅ 【')) {
-                    const chunks = q.reply.split('✅ 【').filter(c => c.trim() !== '');
-                    replyHTML = chunks.map(chunk => {
-                        const parts = chunk.split('】回覆：\n');
-                        if(parts.length === 2) {
+            if (q.reply && q.reply.trim() !== "") {
+                // 用自訂的 [SPLIT] 分隔符號切開每一則回覆
+                const replyList = q.reply.split('[SPLIT]');
+                
+                replyHTML = replyList.map(r => {
+                    // 如果是新版帶有身分標籤的回覆
+                    if (r.startsWith('[REPLY]')) {
+                        const contentPart = r.replace('[REPLY]', '');
+                        const parts = contentPart.split('|');
+                        if (parts.length >= 3) {
+                            const role = parts[0];
+                            const name = parts[1];
+                            const text = parts.slice(2).join('|'); // 重新組裝內容
                             return `
                                 <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
                                     <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
-                                        <i class="fas fa-comment-dots"></i> ${parts[0]} 回覆：
+                                        <i class="fas fa-comment-dots"></i> 【${role}】${name} 回覆：
                                     </div>
-                                    <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${parts[1].trim()}</div>
+                                    <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${text}</div>
                                 </div>
                             `;
-                        } else {
-                            return `<div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="white-space: pre-wrap;">${chunk.trim()}</div>`;
                         }
-                    }).join('');
-                } else {
-                    // 相容舊的測試資料格式
-                    replyHTML = `
+                    }
+                    
+                    // 如果是舊版，直接顯示
+                    return `
                         <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
                             <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
                                 <i class="fas fa-comment-dots"></i> ${q.replier_name || '回覆者'} 回覆：
                             </div>
-                            <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${q.reply.trim()}</div>
+                            <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${r}</div>
                         </div>
                     `;
-                }
+                }).join('');
             } else {
                 replyHTML = `<div class="mt-2 mb-2"><span class="badge bg-warning text-dark">待回覆</span></div>`;
             }
@@ -348,11 +353,14 @@ async function loadQuestions() {
 }
 
 // ==========================================
-// ↩️ 回覆問題的彈出視窗
+// ↩️ 回覆問題 (終極多重回覆版)
 // ==========================================
-function openReplyModal(questionId) {
+function openReplyModal(questionId, encodedExistingReply) {
+    // 安全解碼舊的回覆紀錄
+    const existingReply = encodedExistingReply ? decodeURIComponent(encodedExistingReply) : '';
+
     Swal.fire({
-        title: '回覆提問',
+        title: '新增回覆',
         input: 'textarea',
         inputPlaceholder: '請輸入您的回覆內容...',
         showCancelButton: true,
@@ -367,21 +375,31 @@ function openReplyModal(questionId) {
         }
     }).then(async (result) => {
         if (result.isConfirmed) {
+            // 取得中文身分
+            let roleName = '家長';
+            if (currentUser.role === 'teacher') roleName = '教師';
+            if (currentUser.role === 'therapist') roleName = '治療師';
+
+            // 🟢 組合新的回覆內容格式： [REPLY]身分|姓名|內容
+            const newReplyBlock = `[REPLY]${roleName}|${currentUser.name || currentUser.username}|${result.value}`;
+            
+            // 如果原本已經有回覆了，就用 [SPLIT] 接在舊回覆的後面
+            const finalReply = existingReply ? (existingReply + '[SPLIT]' + newReplyBlock) : newReplyBlock;
+
             try {
-                // 將回覆內容送到後端 (假設後端使用 PUT 方法更新該題)
                 const res = await fetch(`${API_URL}/api/questions/${questionId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ reply: result.value })
+                    body: JSON.stringify({ reply: finalReply }) 
                 });
                 
                 if (res.ok) {
-                    Swal.fire('成功', '回覆已送出！', 'success');
-                    loadQuestions(); // 重新整理畫面，讓回覆顯示出來
+                    Swal.fire('成功', '回覆已新增！', 'success');
+                    loadQuestions(); 
                 } else throw new Error('伺服器錯誤');
             } catch (err) { 
                 console.error(err);
-                Swal.fire('錯誤', '送出失敗，請確認後端 server.js 是否有設定回覆路由', 'error'); 
+                Swal.fire('錯誤', '送出失敗，請確認後端是否開啟', 'error'); 
             }
         }
     });
@@ -654,9 +672,7 @@ function openEventModal() {
     new bootstrap.Modal(document.getElementById('eventModal')).show();
 }
 
-// ==========================================
-// 📅 儲存行事曆事件 (加入防呆機制與時間格式轉換)
-// ==========================================
+
 // ==========================================
 // 📅 儲存行事曆事件 (修正欄位名稱與後端對齊)
 // ==========================================
