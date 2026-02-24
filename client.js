@@ -579,23 +579,28 @@ function initCalendar() {
                 successCallback(events);
             } catch (err) { failureCallback(err); }
         },
-        // 🟢 修改點擊事件：顯示精準的時間區間
+        // 🟢 修改點擊事件：顯示時間區間與完整的排程內容
         eventClick: function(info) {
-            // 建立一個小工具來格式化時間 (例如轉換成: 上午11:35)
+            // 建立一個小工具來格式化時間
             const formatTime = (date) => {
                 if (!date) return '';
                 return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
             };
 
             const startTimeStr = formatTime(info.event.start);
-            // 如果沒有結束時間，預設為開始時間的 1 小時後
             const endTimeStr = info.event.end 
                 ? formatTime(info.event.end) 
                 : formatTime(new Date(info.event.start.getTime() + 60 * 60 * 1000));
 
+            // 抓取後端傳來的 description (排程內容)
+            const eventDesc = info.event.extendedProps.description 
+                ? `\n\n內容：${info.event.extendedProps.description}` 
+                : '';
+
             Swal.fire({
                 title: info.event.title,
-                text: `時間: ${startTimeStr} - ${endTimeStr}`,
+                // 將時間與排程內容組合在一起顯示
+                text: `時間: ${startTimeStr} - ${endTimeStr}${eventDesc}`,
                 icon: 'info'
             });
         }
