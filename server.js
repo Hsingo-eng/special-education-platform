@@ -211,6 +211,7 @@ app.get("/api/auth/me", verifyToken, (req, res) => {
 
 // --- 📅 行事曆 API ---
 
+// 讀取活動
 app.get("/api/calendar", verifyToken, async (req, res) => {
     try {
         const startOfMonth = new Date();
@@ -237,79 +238,54 @@ app.get("/api/calendar", verifyToken, async (req, res) => {
         console.error("讀取行事曆失敗:", error);
         res.status(500).json({ message: "無法讀取行事曆" });
     }
-
-eventClick: function(info) {
-            // 如果是家長，只能觀看 (彈出視窗)
-            if (currentUser.role === 'parents') {
-                const formatTime = (date) => date ? date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
-                const startTimeStr = formatTime(info.event.start);
-                const endTimeStr = info.event.end ? formatTime(info.event.end) : formatTime(new Date(info.event.start.getTime() + 60 * 60 * 1000));
-                
-                Swal.fire({
-                    title: info.event.title,
-                    text: `時間: ${startTimeStr} - ${endTimeStr}`,
-                    icon: 'info'
-                });
-                return;
-            }
-
-            // 如果是教師/治療師，開啟編輯 Modal
-            document.getElementById('evt-id').value = info.event.id;
-            document.getElementById('evt-title').value = info.event.title;
-
-            // 轉換時間給 input 使用
-            const formatForInput = (date) => {
-                if (!date) return '';
-                const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
-                return d.toISOString().slice(0, 16);
-            };
-
-            document.getElementById('evt-start').value = formatForInput(info.event.start);
-            document.getElementById('evt-end').value = formatForInput(info.event.end);
-
-            // 顯示刪除按鈕
-            document.getElementById('btn-del-evt').classList.remove('d-none');
-            
-            const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
-            eventModal.show();
-        }
 });
 
-// --- 治療紀錄 API ---
-
-app.get("/api/records", verifyToken, async (req, res) => {
-    if (req.user.role === 'parents') return res.status(403).json({ message: "家長權限無法查看" });
-    const data = await getSheetData("records");
-    res.json({ data });
-});
-
-app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res) => {
+// 1. 新增活動
+app.post("/api/calendar", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
     try {
-        const newRecord = {
-            id: `rec-${Date.now()}`,
-            date: new Date().toISOString().split('T')[0],
-            therapist_name: req.user.name,
-            content: req.body.content,
-            teacher_reply: "",
-            created_at: new Date().toISOString()
+        const { title, start, end, description } = req.body;
+        const event = {
+            summary: title,
+            description: `${description || ""} (由 ${req.user.name} 新增)`,
+            start: { dateTime: new Date(start).toISOString(), timeZone: 'Asia/Taipei' },
+            end: { dateTime: end ? new Date(end).toISOString() : new Date(new Date(start).getTime() + 60*60*1000).toISOString(), timeZone: 'Asia/Taipei' },
         };
-        await appendRow("records", newRecord);
-        io.emit("record_update", { action: 'add', user: req.user.name });
-        res.json({ message: "新增成功", data: newRecord });
-    } catch (e) {
-        res.status(500).json({ message: e.message });
+        const response = await calendar.events.insert({ calendarId: CALENDAR_ID, resource: event });
+        io.emit('calendar_update', { action: 'add' });
+        res.json({ message: "新增成功", data: response.data });
+    } catch (error) {
+        res.status(500).json({ message: "新增失敗" });
     }
 });
 
-app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res) => {
+// 2. 編輯(更新)活動
+app.put("/api/calendar/:id", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
     try {
         const { id } = req.params;
-        const { reply } = req.body;
-        await updateRow("records", id, { teacher_reply: reply });
-        io.emit("record_update", { action: 'reply', user: req.user.name });
-        res.json({ message: "回覆成功" });
-    } catch (e) {
-        res.status(500).json({ message: e.message });
+        const { title, start, end, description } = req.body;
+        const event = {
+            summary: title,
+            description: `${description || ""} (由 ${req.user.name} 編輯)`,
+            start: { dateTime: new Date(start).toISOString(), timeZone: 'Asia/Taipei' },
+            end: { dateTime: end ? new Date(end).toISOString() : new Date(new Date(start).getTime() + 60*60*1000).toISOString(), timeZone: 'Asia/Taipei' },
+        };
+        const response = await calendar.events.update({ calendarId: CALENDAR_ID, eventId: id, resource: event });
+        io.emit('calendar_update', { action: 'update' });
+        res.json({ message: "更新成功", data: response.data });
+    } catch (error) {
+        res.status(500).json({ message: "更新失敗" });
+    }
+});
+
+// 3. 刪除活動
+app.delete("/api/calendar/:id", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: id });
+        io.emit('calendar_update', { action: 'delete' });
+        res.json({ message: "刪除成功" });
+    } catch (error) {
+        res.status(500).json({ message: "刪除失敗" });
     }
 });
 
