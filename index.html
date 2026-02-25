@@ -12,7 +12,7 @@
     <link rel="stylesheet" href="style.css?v=2">
     
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
-    <link rel="icon" type="image/png" href="favicon.png">
+    <link rel="icon" type="image/png" href="logo.png">
     <style>
         /* 提問卡片基礎樣式 */
         .card.question-card {
@@ -75,14 +75,16 @@
             z-index: 2;
         }
         
+       /* ========================================== */
+        /* 🟢 拼圖與數字位置優化：往右上角推，避免碰到文字 */
         /* ========================================== */
-        /* 🟢 恢復最原始的拼圖形狀，只調整數字位置 */
-        /* ========================================== */
+        
         .nav-card {
             position: relative !important;
-            /* 絕對不要加 overflow 或 background-size，保留原本 style.css 的完美形狀 */
             z-index: 1;
             transition: all 0.3s ease;
+            /* 👇 把背景圖(拼圖)往右上角推移 */
+            background-position: right -20px top -30px !important; 
         }
 
         .nav-card .nav-title, .nav-card .nav-desc, .nav-card .nav-icon {
@@ -90,12 +92,12 @@
             z-index: 2;
         }
 
-        /* 將數字直接推移到拼圖的視覺中心 */
+        /* 讓數字跟著拼圖一起移動到右上角 */
         .nav-card .concept-number {
             position: absolute !important;
-            /* 👇 您可以微調這兩個數值，讓數字完美坐落在您的拼圖中心 */
-            top: 20px !important;  
-            right: 25px !important; 
+            /* 👇 數字的位置也往右上角推 */
+            top: 15px !important;  
+            right: 20px !important; 
             
             font-size: 2.2rem !important; 
             font-weight: 900 !important; 
@@ -113,14 +115,16 @@
 
         /* 手機版專屬微調 */
         @media (max-width: 768px) {
+            .nav-card {
+                /* 手機版也把拼圖稍微往外推 */
+                background-position: right -10px top -15px !important;
+            }
             .nav-card .concept-number {
                 font-size: 1.6rem !important; 
-                /* 👇 手機版的中心點微調 */
                 top: 10px !important;
-                right: 15px !important;
+                right: 12px !important;
             }
             
-            /* 行事曆微調 (保留您的設定) */
             #calendar-section h2 { font-size: 22px !important; }
             .fc .fc-event-time { display: none !important; }
             .fc .fc-event-title { font-size: calc(100% - 1px) !important; }

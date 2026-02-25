@@ -326,15 +326,21 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
         const file = req.file;
         if (!file) return res.status(400).json({ message: "未選擇檔案" });
 
-        // 🟢 解決中文檔名亂碼的關鍵魔法！將 Latin1 強制轉換回 UTF-8
-        const decodedFileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        // 🟢 安全的檔名解碼：避免因為某些奇怪字元導致伺服器當機
+        let finalFileName = file.originalname;
+        try {
+            finalFileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+        } catch (e) {
+            console.warn("檔名轉碼失敗，使用原檔名");
+        }
 
-        const bufferStream = new stream.PassThrough();
-        bufferStream.end(file.buffer);
+        // 🟢 關鍵修復：使用現代且穩定的 stream.Readable 取代 PassThrough
+        // 這能解決檔案上傳到一半卡住、導致前端出現 "Failed to fetch" 的問題
+        const bufferStream = stream.Readable.from(file.buffer);
 
         const driveRes = await drive.files.create({
             requestBody: {
-                name: decodedFileName, // 🟢 這裡換成解碼後的正確中文檔名
+                name: finalFileName, 
                 parents: [DRIVE_FOLDER_ID],
             },
             media: {
@@ -348,7 +354,7 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
 
         const newRecord = {
             id: `iep-${Date.now()}`,
-            filename: name, // 🟢 存入資料庫的也會是正確的檔名
+            filename: name, 
             drive_file_id: id,
             uploaded_by: req.user.name,
             uploader: req.user.name,
