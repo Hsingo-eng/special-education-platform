@@ -341,12 +341,15 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
         const file = req.file;
         if (!file) return res.status(400).json({ message: "未選擇檔案" });
 
+        // 🟢 解決中文檔名亂碼的關鍵魔法！將 Latin1 強制轉換回 UTF-8
+        const decodedFileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
+
         const bufferStream = new stream.PassThrough();
         bufferStream.end(file.buffer);
 
         const driveRes = await drive.files.create({
             requestBody: {
-                name: file.originalname,
+                name: decodedFileName, // 🟢 這裡換成解碼後的正確中文檔名
                 parents: [DRIVE_FOLDER_ID],
             },
             media: {
@@ -360,7 +363,7 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
 
         const newRecord = {
             id: `iep-${Date.now()}`,
-            filename: name,
+            filename: name, // 🟢 存入資料庫的也會是正確的檔名
             drive_file_id: id,
             uploaded_by: req.user.name,
             uploader: req.user.name,

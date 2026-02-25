@@ -456,10 +456,6 @@ async function loadRecords() {
                 <div class="mb-1 text-dark" style="font-size: 1.05rem;">
                     <span class="fw-bold me-1">補充事項：</span>${r.remarks || '無'}
                 </div>
-                
-                <div class="mt-4 text-end text-muted small">
-                    治療師：${r.therapist_name || '未記錄'}
-                </div>
             </div>
         `}).join("");
     } catch (err) { console.error("Load records failed:", err); }
