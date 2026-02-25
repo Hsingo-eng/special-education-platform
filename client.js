@@ -940,7 +940,83 @@ async function getAiSummary() {
     }
 }
 
-// ❌ 刪除事件 (暫留空)
-function deleteEvent() { 
-    Swal.fire('提示', '刪除事件功能準備中', 'info'); 
-}
+// ==========================================
+// 📅 行事曆：新增/編輯/刪除操作
+// ==========================================
+
+window.openEventModal = function() {
+    document.getElementById('eventForm').reset();
+    document.getElementById('evt-id').value = '';
+    document.getElementById('btn-del-evt').classList.add('d-none'); // 隱藏刪除按鈕
+    
+    // 預設開始時間為現在
+    const now = new Date();
+    const start = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
+    document.getElementById('evt-start').value = start;
+    
+    const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+    eventModal.show();
+};
+
+window.saveEvent = async function() {
+    const id = document.getElementById('evt-id').value;
+    const title = document.getElementById('evt-title').value;
+    const start = document.getElementById('evt-start').value;
+    const end = document.getElementById('evt-end').value;
+
+    if (!title || !start) return Swal.fire('錯誤', '標題與開始時間為必填', 'error');
+
+    const method = id ? 'PUT' : 'POST';
+    const url = id ? `${API_URL}/api/calendar/${id}` : `${API_URL}/api/calendar`;
+
+    try {
+        const res = await fetch(url, {
+            method: method,
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ title, start, end })
+        });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+            Swal.fire('成功', id ? '事件已更新' : '事件已新增', 'success');
+            initCalendar(); // 重新載入行事曆
+        } else {
+            throw new Error('儲存失敗');
+        }
+    } catch (err) {
+        Swal.fire('錯誤', err.message, 'error');
+    }
+};
+
+window.deleteEvent = async function() {
+    const id = document.getElementById('evt-id').value;
+    if (!id) return;
+
+    const result = await Swal.fire({
+        title: '確定要刪除嗎？',
+        text: "刪除後將無法還原！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除！',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`${API_URL}/api/calendar/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
+                Swal.fire('已刪除', '事件已成功刪除', 'success');
+                initCalendar(); // 重新載入行事曆
+            } else {
+                throw new Error('刪除失敗');
+            }
+        } catch (err) {
+            Swal.fire('錯誤', err.message, 'error');
+        }
+    }
+};

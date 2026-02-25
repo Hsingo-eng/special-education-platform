@@ -75,41 +75,12 @@
             z-index: 2;
         }
         
-        /* 🟢 重新設計數字樣式：固定大小框、完美置中 */
         /* ========================================== */
-        /* 🟢 終極版：功能卡片拼圖與數字完美置中控制 */
+        /* 🟢 恢復最原始的拼圖形狀，只調整數字位置 */
         /* ========================================== */
-        
-        /* 1. 強制控制電腦版的背景拼圖大小與位置 */
         .nav-card {
             position: relative !important;
-            overflow: hidden !important;
-            z-index: 1;
-            transition: all 0.3s ease;
-            background-size: 130px !important; /* 固定拼圖大小 */
-            background-position: right -15px top -15px !important; 
-        }
-
-        /* 萬一拼圖是用虛擬元素寫的，一併強制縮小 */
-        .nav-card::after, .nav-card::before {
-            background-size: 130px !important;
-            transform: scale(0.8) !important;
-            transform-origin: top right !important;
-        }
-
-        /* 確保文字在最上層 */
-        .nav-card .nav-title, .nav-card .nav-desc, .nav-card .nav-icon {
-            position: relative;
-            z-index: 2;
-        }
-
-        /* ========================================== */
-        /* 🟢 恢復原本的拼圖形狀，並精準定位數字 */
-        /* ========================================== */
-        
-        .nav-card {
-            position: relative !important;
-            overflow: hidden !important;
+            /* 絕對不要加 overflow 或 background-size，保留原本 style.css 的完美形狀 */
             z-index: 1;
             transition: all 0.3s ease;
         }
@@ -119,12 +90,12 @@
             z-index: 2;
         }
 
-        /* 直接把數字推到拼圖的視覺中心 */
+        /* 將數字直接推移到拼圖的視覺中心 */
         .nav-card .concept-number {
             position: absolute !important;
-            /* 👇 利用這兩個數值，將數字推到拼圖中央 */
-            top: 32px !important;  
-            right: 42px !important; 
+            /* 👇 您可以微調這兩個數值，讓數字完美坐落在您的拼圖中心 */
+            top: 20px !important;  
+            right: 25px !important; 
             
             font-size: 2.2rem !important; 
             font-weight: 900 !important; 
@@ -145,11 +116,11 @@
             .nav-card .concept-number {
                 font-size: 1.6rem !important; 
                 /* 👇 手機版的中心點微調 */
-                top: 15px !important;
-                right: 25px !important;
+                top: 10px !important;
+                right: 15px !important;
             }
             
-            /* 行事曆字體微調 (保留) */
+            /* 行事曆微調 (保留您的設定) */
             #calendar-section h2 { font-size: 22px !important; }
             .fc .fc-event-time { display: none !important; }
             .fc .fc-event-title { font-size: calc(100% - 1px) !important; }
@@ -169,7 +140,7 @@
             .fc .fc-event-title {
                 font-size: calc(100% - 1px) !important;
             }
-        }
+        
         /* ========================================== */
         /* 🟢 登入頁經典灰色拼圖樣式與「懸停拼合」動畫 */
         /* ========================================== */

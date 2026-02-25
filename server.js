@@ -237,33 +237,42 @@ app.get("/api/calendar", verifyToken, async (req, res) => {
         console.error("讀取行事曆失敗:", error);
         res.status(500).json({ message: "無法讀取行事曆" });
     }
-});
 
-app.post("/api/calendar", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
-    try {
-        const { title, date, time, description } = req.body;
-        const startDateTime = `${date}T${time}:00+08:00`;
-        const startDateObj = new Date(startDateTime);
-        const endDateObj = new Date(startDateObj.getTime() + 60 * 60 * 1000); 
-        
-        const event = {
-            summary: title,
-            description: `${description || ""} (由 ${req.user.name} 新增)`,
-            start: { dateTime: startDateTime, timeZone: 'Asia/Taipei' },
-            end: { dateTime: endDateObj.toISOString(), timeZone: 'Asia/Taipei' },
-        };
+eventClick: function(info) {
+            // 如果是家長，只能觀看 (彈出視窗)
+            if (currentUser.role === 'parents') {
+                const formatTime = (date) => date ? date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true }) : '';
+                const startTimeStr = formatTime(info.event.start);
+                const endTimeStr = info.event.end ? formatTime(info.event.end) : formatTime(new Date(info.event.start.getTime() + 60 * 60 * 1000));
+                
+                Swal.fire({
+                    title: info.event.title,
+                    text: `時間: ${startTimeStr} - ${endTimeStr}`,
+                    icon: 'info'
+                });
+                return;
+            }
 
-        const response = await calendar.events.insert({
-            calendarId: CALENDAR_ID,
-            resource: event,
-        });
+            // 如果是教師/治療師，開啟編輯 Modal
+            document.getElementById('evt-id').value = info.event.id;
+            document.getElementById('evt-title').value = info.event.title;
 
-        io.emit('calendar_update', { action: 'add', user: req.user.name, title: title });
-        res.json({ message: "新增成功", data: response.data });
-    } catch (error) {
-        console.error("新增活動失敗:", error);
-        res.status(500).json({ message: "新增失敗" });
-    }
+            // 轉換時間給 input 使用
+            const formatForInput = (date) => {
+                if (!date) return '';
+                const d = new Date(date.getTime() - date.getTimezoneOffset() * 60000);
+                return d.toISOString().slice(0, 16);
+            };
+
+            document.getElementById('evt-start').value = formatForInput(info.event.start);
+            document.getElementById('evt-end').value = formatForInput(info.event.end);
+
+            // 顯示刪除按鈕
+            document.getElementById('btn-del-evt').classList.remove('d-none');
+            
+            const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
+            eventModal.show();
+        }
 });
 
 // --- 治療紀錄 API ---
