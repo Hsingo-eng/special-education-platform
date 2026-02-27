@@ -114,38 +114,70 @@
         }
 
         /* ========================================== */
-        /* 📱 手機版專屬微調：畫面加寬、拼圖完美置中 */
+        /* 📱 手機版專屬微調：行事曆置中、拼圖比例控制 */
         /* ========================================== */
         @media (max-width: 768px) {
-            /* 🟢 1. 減少兩側空白，讓行事曆與卡片變寬！ */
-            #dashboard-section {
-                padding-left: 6px !important;
-                padding-right: 6px !important;
-            }
-            .platform-card {
-                padding: 15px 10px !important; /* 減少卡片內部留白 */
-            }
+            /* 🟢 1. 減少兩側空白，讓行事曆與卡片變寬 */
+            #dashboard-section { padding-left: 6px !important; padding-right: 6px !important; }
+            .platform-card { padding: 15px 10px !important; }
 
             /* 🟢 2. 按鈕拼圖等比縮小，並將數字完美置中 */
             .nav-card {
-                /* 將拼圖縮小到 50px，並定位在右上角 */
-                background-size: 50px !important; 
-                background-position: right 15px top 15px !important; 
+                /* 強制縮小背景圖產生的拼圖 */
+                background-size: 60px !important; 
+                background-position: right 10px top 10px !important; 
             }
+            /* 如果拼圖是用虛擬元素寫的，也一併強制等比縮小 */
+            .nav-card::after, .nav-card::before {
+                transform: scale(0.45) !important; 
+                transform-origin: top right !important;
+                right: 0px !important;
+                top: 0px !important;
+            }
+            /* 幫數字建立一個 60x60 的隱形方塊(對齊拼圖)，讓它在裡面絕對置中 */
             .nav-card .concept-number {
-                /* 縮小數字，並用數學精準推到 50px 拼圖的正中心 */
+                top: 10px !important;   
+                right: 10px !important; 
+                width: 60px !important;
+                height: 60px !important;
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
                 font-size: 1.25rem !important; 
-                top: 25px !important;   
-                right: 27px !important; 
+                padding-right: 4px !important; /* 微調視覺中心 */
+                padding-bottom: 2px !important;
+                line-height: 1 !important;
             }
             
-            /* 🟢 3. 行事曆字體微調 */
-            #calendar-section h2 { font-size: 20px !important; }
-            .fc .fc-toolbar-title { font-size: 1.15rem !important; }
+            /* 🟢 3. 行事曆字體與按鈕微調 */
+            /* 「本月排程」縮小 1px (約 19px) */
+            #calendar-section h2 { font-size: 19px !important; }
+            
+            /* 行事曆上方的「2026年2月」標題縮小 2px */
+            .fc .fc-toolbar-title { font-size: 16px !important; } 
+            
+            /* 隱藏事件時間，事件內容字體再縮小 1px */
             .fc .fc-event-time { display: none !important; }
-            .fc .fc-event-title { font-size: 11px !important; font-weight: normal !important; }
-            /* 縮小行事曆上方按鈕，節省空間 */
-            .fc .fc-button { padding: 0.2rem 0.5rem !important; font-size: 0.85rem !important; }
+            .fc .fc-event-title { font-size: 10px !important; font-weight: normal !important; }
+            
+            /* 🟢 4. 讓行事曆有底色的按鈕 (month, week, <, >) 文字完美上下左右置中 */
+            .fc .fc-button { 
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                height: 28px !important; /* 固定高度幫助置中 */
+                padding: 0 10px !important; 
+                font-size: 0.85rem !important; 
+                line-height: 1 !important; 
+            }
+            /* 修正左右箭頭 icon 常常不置中的問題 */
+            .fc .fc-button .fc-icon {
+                display: flex !important;
+                align-items: center !important;
+                justify-content: center !important;
+                font-size: 1rem !important;
+                margin: 0 !important;
+            }
         }
         
         /* ========================================== */
