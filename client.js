@@ -305,7 +305,7 @@ async function loadQuestions() {
                             return `
                                 <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
                                     <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
-                                        <i class="fas fa-comment-dots"></i> 【${role}】${name} 回覆：
+                                        <i class="fas fa-comment-dots"></i> ${name} 回覆：
                                     </div>
                                     <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${text}</div>
                                 </div>

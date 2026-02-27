@@ -316,6 +316,8 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 
 // --- IEP API ---
 
+// --- IEP API ---
+
 app.get("/api/iep", verifyToken, async (req, res) => {
     const data = await getSheetData("iep_files");
     res.json({ data });
@@ -326,7 +328,7 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
         const file = req.file;
         if (!file) return res.status(400).json({ message: "未選擇檔案" });
 
-        // 🟢 安全的檔名解碼：避免因為某些奇怪字元導致伺服器當機
+        // 安全的檔名解碼
         let finalFileName = file.originalname;
         try {
             finalFileName = Buffer.from(file.originalname, 'latin1').toString('utf8');
@@ -334,9 +336,13 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
             console.warn("檔名轉碼失敗，使用原檔名");
         }
 
-        // 🟢 關鍵修復：使用現代且穩定的 stream.Readable 取代 PassThrough
-        // 這能解決檔案上傳到一半卡住、導致前端出現 "Failed to fetch" 的問題
-        const bufferStream = stream.Readable.from(file.buffer);
+        // 🟢 終極穩定版：手動建立可讀流，並明確發送結束訊號
+        // 這能徹底解決上傳卡死、一直轉圈圈的問題！
+        const bufferStream = new stream.Readable();
+        bufferStream.push(file.buffer);
+        bufferStream.push(null); // 🌟 關鍵魔法：這行代表「檔案到底了，不要再等了！」
+
+        console.log("準備上傳檔案到 Google Drive:", finalFileName);
 
         const driveRes = await drive.files.create({
             requestBody: {
@@ -349,6 +355,8 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
             },
             fields: 'id, name, webViewLink',
         });
+
+        console.log("Google Drive 上傳成功！檔案 ID:", driveRes.data.id);
 
         const { id, name, webViewLink } = driveRes.data;
 
@@ -368,9 +376,10 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
         await appendRow("iep_files", newRecord);
         io.emit("iep_update", newRecord);
         res.json({ message: "上傳成功", data: newRecord });
+        
     } catch (error) {
-        console.error("上傳失敗:", error);
-        res.status(500).json({ message: "上傳失敗: " + error.message });
+        console.error("❌ 上傳 IEP 失敗:", error);
+        res.status(500).json({ message: "上傳失敗: " + (error.message || "未知錯誤") });
     }
 });
 
