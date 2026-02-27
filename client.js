@@ -529,9 +529,14 @@ async function loadIepFiles() {
                     </div>
                     <small class="text-muted d-block mb-1">上傳者: ${f.uploaded_by}</small>
                     <small class="text-muted d-block mb-3">日期: ${f.upload_date}</small>
-                    <a href="${f.file_link}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill">
+                    <a href="${f.file_link}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill mb-2">
                         <i class="fas fa-download"></i> 下載檢閱
                     </a>
+                    ${currentUser.role === 'teacher' ? `
+                    <button class="btn btn-outline-secondary btn-sm w-100 rounded-pill" onclick="deleteIep('${f.id}')">
+                        <i class="fas fa-trash-alt"></i> 刪除檔案
+                    </button>
+                    ` : ''}
                 </div>
             </div>
         `).join("");
@@ -1012,6 +1017,37 @@ window.deleteEvent = async function() {
                 bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
                 Swal.fire('已刪除', '事件已成功刪除', 'success');
                 initCalendar(); // 重新載入行事曆
+            } else {
+                throw new Error('刪除失敗');
+            }
+        } catch (err) {
+            Swal.fire('錯誤', err.message, 'error');
+        }
+    }
+};
+
+// 🗑️ 刪除 IEP 檔案功能
+window.deleteIep = async function(id) {
+    const result = await Swal.fire({
+        title: '確定要刪除嗎？',
+        text: "檔案將從雲端硬碟徹底移除，無法還原喔！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除！',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`${API_URL}/api/iep/${id}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                Swal.fire('已刪除', '檔案已成功刪除', 'success');
+                loadIepFiles(); // 🟢 重新載入 IEP 列表
             } else {
                 throw new Error('刪除失敗');
             }

@@ -101,6 +101,30 @@ const updateRow = async (sheetName, id, updateData) => {
     });
 };
 
+// 刪除資料 (Google Sheet)
+const deleteRow = async (sheetName, id) => {
+    const res = await sheets.spreadsheets.get({ spreadsheetId: SHEET_ID });
+    const sheet = res.data.sheets.find(s => s.properties.title === sheetName);
+    const sheetId = sheet.properties.sheetId;
+
+    const dataRes = await sheets.spreadsheets.values.get({ spreadsheetId: SHEET_ID, range: `${sheetName}!A:Z` });
+    const rows = dataRes.data.values;
+    let rowIndex = -1;
+    for (let i = 1; i < rows.length; i++) {
+        if (rows[i][0] === id) { rowIndex = i; break; }
+    }
+    if (rowIndex === -1) throw new Error("找不到該筆 ID");
+
+    await sheets.spreadsheets.batchUpdate({
+        spreadsheetId: SHEET_ID,
+        requestBody: {
+            requests: [{
+                deleteDimension: { range: { sheetId: sheetId, dimension: "ROWS", startIndex: rowIndex, endIndex: rowIndex + 1 } }
+            }]
+        }
+    });
+};
+
 const verifyToken = (req, res, next) => {
     const authHeader = req.headers['authorization'];
     const token = authHeader && authHeader.split(' ')[1];
@@ -266,6 +290,28 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
     } catch (error) {
         console.error("上傳失敗:", error);
         res.status(500).json({ message: "上傳失敗: " + error.message });
+    }
+});
+
+app.delete("/api/iep/:id", verifyToken, checkRole(['teacher']), async (req, res) => {
+    try {
+        const { id } = req.params;
+        const data = await getSheetData("iep_files");
+        const record = data.find(r => r.id === id);
+        
+        // 1. 先把 Google Drive 雲端硬碟上的檔案刪除
+        if (record && record.drive_file_id) {
+            try { await drive.files.delete({ fileId: record.drive_file_id }); } 
+            catch (e) { console.warn("Google Drive 檔案已不存在，直接刪除紀錄"); }
+        }
+        
+        // 2. 把 Google Sheet 裡的紀錄刪除
+        await deleteRow("iep_files", id);
+        io.emit("iep_update", { action: 'delete', id });
+        res.json({ message: "刪除成功" });
+    } catch (error) {
+        console.error("刪除失敗:", error);
+        res.status(500).json({ message: "刪除失敗" });
     }
 });
 

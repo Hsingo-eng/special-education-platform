@@ -113,39 +113,39 @@
             transform: scale(1.15) rotate(5deg); 
         }
 
-        /* 手機版專屬微調 */
+        /* ========================================== */
+        /* 📱 手機版專屬微調：畫面加寬、拼圖完美置中 */
+        /* ========================================== */
         @media (max-width: 768px) {
-            /* 🟢 1. 按鈕拼圖與數字修復 */
+            /* 🟢 1. 減少兩側空白，讓行事曆與卡片變寬！ */
+            #dashboard-section {
+                padding-left: 6px !important;
+                padding-right: 6px !important;
+            }
+            .platform-card {
+                padding: 15px 10px !important; /* 減少卡片內部留白 */
+            }
+
+            /* 🟢 2. 按鈕拼圖等比縮小，並將數字完美置中 */
             .nav-card {
-                /* 讓拼圖等比縮小，並把位置往內推，避免碰到邊緣或文字 */
-                background-size: 65px !important; 
-                background-position: right 10px top 15px !important; 
+                /* 將拼圖縮小到 50px，並定位在右上角 */
+                background-size: 50px !important; 
+                background-position: right 15px top 15px !important; 
             }
             .nav-card .concept-number {
-                font-size: 1.4rem !important; 
-                /* 根據縮小後的拼圖，重新精準定位數字到正中央 */
-                top: 28px !important;   
-                right: 30px !important; 
+                /* 縮小數字，並用數學精準推到 50px 拼圖的正中心 */
+                font-size: 1.25rem !important; 
+                top: 25px !important;   
+                right: 27px !important; 
             }
             
-            /* 🟢 2. 行事曆字體微調 */
-            /* 「本月排程」縮小 2px (原本22px -> 20px) */
-            #calendar-section h2 { 
-                font-size: 20px !important; 
-            }
-            /* 行事曆上方的「2026年2月」標題縮小 */
-            .fc .fc-toolbar-title { 
-                font-size: 1.15rem !important; /* 約縮小 2px */
-            }
-            /* 隱藏事件時間 */
-            .fc .fc-event-time { 
-                display: none !important; 
-            }
-            /* 行事曆事件內容(如:治療課)字體縮小 */
-            .fc .fc-event-title { 
-                font-size: 11px !important; /* 強制縮小 */
-                font-weight: normal !important;
-            }
+            /* 🟢 3. 行事曆字體微調 */
+            #calendar-section h2 { font-size: 20px !important; }
+            .fc .fc-toolbar-title { font-size: 1.15rem !important; }
+            .fc .fc-event-time { display: none !important; }
+            .fc .fc-event-title { font-size: 11px !important; font-weight: normal !important; }
+            /* 縮小行事曆上方按鈕，節省空間 */
+            .fc .fc-button { padding: 0.2rem 0.5rem !important; font-size: 0.85rem !important; }
         }
         
         /* ========================================== */
