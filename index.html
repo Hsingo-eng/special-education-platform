@@ -115,35 +115,38 @@
 
         /* 手機版專屬微調 */
         @media (max-width: 768px) {
+            /* 🟢 1. 按鈕拼圖與數字修復 */
             .nav-card {
-                /* 手機版也把拼圖稍微往外推 */
-                background-position: right -10px top -15px !important;
+                /* 讓拼圖等比縮小，並把位置往內推，避免碰到邊緣或文字 */
+                background-size: 65px !important; 
+                background-position: right 10px top 15px !important; 
             }
             .nav-card .concept-number {
-                font-size: 1.6rem !important; 
-                top: 10px !important;
-                right: 12px !important;
+                font-size: 1.4rem !important; 
+                /* 根據縮小後的拼圖，重新精準定位數字到正中央 */
+                top: 28px !important;   
+                right: 30px !important; 
             }
             
-            #calendar-section h2 { font-size: 22px !important; }
-            .fc .fc-event-time { display: none !important; }
-            .fc .fc-event-title { font-size: calc(100% - 1px) !important; }
+            /* 🟢 2. 行事曆字體微調 */
+            /* 「本月排程」縮小 2px (原本22px -> 20px) */
+            #calendar-section h2 { 
+                font-size: 20px !important; 
+            }
+            /* 行事曆上方的「2026年2月」標題縮小 */
+            .fc .fc-toolbar-title { 
+                font-size: 1.15rem !important; /* 約縮小 2px */
+            }
+            /* 隱藏事件時間 */
+            .fc .fc-event-time { 
+                display: none !important; 
+            }
+            /* 行事曆事件內容(如:治療課)字體縮小 */
+            .fc .fc-event-title { 
+                font-size: 11px !important; /* 強制縮小 */
+                font-weight: normal !important;
+            }
         }
-            
-            /* 2. 行事曆「本月排程」標題縮小 2px (假設原本為24px，降為22px) */
-            #calendar-section h2 {
-                font-size: 22px !important; 
-            }
-            
-            /* 3. 隱藏行事曆事件的「時間」，只留標題 */
-            .fc .fc-event-time {
-                display: none !important;
-            }
-            
-            /* 4. 行事曆文字內容 (如: 治療課) 縮小 1px */
-            .fc .fc-event-title {
-                font-size: calc(100% - 1px) !important;
-            }
         
         /* ========================================== */
         /* 🟢 登入頁經典灰色拼圖樣式與「懸停拼合」動畫 */
