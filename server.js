@@ -362,4 +362,7 @@ app.get('/api/summary', verifyToken, async (req, res) => {
     } catch (error) { res.status(500).json({ error: "生成摘要失敗" }); }
 });
 
-server.listen(PORT, () => console.log(`Server running on port ${PORT}`));
+// ✅ 加上 "0.0.0.0" 告訴 Render 允許所有外部連線進入
+server.listen(PORT, "0.0.0.0", () => {
+    console.log(`Server running on port ${PORT}`);
+});
