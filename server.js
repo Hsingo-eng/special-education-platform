@@ -362,7 +362,7 @@ app.get('/api/summary', verifyToken, async (req, res) => {
     } catch (error) { res.status(500).json({ error: "生成摘要失敗" }); }
 });
 
-// ✅ 加上 "0.0.0.0" 告訴 Render 允許所有外部連線進入
-server.listen(PORT, "0.0.0.0", () => {
-    console.log(`Server running on port ${PORT}`);
+// 🟢 終極防呆版：直接在裡面寫死 process.env.PORT，不用管變數叫什麼了！
+server.listen(process.env.PORT || 8080, "0.0.0.0", () => {
+    console.log("伺服器成功啟動，正在監聽 Render 指定的 Port！");
 });
