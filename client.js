@@ -226,35 +226,61 @@ function updateUI(user) {
 }
 
 // ==========================================
-// 🟢 4. 畫面切換控制功能
+// 🟢 4. 畫面切換控制與「上一頁」功能
 // ==========================================
+
+// 監聽手機或瀏覽器的「上一頁 / 下一頁」動作
+window.addEventListener('popstate', function(event) {
+    const section = event.state ? event.state.section : 'dashboard';
+    executeShowSection(section);
+});
+
+// 這是綁定在所有按鈕上的主函式
 function showSection(sectionId) {
+    // 紀錄瀏覽歷史，這樣手機按「上一頁」或滑動返回才回得來！
+    history.pushState({ section: sectionId }, '', '#' + sectionId);
+    executeShowSection(sectionId);
+}
+
+// 真正負責切換畫面的隱藏/顯示邏輯
+function executeShowSection(sectionId) {
+    // 1. 先把所有畫面都「強制隱藏」，保持畫面乾淨
+    const allSections = [
+        'login-section', 
+        'dashboard-section', 
+        'section-records', 
+        'section-iep', 
+        'section-messages', 
+        'section-questions'
+    ];
+    allSections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el) el.classList.add('d-none');
+    });
+    
+    const emptyState = document.getElementById('empty-state');
+    if (emptyState) emptyState.classList.add('d-none');
+
+    // 2. 根據指令，只顯示目標畫面
     if (sectionId === 'login') {
         document.getElementById('login-section').classList.remove('d-none');
-        document.getElementById('dashboard-section').classList.add('d-none');
-        return;
     } 
-    if (sectionId === 'dashboard') {
-        document.getElementById('login-section').classList.add('d-none');
+    else if (sectionId === 'dashboard') {
         document.getElementById('dashboard-section').classList.remove('d-none');
-        return;
+        // 行事曆從隱藏變顯示時，需要重新整理大小才不會破圖
+        if (calendar) setTimeout(() => calendar.render(), 100);
+    } 
+    else {
+        // 顯示特定的功能區塊 (IEP, 治療紀錄等)
+        const targetSection = document.getElementById('section-' + sectionId);
+        if (targetSection) targetSection.classList.remove('d-none');
+
+        // 載入該區塊的資料
+        if (sectionId === 'messages' && typeof loadMessages === 'function') loadMessages();
+        if (sectionId === 'questions' && typeof loadQuestions === 'function') loadQuestions();
+        if (sectionId === 'records' && typeof loadRecords === 'function') loadRecords();
+        if (sectionId === 'iep' && typeof loadIepFiles === 'function') loadIepFiles();
     }
-
-    document.getElementById('empty-state').classList.add('d-none');
-    document.getElementById('section-records').classList.add('d-none');
-    document.getElementById('section-iep').classList.add('d-none');
-    document.getElementById('section-messages').classList.add('d-none');
-    document.getElementById('section-questions').classList.add('d-none');
-
-    const targetSection = document.getElementById('section-' + sectionId);
-    if (targetSection) {
-        targetSection.classList.remove('d-none');
-    }
-
-    if (sectionId === 'messages' && typeof loadMessages === 'function') loadMessages();
-    if (sectionId === 'questions' && typeof loadQuestions === 'function') loadQuestions();
-    if (sectionId === 'records' && typeof loadRecords === 'function') loadRecords();
-    if (sectionId === 'iep' && typeof loadIepFiles === 'function') loadIepFiles();
 }
 
 // ==========================================
