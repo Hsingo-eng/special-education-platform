@@ -159,6 +159,7 @@ if (typeof io !== 'undefined') {
         if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 }
+
 // ==========================================
 // 🛠️ 3. 頁面邏輯與登入驗證 (含自動排版修復)
 // ==========================================
@@ -166,7 +167,11 @@ if (typeof io !== 'undefined') {
 document.addEventListener("DOMContentLoaded", async () => {
     renderNotificationList();
 
-    // 🟢 神奇修復術：自動把功能區塊從 Dashboard 的肚子裡搬出來，並加上「返回」按鈕
+    // 🟢 任務一：徹底刪除舊版多餘的「空白大框框」
+    const emptyState = document.getElementById('empty-state');
+    if (emptyState) emptyState.remove();
+
+    // 🟢 任務二：神奇修復術（自動搬家、增加內縮邊距、加上返回按鈕）
     const dashboard = document.getElementById('dashboard-section');
     const sections = ['section-records', 'section-iep', 'section-messages', 'section-questions'];
     
@@ -174,15 +179,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         sections.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                // 1. 如果不小心包在 dashboard 裡面，自動搬家到同一層的外面
+                // 1. 自動搬家，並加上「內縮邊距(container)」防止文字貼齊邊緣
                 if (dashboard.contains(el)) {
                     dashboard.parentElement.appendChild(el);
+                    // 加入 Bootstrap 專屬的容器與安全留白，讓畫面置中且不貼邊
+                    el.classList.add('container', 'mt-4', 'mb-5', 'px-3', 'px-md-4');
                 }
                 
                 // 2. 幫每個功能畫面加上「返回首頁」的實體按鈕
                 if (!el.querySelector('.back-btn')) {
                     const backBtn = document.createElement('div');
-                    backBtn.className = 'back-btn mb-3 mt-2 text-start';
+                    // 增加底部的 margin (mb-4) 讓按鈕和下方的標題有點呼吸空間
+                    backBtn.className = 'back-btn mb-4 mt-2 text-start';
                     backBtn.innerHTML = `
                         <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="showSection('dashboard')" style="border-width: 2px; font-weight: bold; background-color: #f8f9fa;">
                             <i class="fas fa-arrow-left me-1"></i> 返回首頁
@@ -459,7 +467,7 @@ function openReplyModal(questionId, encodedExistingReply) {
 }
 
 // ==========================================
-// 📋 載入治療紀錄 (🟢 套用截圖中的簡潔文字排版)
+// 📋 載入治療紀錄 (高質感視覺設計版)
 // ==========================================
 async function loadRecords() {
     try {
@@ -474,7 +482,7 @@ async function loadRecords() {
         }
 
         list.innerHTML = json.data.map(r => {
-            // 整理學習內容 (只顯示有勾選的類別名稱，保持畫面乾淨)
+            // 整理學習內容 (只顯示有勾選的類別名稱)
             let learningContent = [];
             if(r.comp_content) learningContent.push(`語言理解`);
             if(r.exp_content) learningContent.push(`語言表達`);
@@ -482,35 +490,57 @@ async function loadRecords() {
             if(r.comm_content) learningContent.push(`溝通互動`);
             let learningStr = learningContent.length > 0 ? learningContent.join(' / ') : '無';
 
+            // 🟢 全新卡片式視覺設計 (主題藍、白、灰)
             return `
-            <div class="list-group-item p-4 mb-4 border rounded-3 shadow-sm bg-white position-relative">
-                <div class="position-absolute top-0 end-0 p-3">
-                    <span class="text-secondary small">${r.date}</span>
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                <div class="card-header d-flex justify-content-between align-items-center py-3" style="background-color: #3b82f6; border-bottom: none;">
+                    <div class="fw-bold text-white fs-6" style="letter-spacing: 1px;">
+                        <i class="fas fa-file-medical me-2"></i>治療紀錄
+                    </div>
+                    <span class="badge bg-white text-primary rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.85rem;">${r.date}</span>
                 </div>
                 
-                <h5 class="mb-4 text-dark fw-bold" style="letter-spacing: 1px;">治療紀錄</h5>
-                
-                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
-                    <span class="fw-bold me-1">形式：</span>${r.session_Type || '未填寫'}
-                </div>
-                
-                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
-                    <span class="fw-bold me-1">學習內容：</span>${learningStr}
-                </div>
-                
-                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
-                    <span class="fw-bold me-1">參與度：</span>${r.participation || '無'}
-                </div>
-                
-                <div class="mb-3 text-dark" style="font-size: 1.05rem;">
-                    <span class="fw-bold me-1">延伸策略：</span>${r.strategies || '無'}
-                </div>
-                
-                <div class="mb-1 text-dark" style="font-size: 1.05rem;">
-                    <span class="fw-bold me-1">補充事項：</span>${r.remarks || '無'}
+                <div class="card-body p-4">
+                    
+                    <div class="row mb-4">
+                        <div class="col-6 border-end">
+                            <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">形式</div>
+                            <span class="badge rounded-pill px-3 py-2" style="background-color: #f1f5f9; color: #475569; font-weight: 600; font-size: 0.9rem;">
+                                ${r.session_Type || '未填寫'}
+                            </span>
+                        </div>
+                        <div class="col-6 ps-4">
+                            <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">參與度</div>
+                            <div class="text-dark fw-bold" style="font-size: 1.05rem;">${r.participation || '無'}</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border-left: 5px solid #3b82f6;">
+                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">學習內容</div>
+                        <div class="text-dark fw-bold fs-6" style="line-height: 1.6;">${learningStr}</div>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">
+                            <i class="fas fa-lightbulb text-warning me-1"></i>延伸策略
+                        </div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0;">
+                            ${r.strategies || '無'}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">
+                            <i class="fas fa-comment-dots text-secondary me-1"></i>補充事項
+                        </div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0;">
+                            ${r.remarks || '無'}
+                        </p>
+                    </div>
+
                 </div>
             </div>
-        `}).join("");
+            `}).join("");
     } catch (err) { console.error("Load records failed:", err); }
 }
 
@@ -628,7 +658,9 @@ function initCalendar() {
                     start: e.start,
                     end: e.end,
                     backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981',
-                    borderColor: 'transparent'
+                    borderColor: 'transparent',
+                    textColor: '#ffffff',
+                    display: 'block'
                 }));
                 successCallback(events);
             } catch (err) { failureCallback(err); }
