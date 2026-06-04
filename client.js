@@ -159,13 +159,40 @@ if (typeof io !== 'undefined') {
         if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 }
-
 // ==========================================
-// 🛠️ 3. 頁面邏輯與登入驗證
+// 🛠️ 3. 頁面邏輯與登入驗證 (含自動排版修復)
 // ==========================================
 
 document.addEventListener("DOMContentLoaded", async () => {
     renderNotificationList();
+
+    // 🟢 神奇修復術：自動把功能區塊從 Dashboard 的肚子裡搬出來，並加上「返回」按鈕
+    const dashboard = document.getElementById('dashboard-section');
+    const sections = ['section-records', 'section-iep', 'section-messages', 'section-questions'];
+    
+    if (dashboard) {
+        sections.forEach(id => {
+            const el = document.getElementById(id);
+            if (el) {
+                // 1. 如果不小心包在 dashboard 裡面，自動搬家到同一層的外面
+                if (dashboard.contains(el)) {
+                    dashboard.parentElement.appendChild(el);
+                }
+                
+                // 2. 幫每個功能畫面加上「返回首頁」的實體按鈕
+                if (!el.querySelector('.back-btn')) {
+                    const backBtn = document.createElement('div');
+                    backBtn.className = 'back-btn mb-3 mt-2 text-start';
+                    backBtn.innerHTML = `
+                        <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="showSection('dashboard')" style="border-width: 2px; font-weight: bold; background-color: #f8f9fa;">
+                            <i class="fas fa-arrow-left me-1"></i> 返回首頁
+                        </button>
+                    `;
+                    el.prepend(backBtn); // 插入到畫面的最上方
+                }
+            }
+        });
+    }
 
     if (token) {
         await verifyToken();
@@ -992,10 +1019,14 @@ window.openEventModal = function() {
 window.saveEvent = async function() {
     const id = document.getElementById('evt-id').value;
     const title = document.getElementById('evt-title').value;
-    const start = document.getElementById('evt-start').value;
-    const end = document.getElementById('evt-end').value;
+    let start = document.getElementById('evt-start').value;
+    let end = document.getElementById('evt-end').value;
 
     if (!title || !start) return Swal.fire('錯誤', '標題與開始時間為必填', 'error');
+
+    // 🟢 時區修正魔法：強制加上台灣時區 (+08:00)，防止被當成 UTC 導致時間飄移 8 小時
+    if (start && start.length === 16) start += ":00+08:00";
+    if (end && end.length === 16) end += ":00+08:00";
 
     const method = id ? 'PUT' : 'POST';
     const url = id ? `${API_URL}/api/calendar/${id}` : `${API_URL}/api/calendar`;
