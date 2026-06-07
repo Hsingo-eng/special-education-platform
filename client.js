@@ -167,37 +167,43 @@ if (typeof io !== 'undefined') {
 document.addEventListener("DOMContentLoaded", async () => {
     renderNotificationList();
 
-    // 🟢 任務一：徹底刪除舊版多餘的「空白大框框」
+    // 🟢 任務一：徹底刪除舊版多餘的「空白狀態文字」
     const emptyState = document.getElementById('empty-state');
     if (emptyState) emptyState.remove();
 
     // 🟢 任務二：神奇修復術（自動搬家、增加內縮邊距、加上返回按鈕）
     const dashboard = document.getElementById('dashboard-section');
     const sections = ['section-records', 'section-iep', 'section-messages', 'section-questions'];
-
+    
     if (dashboard) {
         sections.forEach(id => {
             const el = document.getElementById(id);
             if (el) {
-                // 1. 自動搬家，並加上「內縮邊距(container)」防止文字貼齊邊緣
+                // 1. 自動搬家
                 if (dashboard.contains(el)) {
                     dashboard.parentElement.appendChild(el);
-                    // 加入 Bootstrap 專屬的容器與安全留白，讓畫面置中且不貼邊
                     el.classList.add('container', 'mt-4', 'mb-5', 'px-3', 'px-md-4');
                 }
-
-                // 2. 幫每個功能畫面加上「返回首頁」的實體按鈕
+                
+                // 2. 加上返回按鈕
                 if (!el.querySelector('.back-btn')) {
                     const backBtn = document.createElement('div');
-                    // 增加底部的 margin (mb-4) 讓按鈕和下方的標題有點呼吸空間
                     backBtn.className = 'back-btn mb-4 mt-2 text-start';
                     backBtn.innerHTML = `
                         <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="showSection('dashboard')" style="border-width: 2px; font-weight: bold; background-color: #f8f9fa;">
                             <i class="fas fa-arrow-left me-1"></i> 返回首頁
                         </button>
                     `;
-                    el.prepend(backBtn); // 插入到畫面的最上方
+                    el.prepend(backBtn); 
                 }
+            }
+        });
+
+        // 🟢 任務三：全自動清道夫！找出並消滅遺留的「白色空盒子」
+        Array.from(dashboard.children).forEach(child => {
+            // 如果這個區塊裡面已經沒有任何實質的文字內容（變成空殼了），就把它強制隱藏！
+            if (child.tagName === 'DIV' && child.innerText.trim() === '') {
+                child.style.display = 'none';
             }
         });
     }
@@ -643,21 +649,59 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(el, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
-        // 🟢 把隱藏的工具列打開，左邊放切換箭頭，中間放月份標題！
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
             right: 'dayGridMonth,timeGridWeek'
         },
         height: 'auto',
-       // ==========================================
-        // 📅 行事曆點擊事件核心控制
-        // ==========================================
-        events: `${API_URL}/api/calendar`,
 
+        // ==========================================
+        // 🟢 修正核心：自訂翻譯官，拆開 json.data 包裝並轉換欄位
+        // ==========================================
+        events: async function(info, successCallback, failureCallback) {
+            try {
+                const res = await fetch(`${API_URL}/api/calendar`, {
+                    headers: { "Authorization": `Bearer ${token}` }
+                });
+                const json = await res.json();
+                
+                // 拆開包裝，把資料轉成行事曆看得懂的格式
+                const parsedEvents = json.data.map(e => {
+                    // 相容後端的時間格式
+                    let startDT = e.start || (e.date && e.time ? `${e.date}T${e.time}` : e.date);
+                    
+                    // 翻譯純中文角色名稱，顯示在彈出視窗
+                    let creatorRole = '未知';
+                    if (e.role === 'teacher') creatorRole = '教師';
+                    else if (e.role === 'therapist') creatorRole = '治療師';
+                    else if (e.role === 'parents') creatorRole = '家長';
+
+                    return {
+                        id: e.id,
+                        title: e.title,
+                        start: startDT,
+                        end: e.end || null,
+                        backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981', 
+                        borderColor: 'transparent',
+                        textColor: '#ffffff',
+                        display: 'block',
+                        extendedProps: {
+                            creator: creatorRole
+                        }
+                    };
+                });
+                successCallback(parsedEvents); // 把翻譯好的資料交給行事曆顯示
+            } catch (err) {
+                console.error("載入排程失敗:", err);
+                failureCallback(err);
+            }
+        },
+
+        // ==========================================
         // 🟢 功能 A：點擊「日期空白處或數字」，直接彈出新增事件視窗
+        // ==========================================
         dateClick: function(info) {
-            // 先清空表單舊資料
             document.getElementById('eventForm').reset();
             document.getElementById('evt-id').value = '';
             
@@ -665,34 +709,57 @@ function initCalendar() {
             document.getElementById('evt-start').value = `${info.dateStr}T08:00`;
             document.getElementById('evt-end').value = `${info.dateStr}T09:00`;
             
-            // 顯示新增彈出視窗
             new bootstrap.Modal(document.getElementById('eventModal')).show();
         },
 
-        // 🟢 功能 B：點擊「已經設定好的事件」，恢復跳出原本的詳細通知視窗
+        // ==========================================
+        // 🟢 功能 B：點擊事件，精準跳出詳細通知
+        // ==========================================
         eventClick: function(info) {
-            const formatTime = (date) => {
-                if (!date) return '';
-                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
-            };
-            const startStr = formatTime(info.event.start);
-            const endStr = formatTime(info.event.end);
-            const timeStr = endStr ? `${startStr} - ${endStr}` : startStr;
+            const eventDate = info.event.start;
+            const monthDayStr = eventDate ? `${eventDate.getMonth() + 1}月${eventDate.getDate()}日` : '';
+            const eventTitle = info.event.title;
             
-            // 安全地取得建立者名稱
+            // 時間格式化小工具 (轉為 上午/下午)
+            const formatTimeWithAmPm = (date) => {
+                if (!date) return '';
+                let hours = date.getHours();
+                const minutes = date.getMinutes().toString().padStart(2, '0');
+                const ampm = hours >= 12 ? '下午' : '上午';
+                hours = hours % 12;
+                hours = hours ? hours : 12; 
+                return `${ampm}${hours}:${minutes}`;
+            };
+            
+            const startStr = formatTimeWithAmPm(info.event.start);
+            const endStr = formatTimeWithAmPm(info.event.end);
+            const timeStr = endStr ? `${startStr}-${endStr}` : startStr;
+            
             const creator = info.event.extendedProps && info.event.extendedProps.creator 
                             ? info.event.extendedProps.creator 
                             : '未知';
 
-            // 彈出原本的詳細通知
+            // 彈出美化版通知視窗
             Swal.fire({
-                title: info.event.title,
-                html: `時間：${timeStr}<br><br><span style="color: #6c757d; font-size: 0.9em;">由 (${creator}) 新增</span>`,
+                title: `${monthDayStr} ${eventTitle}`, 
+                html: `
+                    <div class="py-2">
+                        <p class="fs-5 fw-bold text-primary mb-3">⏱️ ${timeStr}</p>
+                        <span class="badge rounded-pill bg-light text-secondary border px-3 py-2" style="font-size: 0.95rem;">
+                            由 (${creator}) 新增
+                        </span>
+                    </div>
+                `,
                 icon: 'info',
-                confirmButtonText: 'OK'
+                confirmButtonText: '確定',
+                customClass: {
+                    confirmButton: 'btn btn-primary rounded-pill px-4'
+                },
+                buttonsStyling: false
             });
         }
     });
+    
     calendar.render();
 
     const picker = document.getElementById('calendar-month-picker');
