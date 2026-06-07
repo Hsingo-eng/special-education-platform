@@ -1,4 +1,4 @@
-const API_URL = "https://special-education-platform-production.up.railway.app"; 
+const API_URL = "https://special-education-platform-production.up.railway.app";
 let currentUser = null;
 let token = localStorage.getItem("token");
 let socket = null;
@@ -41,7 +41,7 @@ function renderNotificationList() {
     notifications.forEach(n => {
         let iconClass = 'message';
         let iconName = 'fas fa-bell';
-        
+
         if (n.type === 'calendar') { iconClass = 'calendar'; iconName = 'fas fa-calendar-alt'; }
         else if (n.type === 'record') { iconClass = 'record'; iconName = 'fas fa-file-medical'; }
         else if (n.type === 'iep') { iconClass = 'iep'; iconName = 'fas fa-folder-open'; }
@@ -49,7 +49,7 @@ function renderNotificationList() {
         else if (n.type === 'question') { iconClass = 'question'; iconName = 'fas fa-question-circle'; }
 
         const date = new Date(n.time);
-        const timeStr = `${date.getMonth()+1}/${date.getDate()} ${date.getHours().toString().padStart(2,'0')}:${date.getMinutes().toString().padStart(2,'0')}`;
+        const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
         html += `
             <li class="notif-item" onclick="markAsRead(${n.id})">
@@ -84,7 +84,7 @@ function addNotification(type, text) {
 
 function toggleNotificationMenu() {
     const menu = document.getElementById('notification-menu');
-    if(menu) menu.classList.toggle('show');
+    if (menu) menu.classList.toggle('show');
 }
 
 function markAsRead(id) {
@@ -102,7 +102,7 @@ function clearAllNotifications() {
     renderNotificationList();
 }
 
-document.addEventListener('click', function(e) {
+document.addEventListener('click', function (e) {
     const menu = document.getElementById('notification-menu');
     const btn = document.getElementById('btn-notification');
     if (menu && menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
@@ -116,18 +116,18 @@ document.addEventListener('click', function(e) {
 
 if (typeof io !== 'undefined') {
     socket = io(API_URL);
-    
+
     // 1. 行事曆
     socket.on("calendar_update", (evt) => {
         addNotification('calendar', '新增新排程/刪除排程');
-        if(calendar) calendar.refetchEvents();
+        if (calendar) calendar.refetchEvents();
     });
 
     // 2. IEP
     socket.on("iep_update", () => {
         addNotification('iep', '新IEP檔案已上傳');
         const section = document.getElementById('section-iep');
-        if(section && !section.classList.contains('d-none')) loadIepFiles();
+        if (section && !section.classList.contains('d-none')) loadIepFiles();
     });
 
     // 3. 治療紀錄
@@ -156,7 +156,7 @@ if (typeof io !== 'undefined') {
             addNotification('question', '提問回覆有一則提問提及了您');
         }
         const qSection = document.getElementById('section-questions');
-        if(qSection && !qSection.classList.contains('d-none')) loadQuestions();
+        if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 }
 
@@ -174,7 +174,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     // 🟢 任務二：神奇修復術（自動搬家、增加內縮邊距、加上返回按鈕）
     const dashboard = document.getElementById('dashboard-section');
     const sections = ['section-records', 'section-iep', 'section-messages', 'section-questions'];
-    
+
     if (dashboard) {
         sections.forEach(id => {
             const el = document.getElementById(id);
@@ -185,7 +185,7 @@ document.addEventListener("DOMContentLoaded", async () => {
                     // 加入 Bootstrap 專屬的容器與安全留白，讓畫面置中且不貼邊
                     el.classList.add('container', 'mt-4', 'mb-5', 'px-3', 'px-md-4');
                 }
-                
+
                 // 2. 幫每個功能畫面加上「返回首頁」的實體按鈕
                 if (!el.querySelector('.back-btn')) {
                     const backBtn = document.createElement('div');
@@ -218,9 +218,9 @@ async function verifyToken() {
             currentUser = await res.json();
             updateUI(currentUser);
             showSection("dashboard");
-            
+
             initCalendar();
-            loadMessages(); 
+            loadMessages();
         } else {
             logout();
         }
@@ -234,7 +234,7 @@ function updateUI(user) {
     // 1. 判斷中文身分與對應的小怪獸頭貼
     let roleName = '家長';
     let avatarSrc = 'sticker3.png'; // 預設家長怪獸
-    
+
     if (user.role === 'teacher') {
         roleName = '教師';
         avatarSrc = 'sticker1.png'; // 教師怪獸
@@ -249,13 +249,13 @@ function updateUI(user) {
 
     // 3. 顯示 Header
     const header = document.getElementById("main-nav");
-    if(header) header.classList.remove("d-none");
-    
+    if (header) header.classList.remove("d-none");
+
     // 4. 權限控制 (隱藏無權限的按鈕)
     document.querySelectorAll(".role-restricted").forEach(el => {
         const deny = el.getAttribute("data-deny");
         if (deny && deny.includes(user.role)) {
-            el.style.display = "none"; 
+            el.style.display = "none";
         }
     });
 }
@@ -265,7 +265,7 @@ function updateUI(user) {
 // ==========================================
 
 // 監聽手機或瀏覽器的「上一頁 / 下一頁」動作
-window.addEventListener('popstate', function(event) {
+window.addEventListener('popstate', function (event) {
     const section = event.state ? event.state.section : 'dashboard';
     executeShowSection(section);
 });
@@ -281,30 +281,30 @@ function showSection(sectionId) {
 function executeShowSection(sectionId) {
     // 1. 先把所有畫面都「強制隱藏」，保持畫面乾淨
     const allSections = [
-        'login-section', 
-        'dashboard-section', 
-        'section-records', 
-        'section-iep', 
-        'section-messages', 
+        'login-section',
+        'dashboard-section',
+        'section-records',
+        'section-iep',
+        'section-messages',
         'section-questions'
     ];
     allSections.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('d-none');
     });
-    
+
     const emptyState = document.getElementById('empty-state');
     if (emptyState) emptyState.classList.add('d-none');
 
     // 2. 根據指令，只顯示目標畫面
     if (sectionId === 'login') {
         document.getElementById('login-section').classList.remove('d-none');
-    } 
+    }
     else if (sectionId === 'dashboard') {
         document.getElementById('dashboard-section').classList.remove('d-none');
         // 行事曆從隱藏變顯示時，需要重新整理大小才不會破圖
         if (calendar) setTimeout(() => calendar.render(), 100);
-    } 
+    }
     else {
         // 顯示特定的功能區塊 (IEP, 治療紀錄等)
         const targetSection = document.getElementById('section-' + sectionId);
@@ -337,14 +337,14 @@ async function loadQuestions() {
             return;
         }
 
-        list.innerHTML = json.data.map(q => {
+        list.innerHTML = json.data.reverse().map(q => {
             let targetStr = (q.target_role || '所有人')
                 .replace(/teacher/g, '教師')
                 .replace(/therapist/g, '治療師')
                 .replace(/parents/g, '家長');
-            
+
             let askerStr = q.asker_name.replace(/老師/g, '教師');
-            
+
             // 安全編碼，以便傳遞給按鈕的 onclick 事件
             let safeReply = encodeURIComponent(q.reply || '');
 
@@ -353,7 +353,7 @@ async function loadQuestions() {
             if (q.reply && q.reply.trim() !== "") {
                 // 用自訂的 [SPLIT] 分隔符號切開每一則回覆
                 const replyList = q.reply.split('[SPLIT]');
-                
+
                 replyHTML = replyList.map(r => {
                     // 如果是新版帶有身分標籤的回覆
                     if (r.startsWith('[REPLY]')) {
@@ -373,7 +373,7 @@ async function loadQuestions() {
                             `;
                         }
                     }
-                    
+
                     // 如果是舊版，直接顯示
                     return `
                         <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
@@ -443,7 +443,7 @@ function openReplyModal(questionId, encodedExistingReply) {
 
             // 🟢 組合新的回覆內容格式： [REPLY]身分|姓名|內容
             const newReplyBlock = `[REPLY]${roleName}|${currentUser.name || currentUser.username}|${result.value}`;
-            
+
             // 如果原本已經有回覆了，就用 [SPLIT] 接在舊回覆的後面
             const finalReply = existingReply ? (existingReply + '[SPLIT]' + newReplyBlock) : newReplyBlock;
 
@@ -451,16 +451,16 @@ function openReplyModal(questionId, encodedExistingReply) {
                 const res = await fetch(`${API_URL}/api/questions/${questionId}`, {
                     method: 'PUT',
                     headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify({ reply: finalReply }) 
+                    body: JSON.stringify({ reply: finalReply })
                 });
-                
+
                 if (res.ok) {
                     Swal.fire('成功', '回覆已新增！', 'success');
-                    loadQuestions(); 
+                    loadQuestions();
                 } else throw new Error('伺服器錯誤');
-            } catch (err) { 
+            } catch (err) {
                 console.error(err);
-                Swal.fire('錯誤', '送出失敗，請確認後端是否開啟', 'error'); 
+                Swal.fire('錯誤', '送出失敗，請確認後端是否開啟', 'error');
             }
         }
     });
@@ -484,10 +484,10 @@ async function loadRecords() {
         list.innerHTML = json.data.map(r => {
             // 整理學習內容 (只顯示有勾選的類別名稱)
             let learningContent = [];
-            if(r.comp_content) learningContent.push(`語言理解`);
-            if(r.exp_content) learningContent.push(`語言表達`);
-            if(r.art_content) learningContent.push(`構音練習`);
-            if(r.comm_content) learningContent.push(`溝通互動`);
+            if (r.comp_content) learningContent.push(`語言理解`);
+            if (r.exp_content) learningContent.push(`語言表達`);
+            if (r.art_content) learningContent.push(`構音練習`);
+            if (r.comm_content) learningContent.push(`溝通互動`);
             let learningStr = learningContent.length > 0 ? learningContent.join(' / ') : '無';
 
             // 🟢 全新卡片式視覺設計 (主題藍、白、灰)
@@ -555,15 +555,15 @@ async function loadMessages() {
         const json = await res.json();
         const chatBox = document.getElementById("chat-box");
         if (!chatBox) return;
-        
+
         chatBox.innerHTML = "";
         json.data.forEach(msg => {
             // 🟢 強化判斷：只要角色一樣就當作自己發的，解決 teacher 與 老師 文字不對等的問題
-            const isSelf = (msg.user_name === currentUser.username) || (msg.role === currentUser.role); 
+            const isSelf = (msg.user_name === currentUser.username) || (msg.role === currentUser.role);
             const div = document.createElement("div");
             div.className = `msg-row ${isSelf ? "self" : "other"}`;
-            
-            let sticker = 'sticker3.png'; 
+
+            let sticker = 'sticker3.png';
             let displayRole = '家長'; // 🟢 設定純中文身分
 
             if (msg.role === 'teacher') {
@@ -593,17 +593,17 @@ async function loadIepFiles() {
         const res = await fetch(`${API_URL}/api/iep`, {
             headers: { "Authorization": `Bearer ${token}` }
         });
-        if(!res.ok) throw new Error("API Error");
+        if (!res.ok) throw new Error("API Error");
         const json = await res.json();
         const list = document.getElementById("iep-list");
-        if(!list) return;
-        
+        if (!list) return;
+
         if (json.data.length === 0) {
             list.innerHTML = '<div class="col-12 text-center text-muted py-5">暫無檔案</div>';
             return;
         }
 
-        list.innerHTML = json.data.map(f => `
+        list.innerHTML = json.data.reverse().map(f => `
             <div class="col-md-4">
                 <div class="card p-3 shadow-sm h-100 border-0 bg-light">
                     <div class="d-flex align-items-center mb-3">
@@ -644,14 +644,14 @@ function initCalendar() {
             right: 'dayGridMonth,timeGridWeek'
         },
         height: 'auto',
-        events: async function(info, successCallback, failureCallback) {
+        events: async function (info, successCallback, failureCallback) {
             try {
                 const res = await fetch(`${API_URL}/api/calendar`, {
                     headers: { "Authorization": `Bearer ${token}` }
                 });
-                if(!res.ok) throw new Error("Fetch failed");
+                if (!res.ok) throw new Error("Fetch failed");
                 const json = await res.json();
-                
+
                 const events = json.data.map(e => ({
                     id: e.id,
                     title: e.title,
@@ -660,13 +660,32 @@ function initCalendar() {
                     backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981',
                     borderColor: 'transparent',
                     textColor: '#ffffff',
-                    display: 'block'
+                    display: 'block',
+                    extendedProps: {
+                        creator: e.role === 'teacher' ? '特教老師' : (e.role === 'therapist' ? '治療師' : (e.role || '未知'))
+                    }
                 }));
                 successCallback(events);
             } catch (err) { failureCallback(err); }
         },
+        // 🟢 新增功能：點擊日期空白處或數字，直接彈出新增事件視窗
+        // 🟢 新增功能：點擊日期空白處或數字，直接彈出新增事件視窗
+        dateClick: function (info) {
+            // 1. 先清空表單之前的舊資料
+            document.getElementById('eventForm').reset();
+            document.getElementById('evt-id').value = '';
+
+            // 2. 自動把點擊的日期填入表單 (預設幫填早上 08:00 到 09:00)
+            // info.dateStr 的格式會是 "2026-06-04"
+            document.getElementById('evt-start').value = `${info.dateStr}T08:00`;
+            document.getElementById('evt-end').value = `${info.dateStr}T09:00`;
+
+            // 3. 呼叫並顯示新增事件的彈出視窗
+            new bootstrap.Modal(document.getElementById('eventModal')).show();
+        },
+
         // 🟢 修改點擊事件：顯示時間區間與完整的排程內容
-        eventClick: function(info) {
+        eventClick: function (info) {
             // 建立一個小工具來格式化時間
             const formatTime = (date) => {
                 if (!date) return '';
@@ -674,28 +693,32 @@ function initCalendar() {
             };
 
             const startTimeStr = formatTime(info.event.start);
-            const endTimeStr = info.event.end 
-                ? formatTime(info.event.end) 
+            const endTimeStr = info.event.end
+                ? formatTime(info.event.end)
                 : formatTime(new Date(info.event.start.getTime() + 60 * 60 * 1000));
+            const timeStr = endStr ? `${startStr} - ${endStr}` : startStr;
+
+            const creator = info.event.extendedProps.creator;
 
             // 抓取後端傳來的 description (排程內容)
-            const eventDesc = info.event.extendedProps.description 
-                ? `\n\n內容：${info.event.extendedProps.description}` 
+            const eventDesc = info.event.extendedProps.description
+                ? `\n\n內容：${info.event.extendedProps.description}`
                 : '';
 
             Swal.fire({
                 title: info.event.title,
                 // 將時間與排程內容組合在一起顯示
                 text: `時間: ${startTimeStr} - ${endTimeStr}${eventDesc}`,
-                icon: 'info'
+                icon: 'info',
+                confirmButtonText: 'OK'
             });
         }
     });
     calendar.render();
-    
+
     const picker = document.getElementById('calendar-month-picker');
-    if(picker) {
-        picker.addEventListener('change', function() {
+    if (picker) {
+        picker.addEventListener('change', function () {
             calendar.gotoDate(this.value);
         });
     }
@@ -708,8 +731,8 @@ function initCalendar() {
 async function login() {
     const u = document.getElementById("login-username").value;
     const p = document.getElementById("login-password").value;
-    
-    if(!u || !p) return Swal.fire("請輸入帳號密碼");
+
+    if (!u || !p) return Swal.fire("請輸入帳號密碼");
 
     try {
         const res = await fetch(`${API_URL}/api/auth/login`, {
@@ -717,18 +740,18 @@ async function login() {
             headers: { "Content-Type": "application/json" },
             body: JSON.stringify({ username: u, password: p })
         });
-        
+
         const contentType = res.headers.get("content-type");
         if (!contentType || !contentType.includes("application/json")) {
             throw new Error("伺服器回應錯誤");
         }
 
         const data = await res.json();
-        
+
         if (res.ok) {
             localStorage.setItem("token", data.token);
             token = data.token;
-            location.reload(); 
+            location.reload();
         } else {
             Swal.fire("登入失敗", data.message || "帳號或密碼錯誤", "error");
         }
@@ -767,11 +790,11 @@ function openEventModal() {
 // ==========================================
 // 📅 儲存行事曆事件 (修正欄位名稱與後端對齊)
 // ==========================================
-async function saveEvent() { 
+async function saveEvent() {
     const title = document.getElementById('evt-title').value;
     const startInput = document.getElementById('evt-start').value;
 
-    if(!title || !startInput) {
+    if (!title || !startInput) {
         return Swal.fire('提示', '請填寫標題與開始時間', 'warning');
     }
 
@@ -785,57 +808,57 @@ async function saveEvent() {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             // 🟢 恢復使用後端原本設定好的名稱：date 和 time
-            body: JSON.stringify({ 
-                title: title, 
-                date: datePart, 
+            body: JSON.stringify({
+                title: title,
+                date: datePart,
                 time: timePart,
-                description: "" 
+                description: ""
             })
         });
-        
+
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('eventModal')).hide();
             Swal.fire('成功', '事件已順利新增！', 'success');
-            if(calendar) calendar.refetchEvents(); // 自動重新載入行事曆畫面
+            if (calendar) calendar.refetchEvents(); // 自動重新載入行事曆畫面
         } else {
             throw new Error('伺服器錯誤');
         }
-    } catch(e) { 
+    } catch (e) {
         console.error(e);
-        Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); 
+        Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error');
     }
 }
 
 // 2️⃣ 發送留言板訊息
-async function sendMessage() { 
+async function sendMessage() {
     const input = document.getElementById('msg-input');
     const text = input.value.trim();
-    if (!text) return; 
+    if (!text) return;
 
     try {
         const res = await fetch(`${API_URL}/api/messages`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ message: text }) 
+            body: JSON.stringify({ message: text })
         });
         if (res.ok) {
-            input.value = ''; 
+            input.value = '';
             loadMessages(); // 刷新留言板
         } else throw new Error('發送失敗');
     } catch (err) { Swal.fire('錯誤', '無法連線到伺服器', 'error'); }
 }
 
-function handleEnter(e) { 
-    if(e.key === 'Enter') {
+function handleEnter(e) {
+    if (e.key === 'Enter') {
         e.preventDefault();
-        sendMessage(); 
+        sendMessage();
     }
 }
 
 // ==========================================
 // ❓ 新增提問 (改為多選 checkbox)
 // ==========================================
-function openQuestionModal() { 
+function openQuestionModal() {
     Swal.fire({
         title: '新增提問',
         html: `
@@ -866,7 +889,7 @@ function openQuestionModal() {
             const checkedBoxes = document.querySelectorAll('.q-target-cb:checked');
             const targets = Array.from(checkedBoxes).map(cb => cb.value).join(',');
             const question = document.getElementById('swal-q-text').value.trim();
-            
+
             // 阻擋未填寫狀態
             if (!targets) {
                 Swal.showValidationMessage('請至少勾選一個提問對象！');
@@ -876,7 +899,7 @@ function openQuestionModal() {
                 Swal.showValidationMessage('問題內容不能為空白！');
                 return false;
             }
-            
+
             return { target_role: targets, question: question };
         }
     }).then(async (result) => {
@@ -902,9 +925,9 @@ function openTherapyForm() {
 }
 
 // 📝 提交治療紀錄表單
-async function submitTherapyRecord() { 
+async function submitTherapyRecord() {
     const date = document.getElementById('form-date').value;
-    if(!date) return Swal.fire('提示', '請至少填寫課程日期', 'warning');
+    if (!date) return Swal.fire('提示', '請至少填寫課程日期', 'warning');
 
     // 🟢 抓取「幼兒參與狀況」有打勾的項目，並包含「其他」輸入框內的文字
     let partChecked = Array.from(document.querySelectorAll('.check-part:checked')).map(cb => cb.value);
@@ -918,7 +941,7 @@ async function submitTherapyRecord() {
         date: date,
         session_Type: document.querySelector('input[name="form-type"]:checked')?.value || '',
         duration: document.getElementById('form-duration')?.value || '',
-        
+
         comp_content: document.getElementById('input-comp-content')?.value || '',
         comp_perf: document.getElementById('select-comp-perf')?.value || '',
         exp_content: document.getElementById('input-exp-content')?.value || '',
@@ -927,9 +950,9 @@ async function submitTherapyRecord() {
         art_perf: document.getElementById('select-art-perf')?.value || '',
         comm_content: document.getElementById('input-comm-content')?.value || '',
         comm_perf: document.getElementById('select-comm-perf')?.value || '',
-        
+
         participation: partChecked.join('、'), // 🟢 用頓號串接所有勾選的狀況
-        strategies: document.getElementById('input-strategies')?.value || '', 
+        strategies: document.getElementById('input-strategies')?.value || '',
         remarks: document.getElementById('input-remarks')?.value || ''
     };
 
@@ -946,13 +969,13 @@ async function submitTherapyRecord() {
             document.getElementById('therapyForm').reset();
             document.querySelectorAll('[id^="area-"]').forEach(el => el.classList.add('d-none'));
             const partOtherInput = document.getElementById('input-part-other');
-            if(partOtherInput) partOtherInput.disabled = true; // 鎖回輸入框
+            if (partOtherInput) partOtherInput.disabled = true; // 鎖回輸入框
         } else throw new Error('錯誤');
-    } catch(e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
+    } catch (e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
 }
 
 // 5️⃣ 上傳 IEP 檔案
-function openIepUpload() { 
+function openIepUpload() {
     Swal.fire({
         title: '上傳 IEP 檔案',
         input: 'file',
@@ -968,7 +991,7 @@ function openIepUpload() {
             if (!file) return Swal.showValidationMessage('請選擇一個檔案');
             const formData = new FormData();
             formData.append('file', file);
-            
+
             return fetch(`${API_URL}/api/iep`, {
                 method: 'POST',
                 headers: { 'Authorization': `Bearer ${token}` }, // 檔案上傳不需設定 Content-Type，瀏覽器會自動處理
@@ -990,7 +1013,7 @@ function openIepUpload() {
 // ==========================================
 // 🤖 呼叫 AI 重點摘要功能
 // ==========================================
-async function getAiSummary() { 
+async function getAiSummary() {
     try {
         // 1. 顯示載入中的動畫
         Swal.fire({
@@ -1008,14 +1031,14 @@ async function getAiSummary() {
         if (res.ok) {
             const data = await res.json();
             Swal.close(); // 關閉載入動畫
-            
+
             // 3. 將資料填入畫面上隱藏的 AI 框塊，並顯示出來
             const summaryBox = document.getElementById('ai-summary-box');
             const summaryContent = document.getElementById('ai-summary-content');
             if (summaryBox && summaryContent) {
                 summaryBox.classList.remove('d-none');
                 // 將換行符號轉換成 HTML 的 <br> 讓排版整齊
-                summaryContent.innerHTML = data.summary.replace(/\n/g, '<br>'); 
+                summaryContent.innerHTML = data.summary.replace(/\n/g, '<br>');
             }
         } else {
             throw new Error('無法取得摘要');
@@ -1034,21 +1057,21 @@ async function getAiSummary() {
 // 📅 行事曆：新增/編輯/刪除操作
 // ==========================================
 
-window.openEventModal = function() {
+window.openEventModal = function () {
     document.getElementById('eventForm').reset();
     document.getElementById('evt-id').value = '';
     document.getElementById('btn-del-evt').classList.add('d-none'); // 隱藏刪除按鈕
-    
+
     // 預設開始時間為現在
     const now = new Date();
     const start = new Date(now.getTime() - now.getTimezoneOffset() * 60000).toISOString().slice(0, 16);
     document.getElementById('evt-start').value = start;
-    
+
     const eventModal = new bootstrap.Modal(document.getElementById('eventModal'));
     eventModal.show();
 };
 
-window.saveEvent = async function() {
+window.saveEvent = async function () {
     const id = document.getElementById('evt-id').value;
     const title = document.getElementById('evt-title').value;
     let start = document.getElementById('evt-start').value;
@@ -1081,7 +1104,7 @@ window.saveEvent = async function() {
     }
 };
 
-window.deleteEvent = async function() {
+window.deleteEvent = async function () {
     const id = document.getElementById('evt-id').value;
     if (!id) return;
 
@@ -1116,7 +1139,7 @@ window.deleteEvent = async function() {
 };
 
 // 🗑️ 刪除 IEP 檔案功能
-window.deleteIep = async function(id) {
+window.deleteIep = async function (id) {
     const result = await Swal.fire({
         title: '確定要刪除嗎？',
         text: "檔案將從雲端硬碟徹底移除，無法還原喔！",
