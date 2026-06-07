@@ -337,7 +337,9 @@ async function loadQuestions() {
             return;
         }
 
-        list.innerHTML = json.data.reverse().map(q => {
+        // 🟢 強制時間排序：最新日期在上
+        const sortedQuestions = json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        list.innerHTML = sortedQuestions.map(q => {
             let targetStr = (q.target_role || '所有人')
                 .replace(/teacher/g, '教師')
                 .replace(/therapist/g, '治療師')
@@ -481,7 +483,9 @@ async function loadRecords() {
             return;
         }
 
-        list.innerHTML = json.data.map(r => {
+        // 🟢 強制時間排序：最新日期在上
+        const sortedRecords = json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        list.innerHTML = sortedRecords.map(r => {
             // 整理學習內容 (只顯示有勾選的類別名稱)
             let learningContent = [];
             if (r.comp_content) learningContent.push(`語言理解`);
@@ -603,7 +607,9 @@ async function loadIepFiles() {
             return;
         }
 
-        list.innerHTML = json.data.reverse().map(f => `
+       // 🟢 強制時間排序：最新日期在上
+        const sortedIep = json.data.sort((a, b) => new Date(b.upload_date) - new Date(a.upload_date));
+        list.innerHTML = sortedIep.map(f => `
             <div class="col-md-4">
                 <div class="card p-3 shadow-sm h-100 border-0 bg-light">
                     <div class="d-flex align-items-center mb-3">
@@ -644,71 +650,44 @@ function initCalendar() {
             right: 'dayGridMonth,timeGridWeek'
         },
         height: 'auto',
-        events: async function (info, successCallback, failureCallback) {
-            try {
-                const res = await fetch(`${API_URL}/api/calendar`, {
-                    headers: { "Authorization": `Bearer ${token}` }
-                });
-                if (!res.ok) throw new Error("Fetch failed");
-                const json = await res.json();
+       // ==========================================
+        // 📅 行事曆點擊事件核心控制
+        // ==========================================
+        events: `${API_URL}/api/calendar`,
 
-                const events = json.data.map(e => ({
-                    id: e.id,
-                    title: e.title,
-                    start: e.start,
-                    end: e.end,
-                    backgroundColor: e.role === 'teacher' ? '#F97316' : '#10B981',
-                    borderColor: 'transparent',
-                    textColor: '#ffffff',
-                    display: 'block',
-                    extendedProps: {
-                        creator: e.role === 'teacher' ? '特教老師' : (e.role === 'therapist' ? '治療師' : (e.role || '未知'))
-                    }
-                }));
-                successCallback(events);
-            } catch (err) { failureCallback(err); }
-        },
-        // 🟢 新增功能：點擊日期空白處或數字，直接彈出新增事件視窗
-        // 🟢 新增功能：點擊日期空白處或數字，直接彈出新增事件視窗
-        dateClick: function (info) {
-            // 1. 先清空表單之前的舊資料
+        // 🟢 功能 A：點擊「日期空白處或數字」，直接彈出新增事件視窗
+        dateClick: function(info) {
+            // 先清空表單舊資料
             document.getElementById('eventForm').reset();
             document.getElementById('evt-id').value = '';
-
-            // 2. 自動把點擊的日期填入表單 (預設幫填早上 08:00 到 09:00)
-            // info.dateStr 的格式會是 "2026-06-04"
+            
+            // 自動填入點擊的日期 (預設早上 08:00 到 09:00)
             document.getElementById('evt-start').value = `${info.dateStr}T08:00`;
             document.getElementById('evt-end').value = `${info.dateStr}T09:00`;
-
-            // 3. 呼叫並顯示新增事件的彈出視窗
+            
+            // 顯示新增彈出視窗
             new bootstrap.Modal(document.getElementById('eventModal')).show();
         },
 
-        // 🟢 修改點擊事件：顯示時間區間與完整的排程內容
-        eventClick: function (info) {
-            // 建立一個小工具來格式化時間
+        // 🟢 功能 B：點擊「已經設定好的事件」，恢復跳出原本的詳細通知視窗
+        eventClick: function(info) {
             const formatTime = (date) => {
                 if (!date) return '';
-                return date.toLocaleTimeString('zh-TW', { hour: '2-digit', minute: '2-digit', hour12: true });
+                return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
             };
-
-            const startTimeStr = formatTime(info.event.start);
-            const endTimeStr = info.event.end
-                ? formatTime(info.event.end)
-                : formatTime(new Date(info.event.start.getTime() + 60 * 60 * 1000));
+            const startStr = formatTime(info.event.start);
+            const endStr = formatTime(info.event.end);
             const timeStr = endStr ? `${startStr} - ${endStr}` : startStr;
+            
+            // 安全地取得建立者名稱
+            const creator = info.event.extendedProps && info.event.extendedProps.creator 
+                            ? info.event.extendedProps.creator 
+                            : '未知';
 
-            const creator = info.event.extendedProps.creator;
-
-            // 抓取後端傳來的 description (排程內容)
-            const eventDesc = info.event.extendedProps.description
-                ? `\n\n內容：${info.event.extendedProps.description}`
-                : '';
-
+            // 彈出原本的詳細通知
             Swal.fire({
                 title: info.event.title,
-                // 將時間與排程內容組合在一起顯示
-                text: `時間: ${startTimeStr} - ${endTimeStr}${eventDesc}`,
+                html: `時間：${timeStr}<br><br><span style="color: #6c757d; font-size: 0.9em;">由 (${creator}) 新增</span>`,
                 icon: 'info',
                 confirmButtonText: 'OK'
             });
