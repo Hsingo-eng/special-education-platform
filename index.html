@@ -114,6 +114,168 @@
         }
 
         /* ========================================== */
+        /* 🧩 拼圖大長方形與微動畫設計 */
+        /* ========================================== */
+        
+        /* 定義 2列3行的緊密網格 */
+        /* ========================================== */
+        /* 🧩 拼圖大長方形 (防走鐘強化版) */
+        /* ========================================== */
+        
+        .puzzle-container {
+            display: grid !important;
+            grid-template-columns: repeat(3, 1fr) !important;
+            grid-template-rows: repeat(2, 120px) !important;
+            gap: 0px !important; /* 確保沒有縫隙 */
+            max-width: 700px;
+            margin: 0 auto;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+            background-color: #ffffff;
+            overflow: visible;
+            padding: 0 !important;
+        }
+
+        .puzzle-piece {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+            transition: transform 0.2s ease-out, z-index 0s, box-shadow 0.2s ease-out; /* 拿掉旋轉，避免排版崩壞 */
+            z-index: 1;
+            margin: 0 !important;
+            border: 1px solid rgba(255, 255, 255, 0.15); /* 加上極淡的內邊框，讓拼圖塊有切割感 */
+            box-sizing: border-box !important;
+        }
+
+        .puzzle-icon { font-size: 2rem; margin-bottom: 8px; z-index: 5; pointer-events: none; }
+        .puzzle-title { font-size: 1rem; font-weight: bold; z-index: 5; letter-spacing: 1px; pointer-events: none; }
+
+        /* 游標移上去的動畫：單純放大並浮起來，不再旋轉！ */
+        .puzzle-piece:hover {
+            transform: scale(1.05) !important; 
+            z-index: 10 !important;
+            border-radius: 12px;
+            box-shadow: 0 15px 30px rgba(0,0,0,0.25);
+        }
+
+        /* 🟢 設定每塊拼圖的顏色與外框圓角 */
+        .piece-1 { background-color: #3b82f6; border-top-left-radius: 20px; z-index: 3;}
+        .piece-2 { background-color: #10b981; z-index: 2;}
+        .piece-3 { background-color: #8b5cf6; border-top-right-radius: 20px; z-index: 3;}
+        .piece-4 { background-color: #f59e0b; border-bottom-left-radius: 20px; z-index: 4;}
+        .piece-5 { background-color: #ef4444; z-index: 5;}
+        .piece-6 { background-color: #06b6d4; border-bottom-right-radius: 20px; z-index: 4;}
+
+        /* 🟢 拼圖接頭 (使用絕對定位防止擠壓網格) */
+        .puzzle-piece::after {
+            content: '';
+            position: absolute;
+            background-color: inherit;
+            border-radius: 50%;
+            z-index: -1;
+            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.15); /* 接頭邊線 */
+        }
+
+        .piece-1::after { top: 50%; right: -15px; width: 30px; height: 30px; transform: translateY(-50%); }
+        .piece-2::after { bottom: -15px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%); }
+        .piece-3::after { top: 50%; left: -15px; width: 30px; height: 30px; transform: translateY(-50%); }
+        .piece-4::after { top: -15px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%); box-shadow: 60px 55px 0 0 inherit; }
+        .piece-4::before { content: ''; position: absolute; top: 50%; right: -15px; width: 30px; height: 30px; background-color: inherit; border-radius: 50%; transform: translateY(-50%); z-index: -1; }
+        .piece-5::after { top: 50%; right: -15px; width: 30px; height: 30px; transform: translateY(-50%); }
+        .piece-6::after { top: -15px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%); }
+
+        @media (max-width: 768px) {
+            .puzzle-container {
+                grid-template-columns: repeat(2, 1fr) !important;
+                grid-template-rows: repeat(3, 100px) !important;
+            }
+            .puzzle-piece::after, .puzzle-piece::before { display: none !important; }
+            .piece-1 { border-radius: 20px 0 0 0; }
+            .piece-2 { border-radius: 0 20px 0 0; }
+            .piece-3 { border-radius: 0; }
+            .piece-4 { border-radius: 0; }
+            .piece-5 { border-radius: 0 0 0 20px; }
+            .piece-6 { border-radius: 0 0 20px 0; }
+        }
+
+        /* 拼圖區塊共用設定 */
+        .puzzle-piece {
+            position: relative;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            cursor: pointer;
+            color: white;
+            transition: all 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275); /* 彈跳感動畫 */
+            z-index: 1;
+        }
+
+        /* 拼圖的圖示與文字 */
+        .puzzle-icon { font-size: 2rem; margin-bottom: 8px; z-index: 5; }
+        .puzzle-title { font-size: 1rem; font-weight: bold; z-index: 5; letter-spacing: 1px; }
+
+        /* 游標移上去的動畫：稍微放大、稍微旋轉、浮起來離開大長方形！ */
+        .puzzle-piece:hover {
+            transform: scale(1.08) rotate(-3deg);
+            z-index: 10;
+            border-radius: 15px; /* 分離時邊緣變圓滑 */
+            box-shadow: 0 15px 25px rgba(0,0,0,0.2);
+        }
+
+        /* 🟢 設定每塊拼圖的顏色與大長方形的四個外圓角 */
+        .piece-1 { background-color: #3b82f6; border-top-left-radius: 20px; z-index: 3;} /* 藍 */
+        .piece-2 { background-color: #10b981; z-index: 2;} /* 綠 */
+        .piece-3 { background-color: #8b5cf6; border-top-right-radius: 20px; z-index: 3;} /* 紫 */
+        .piece-4 { background-color: #f59e0b; border-bottom-left-radius: 20px; z-index: 4;} /* 橘 */
+        .piece-5 { background-color: #ef4444; z-index: 5;} /* 紅 */
+        .piece-6 { background-color: #06b6d4; border-bottom-right-radius: 20px; z-index: 4;} /* 青 */
+
+        /* 🟢 畫出拼圖的凸起接頭 (Knobs) */
+        /* 利用偽元素 ::after 在拼圖邊緣畫出圓形，覆蓋到隔壁塊，製造出拼圖互扣的錯覺 */
+        .puzzle-piece::after {
+            content: '';
+            position: absolute;
+            background-color: inherit; /* 繼承該塊拼圖的顏色 */
+            border-radius: 50%;
+            z-index: -1;
+        }
+
+        /* 拼圖 1：往右凸 */
+        .piece-1::after { top: 50%; right: -15px; width: 30px; height: 30px; transform: translateY(-50%); }
+        /* 拼圖 2：往下凸 */
+        .piece-2::after { bottom: -15px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%); }
+        /* 拼圖 3：往左凸 */
+        .piece-3::after { top: 50%; left: -15px; width: 30px; height: 30px; transform: translateY(-50%); }
+        /* 拼圖 4：往上凸、往右凸 */
+        .piece-4::after { top: -15px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%); box-shadow: 60px 55px 0 0 inherit; } /* 用陰影畫第二個凸起 */
+        .piece-4::before { content: ''; position: absolute; top: 50%; right: -15px; width: 30px; height: 30px; background-color: inherit; border-radius: 50%; transform: translateY(-50%); z-index: -1; }
+        /* 拼圖 5：往右凸 */
+        .piece-5::after { top: 50%; right: -15px; width: 30px; height: 30px; transform: translateY(-50%); }
+        /* 拼圖 6：往上凸 */
+        .piece-6::after { top: -15px; left: 50%; width: 30px; height: 30px; transform: translateX(-50%); }
+
+        /* 📱 手機版微調：將拼圖變成單欄堆疊，或是維持兩欄較小的網格 */
+        @media (max-width: 768px) {
+            .puzzle-container {
+                grid-template-columns: repeat(2, 1fr);
+                grid-template-rows: repeat(3, 100px);
+            }
+            /* 手機版排版改變，接頭方向會錯亂，所以先把拼圖接頭隱藏，保持圓角方塊即可 */
+            .puzzle-piece::after, .puzzle-piece::before { display: none; }
+            .piece-1 { border-radius: 20px 0 0 0; }
+            .piece-2 { border-radius: 0 20px 0 0; }
+            .piece-3 { border-radius: 0; }
+            .piece-4 { border-radius: 0; }
+            .piece-5 { border-radius: 0 0 0 20px; }
+            .piece-6 { border-radius: 0 0 20px 0; }
+        }
+
+        /* ========================================== */
         /* 📱 手機版專屬微調：行事曆置中、拼圖比例控制 */
         /* ========================================== */
         @media (max-width: 768px) {
@@ -319,138 +481,48 @@
         </div>
     </div>
 
-    <div id="dashboard-section" class="container d-none" style="padding-top: 2rem; padding-bottom: 5rem;">
-    
-        <div id="calendar-section" class="platform-card">
-            <div class="d-flex justify-content-between align-items-end mb-3 border-bottom pb-2">
-                <div>
-                    <span class="section-label">Schedule</span>
-                    
-                    <div class="d-flex align-items-center gap-3">
-                        <h2 class="mb-0 fw-bold text-dark">本月排程</h2>
-                        <input type="month" id="calendar-month-picker" class="form-control form-control-sm" style="width: auto; border-radius: 6px; border: 1px solid #ccc;">
-                    </div>
-                </div>
-                
-                <button id="btn-add-event" class="btn btn-dark rounded-pill role-only" 
-                        data-allow="teacher,therapist" 
-                        onclick="openEventModal()">
-                    <i class="fas fa-plus"></i> New Event
-                </button>
-            </div>
-            
-            <div id="calendar"></div>
+    <div id="dashboard-section" class="container mt-4 mb-5 px-3">
+        
+        <div class="text-center mb-4">
+            <h4 class="fw-bold text-primary mb-1" style="letter-spacing: 2px;">特殊教育跨專業團隊溝通平台</h4>
+            <p class="text-muted small">點擊下方拼圖區塊進入功能</p>
         </div>
 
-        <div class="features-nav-section">
-            
-            <div class="mb-3 ms-1">
-                <span class="section-label">Features</span>
-                <h2 class="h2-title mb-0 text-dark fw-bold">功能選單</h2>
+        <div class="puzzle-container">
+            <div class="puzzle-piece piece-1" onclick="showSection('records')">
+                <i class="fas fa-file-medical puzzle-icon"></i>
+                <div class="puzzle-title">治療紀錄</div>
             </div>
             
-            <div class="features-grid">
-                <div class="nav-card role-restricted" data-deny="parents" onclick="showSection('records')">
-                    <div class="concept-number">01</div>
-                    <i class="fas fa-file-medical nav-icon text-success"></i>
-                    <div class="nav-title">治療紀錄</div>
-                    <div class="nav-desc">追蹤個案的治療進度與詳細紀錄。</div>
-                </div>
-                
-                <div class="nav-card" onclick="showSection('iep')">
-                    <div class="concept-number">02</div>
-                    <i class="fas fa-folder-open nav-icon text-danger"></i>
-                    <div class="nav-title">IEP 資料</div>
-                    <div class="nav-desc">個別化教育計畫檔案管理與檢閱。</div>
-                </div>
+            <div class="puzzle-piece piece-2" onclick="showSection('iep')">
+                <i class="fas fa-folder-open puzzle-icon"></i>
+                <div class="puzzle-title">IEP 資料</div>
+            </div>
 
-                <div class="nav-card" onclick="showSection('messages')">
-                    <div class="concept-number">03</div>
-                    <i class="fas fa-comments nav-icon text-primary"></i>
-                    <div class="nav-title">留言板</div>
-                    <div class="nav-desc">親師溝通的即時橋樑與 AI 摘要。</div>
-                </div>
+            <div class="puzzle-piece piece-3" onclick="showSection('messages')">
+                <i class="fas fa-comments puzzle-icon"></i>
+                <div class="puzzle-title">留言板</div>
+            </div>
 
-                <div class="nav-card" onclick="showSection('questions')">
-                    <div class="concept-number">04</div>
-                    <i class="fas fa-question-circle nav-icon text-info"></i>
-                    <div class="nav-title">提問回覆</div>
-                    <div class="nav-desc">建立良好的諮詢與問答管道。</div>
-                </div>
+            <div class="puzzle-piece piece-4" onclick="showSection('calendar')">
+                <i class="fas fa-calendar-alt puzzle-icon"></i>
+                <div class="puzzle-title">行事曆</div>
+            </div>
+
+            <div class="puzzle-piece piece-5" onclick="showSection('home-log')">
+                <i class="fas fa-home puzzle-icon"></i>
+                <div class="puzzle-title">居家表現</div>
+            </div>
+
+            <div class="puzzle-piece piece-6" onclick="showSection('questions')">
+                <i class="fas fa-question-circle puzzle-icon"></i>
+                <div class="puzzle-title">提問回覆</div>
             </div>
         </div>
+    </div>
 
-        <div id="content-area">
-            <div class="platform-card content-stage-card">
-                
-                <div id="empty-state" class="text-center py-5">
-                    <i class="fas fa-mouse-pointer fa-3x text-light mb-3" style="color: #E5E7EB !important;"></i>
-                    <p class="text-secondary">請點選上方功能卡片以查看內容</p>
-                </div>
-
-                <div id="section-records" class="d-none animate-fade">
-                    <div class="d-flex justify-content-between align-items-center mb-5">
-                        <h2 class="h2-title mb-0">治療紀錄列表</h2>
-                        <button class="btn btn-success btn-sm role-only" data-allow="therapist" onclick="openTherapyForm()">
-                            <i class="fas fa-plus"></i> 新增紀錄表單
-                        </button>
-                    </div>
-                    <div id="record-list" class="list-group list-group-flush"></div>
-                </div>
-
-                <div id="section-iep" class="d-none animate-fade">
-                    <div class="d-flex justify-content-between align-items-center mb-5">
-                        <h2 class="h2-title mb-0">IEP 個案資料</h2>
-                        <button class="btn btn-danger btn-sm role-only" data-allow="teacher" onclick="openIepUpload()">
-                            <i class="fas fa-cloud-upload-alt"></i> 上傳
-                        </button>
-                    </div>
-                    <div id="iep-list" class="row g-4"></div>
-                </div>
-
-                <div id="section-messages" class="d-none animate-fade">
-                    <div class="d-flex justify-content-between align-items-center mb-4">
-                        <h2 class="h2-title mb-0">留言板</h2>
-                        <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="getAiSummary()">
-                            <i class="fas fa-robot"></i> AI 重點摘要
-                        </button>
-                    </div>
-                    
-                    <div id="ai-summary-box" class="alert alert-info d-none mb-4 border-0" style="background: #EFF6FF;">
-                        <h6 class="text-primary fw-bold mb-2"><i class="fas fa-magic"></i> Gemini AI 摘要</h6>
-                        <p id="ai-summary-content" class="mb-0 small text-secondary"></p>
-                    </div>
-
-                    <div class="chat-container mb-4" style="height: 500px;">
-                        <div id="chat-box" class="chat-box p-3"></div>
-                    </div>
-                    
-                    <div class="input-group">
-                        <input type="text" id="msg-input" class="form-control form-control-lg px-4" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
-                        <button class="btn btn-primary px-4" onclick="sendMessage()" style="border-radius: 0 12px 12px 0;">
-                            <i class="fas fa-paper-plane"></i>
-                        </button>
-                    </div>
-                </div>
-
-                <div id="section-questions" class="d-none animate-fade">
-                    <div class="d-flex justify-content-between align-items-center mb-5">
-                        <h2 class="h2-title mb-0">提問與回覆</h2>
-                        <button class="btn btn-info text-white btn-sm rounded-pill" onclick="openQuestionModal()">
-                            <i class="fas fa-plus-circle"></i> 我要提問
-                        </button>
-                    </div>
-                    <div id="questions-list" class="row g-3"></div>
-                </div>
-
-            </div>
-        </div>
-
-        <footer class="site-footer mt-5 text-center text-secondary small">
-            <span>© 2026 COMMUNICATION PLATFORM. ALL RIGHTS RESERVED.</span>
-        </footer>
-
-    </div> 
+    <div id="section-calendar" class="d-none">
+    </div>
 
     <div class="modal fade" id="therapyRecordModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
