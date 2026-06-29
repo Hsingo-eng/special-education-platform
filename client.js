@@ -167,46 +167,32 @@ if (typeof io !== 'undefined') {
 document.addEventListener("DOMContentLoaded", async () => {
     renderNotificationList();
 
-    // 🟢 任務一：徹底刪除舊版多餘的「空白狀態文字」
     const emptyState = document.getElementById('empty-state');
     if (emptyState) emptyState.remove();
 
-    // 🟢 任務二：神奇修復術（自動搬家、增加內縮邊距、加上返回按鈕）
-    const dashboard = document.getElementById('dashboard-section');
-    const sections = ['section-records', 'section-iep', 'section-messages', 'section-questions'];
+    // 🟢 更新點：為所有 6 個功能區塊自動加上「返回首頁」的按鈕
+    const sections = [
+        'section-records', 
+        'section-iep', 
+        'section-messages', 
+        'section-questions',
+        'section-calendar',  // 行事曆
+        'section-home-log'   // 居家表現
+    ];
     
-    if (dashboard) {
-        sections.forEach(id => {
-            const el = document.getElementById(id);
-            if (el) {
-                // 1. 自動搬家
-                if (dashboard.contains(el)) {
-                    dashboard.parentElement.appendChild(el);
-                    el.classList.add('container', 'mt-4', 'mb-5', 'px-3', 'px-md-4');
-                }
-                
-                // 2. 加上返回按鈕
-                if (!el.querySelector('.back-btn')) {
-                    const backBtn = document.createElement('div');
-                    backBtn.className = 'back-btn mb-4 mt-2 text-start';
-                    backBtn.innerHTML = `
-                        <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="showSection('dashboard')" style="border-width: 2px; font-weight: bold; background-color: #f8f9fa;">
-                            <i class="fas fa-arrow-left me-1"></i> 返回首頁
-                        </button>
-                    `;
-                    el.prepend(backBtn); 
-                }
-            }
-        });
-
-        // 🟢 任務三：全自動清道夫！找出並消滅遺留的「白色空盒子」
-        Array.from(dashboard.children).forEach(child => {
-            // 如果這個區塊裡面已經沒有任何實質的文字內容（變成空殼了），就把它強制隱藏！
-            if (child.tagName === 'DIV' && child.innerText.trim() === '') {
-                child.style.display = 'none';
-            }
-        });
-    }
+    sections.forEach(id => {
+        const el = document.getElementById(id);
+        if (el && !el.querySelector('.back-btn')) {
+            const backBtn = document.createElement('div');
+            backBtn.className = 'back-btn mb-4 mt-2 text-start';
+            backBtn.innerHTML = `
+                <button class="btn btn-outline-secondary rounded-pill px-3 shadow-sm" onclick="showSection('dashboard')" style="border-width: 2px; font-weight: bold; background-color: #f8f9fa;">
+                    <i class="fas fa-arrow-left me-1"></i> 返回首頁
+                </button>
+            `;
+            el.prepend(backBtn); 
+        }
+    });
 
     if (token) {
         await verifyToken();
@@ -284,43 +270,52 @@ function showSection(sectionId) {
 }
 
 // 真正負責切換畫面的隱藏/顯示邏輯
+// 真正負責切換畫面的隱藏/顯示邏輯
 function executeShowSection(sectionId) {
-    // 1. 先把所有畫面都「強制隱藏」，保持畫面乾淨
+    // 1. 強制隱藏所有畫面 (包含大白框容器 content-area)
     const allSections = [
-        'login-section',
-        'dashboard-section',
-        'section-records',
-        'section-iep',
-        'section-messages',
-        'section-questions'
+        'login-section', 
+        'dashboard-section', 
+        'content-area', // 👈 控制整個白底區塊
+        'section-records', 
+        'section-iep', 
+        'section-messages', 
+        'section-questions',
+        'section-calendar',
+        'section-home-log'
     ];
+    
     allSections.forEach(id => {
         const el = document.getElementById(id);
         if (el) el.classList.add('d-none');
     });
 
-    const emptyState = document.getElementById('empty-state');
-    if (emptyState) emptyState.classList.add('d-none');
-
-    // 2. 根據指令，只顯示目標畫面
+    // 2. 根據指令顯示目標畫面
     if (sectionId === 'login') {
         document.getElementById('login-section').classList.remove('d-none');
-    }
+    } 
     else if (sectionId === 'dashboard') {
+        // 如果是回首頁，只顯示拼圖，白底框會保持隱藏
         document.getElementById('dashboard-section').classList.remove('d-none');
-        // 行事曆從隱藏變顯示時，需要重新整理大小才不會破圖
-        if (calendar) setTimeout(() => calendar.render(), 100);
-    }
+    } 
     else {
-        // 顯示特定的功能區塊 (IEP, 治療紀錄等)
+        // 🟢 如果是打開特定功能，必須同時打開「白底框」跟「目標內容」
+        const contentArea = document.getElementById('content-area');
+        if (contentArea) contentArea.classList.remove('d-none');
+
         const targetSection = document.getElementById('section-' + sectionId);
         if (targetSection) targetSection.classList.remove('d-none');
 
-        // 載入該區塊的資料
+        // 載入資料
         if (sectionId === 'messages' && typeof loadMessages === 'function') loadMessages();
         if (sectionId === 'questions' && typeof loadQuestions === 'function') loadQuestions();
         if (sectionId === 'records' && typeof loadRecords === 'function') loadRecords();
         if (sectionId === 'iep' && typeof loadIepFiles === 'function') loadIepFiles();
+        
+        // 重新渲染行事曆
+        if (sectionId === 'calendar' && calendar) {
+            setTimeout(() => calendar.render(), 100);
+        }
     }
 }
 
