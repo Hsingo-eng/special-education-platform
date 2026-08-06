@@ -1,4 +1,4 @@
-const API_URL = "special-education-platform-production.up.railway.app";
+const API_URL = "https://special-education-platform-production.up.railway.app";
 let currentUser = null;
 let token = localStorage.getItem("token");
 let socket = null;
