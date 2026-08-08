@@ -651,9 +651,7 @@ function initCalendar() {
         },
         height: 'auto',
 
-        // ==========================================
-        // 🟢 修正核心：自訂翻譯官，拆開 json.data 包裝並轉換欄位
-        // ==========================================
+        // 載入事件資料
         events: async function(info, successCallback, failureCallback) {
             try {
                 const res = await fetch(`${API_URL}/api/calendar`, {
@@ -661,12 +659,8 @@ function initCalendar() {
                 });
                 const json = await res.json();
                 
-                // 拆開包裝，把資料轉成行事曆看得懂的格式
                 const parsedEvents = json.data.map(e => {
-                    // 相容後端的時間格式
                     let startDT = e.start || (e.date && e.time ? `${e.date}T${e.time}` : e.date);
-                    
-                    // 翻譯純中文角色名稱，顯示在彈出視窗
                     let creatorRole = '未知';
                     if (e.role === 'teacher') creatorRole = '教師';
                     else if (e.role === 'therapist') creatorRole = '治療師';
@@ -686,68 +680,55 @@ function initCalendar() {
                         }
                     };
                 });
-                successCallback(parsedEvents); // 把翻譯好的資料交給行事曆顯示
+                successCallback(parsedEvents);
             } catch (err) {
                 console.error("載入排程失敗:", err);
                 failureCallback(err);
             }
         },
 
-        // ==========================================
-        // 🟢 功能 A：點擊「日期空白處或數字」，直接彈出新增事件視窗
-        // ==========================================
+        // 點擊空白日期：新增事件
         dateClick: function(info) {
             document.getElementById('eventForm').reset();
             document.getElementById('evt-id').value = '';
             
-            // 自動填入點擊的日期 (預設早上 08:00 到 09:00)
             document.getElementById('evt-start').value = `${info.dateStr}T08:00`;
             document.getElementById('evt-end').value = `${info.dateStr}T09:00`;
+            
+            // 隱藏刪除按鈕
+            const delBtn = document.getElementById('btn-del-evt');
+            if (delBtn) delBtn.classList.add('d-none');
             
             new bootstrap.Modal(document.getElementById('eventModal')).show();
         },
 
-        // ==========================================
-        // 🟢 功能 B：點擊事件，開啟編輯視窗 (包含刪除功能)
-        // ==========================================
+        // 點擊已有事件：修改與刪除
         eventClick: function(info) {
             const evt = info.event;
             
-            // 時間格式轉換工具 (轉為 input type="datetime-local" 需要的 YYYY-MM-DDThh:mm)
+            // 時間格式轉換工具 (轉為 input type="datetime-local" 需要的格式)
             const formatForInput = (dateObj) => {
                 if (!dateObj) return '';
-                // 處理時區偏差，確保顯示當地正確時間
                 const localDate = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000));
                 return localDate.toISOString().slice(0, 16);
             };
 
-            // 1. 將事件資料填入表單
             document.getElementById('evt-id').value = evt.id || '';
             document.getElementById('evt-title').value = evt.title || '';
             document.getElementById('evt-start').value = formatForInput(evt.start);
             document.getElementById('evt-end').value = formatForInput(evt.end);
 
-            // 2. 顯示紅色的「刪除」按鈕 (因為這是已經存在的事件)
+            // 顯示刪除按鈕
             const delBtn = document.getElementById('btn-del-evt');
             if (delBtn) delBtn.classList.remove('d-none');
 
-            // 3. 呼叫 Bootstrap 的 Modal 顯示視窗
             new bootstrap.Modal(document.getElementById('eventModal')).show();
         }
     });
     
     calendar.render();
 
-    const picker = document.getElementById('calendar-month-picker');
-    if (picker) {
-        picker.addEventListener('change', function () {
-            calendar.gotoDate(this.value);
-        });
-    }
-}
-    
-    calendar.render();
-
+    // 處理月份選擇器
     const picker = document.getElementById('calendar-month-picker');
     if (picker) {
         picker.addEventListener('change', function () {
