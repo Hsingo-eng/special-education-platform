@@ -56,19 +56,18 @@
         }
 
         /* ========================================== */
-        /* 🧩 拼圖大長方形 (終極防彈版) */
+        /* 🧩 現代化網格卡片版 (增加間距，絕不重疊) */
         /* ========================================== */
         .puzzle-container {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
             grid-template-rows: repeat(2, 130px) !important;
-            gap: 0px !important;
-            max-width: 650px !important;
+            gap: 16px !important; /* 🟢 這裡產生按鈕之間的空隙 */
+            max-width: 680px !important;
             margin: 0 auto !important;
             padding: 0 !important;
-            border-radius: 20px;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.15);
             background-color: transparent !important;
+            box-shadow: none !important; /* 移除整體大陰影 */
         }
 
         .puzzle-piece {
@@ -79,88 +78,47 @@
             align-items: center;
             cursor: pointer;
             color: white;
-            z-index: 1;
             margin: 0 !important;
             padding: 0 !important;
-            transform: none !important; 
-            transition: transform 0.2s ease, box-shadow 0.2s ease, z-index 0s;
-            border: 1px solid rgba(255, 255, 255, 0.2) !important;
-            box-sizing: border-box !important;
+            border-radius: 16px !important; /* 🟢 讓每一塊按鈕都有獨立圓角 */
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; /* 獨立的微陰影 */
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
         }
 
-        .puzzle-icon { font-size: 2.2rem; margin-bottom: 8px; z-index: 5; pointer-events: none; }
-        .puzzle-title { font-size: 1.1rem; font-weight: bold; z-index: 5; letter-spacing: 1px; pointer-events: none; }
+        .puzzle-icon { font-size: 2.2rem; margin-bottom: 8px; pointer-events: none; }
+        .puzzle-title { font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; pointer-events: none; }
 
+        /* 🟢 滑鼠懸停時的優雅上浮動畫 */
         .puzzle-piece:hover {
-            transform: scale(1.06) !important; 
-            z-index: 20 !important;
-            border-radius: 15px !important;
-            box-shadow: 0 15px 35px rgba(0,0,0,0.3) !important;
-            border: none !important;
+            transform: translateY(-5px) !important; 
+            box-shadow: 0 12px 25px rgba(0,0,0,0.18) !important;
         }
 
-       /* 🟢 重新規劃完美層級：1>2>3>4>5>6，讓陰影自然覆蓋 */
-        .piece-1 { background-color: #3b82f6 !important; border-top-left-radius: 20px; z-index: 6;}
-        .piece-2 { background-color: #10b981 !important; z-index: 5;}
-        .piece-3 { background-color: #8b5cf6 !important; border-top-right-radius: 20px; z-index: 4;}
-        .piece-4 { background-color: #f59e0b !important; border-bottom-left-radius: 20px; z-index: 3;}
-        .piece-5 { background-color: #ef4444 !important; z-index: 2;}
-        .piece-6 { background-color: #06b6d4 !important; border-bottom-right-radius: 20px; z-index: 1;}
+        /* 🟢 乾淨的色彩設定，移除容易打架的 z-index */
+        .piece-1 { background-color: #3b82f6 !important; }
+        .piece-2 { background-color: #10b981 !important; }
+        .piece-3 { background-color: #8b5cf6 !important; }
+        .piece-4 { background-color: #f59e0b !important; }
+        .piece-5 { background-color: #ef4444 !important; }
+        .piece-6 { background-color: #06b6d4 !important; }
 
-        /* 🟢 拼圖的圓形卡榫基礎設定 */
+        /* 🟢 徹底關閉圓形卡榫，確保 100% 不會互相遮蓋 */
         .puzzle-piece::after, .puzzle-piece::before {
-            content: '';
-            position: absolute;
-            background-color: inherit;
-            border-radius: 50%;
-            z-index: -1;
-            width: 32px;
-            height: 32px;
-            box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
-            pointer-events: none; /* 確保卡榫不會擋住滑鼠點擊 */
+            display: none !important;
         }
-
-        /* ========================================== */
-        /* 🟢 卡榫極限避讓定位：統一往右、往下伸展，並緊貼角落！ */
-        /* ========================================== */
-        
-        /* 1號 (藍)：向右伸入 2號 (高處)、向下伸入 4號 (右側) */
-        .piece-1::after { top: 15px; right: -16px; }       
-        .piece-1::before { bottom: -16px; right: 25px; }   
-        
-        /* 2號 (綠)：向右伸入 3號 (高處)、向下伸入 5號 (右側) */
-        .piece-2::after { top: 15px; right: -16px; }       
-        .piece-2::before { bottom: -16px; right: 25px; }   
-        
-        /* 3號 (紫)：最右側，只向下伸入 6號 (右側) */
-        .piece-3::after { bottom: -16px; right: 25px; }    
-        .piece-3::before { display: none; }
-        
-        /* 4號 (橘)：向右伸入 5號 (高處) */
-        .piece-4::after { top: 15px; right: -16px; }       
-        .piece-4::before { display: none; }
-        
-        /* 5號 (紅)：向右伸入 6號 (高處) */
-        .piece-5::after { top: 15px; right: -16px; }       
-        .piece-5::before { display: none; }
-        
-        /* 6號 (青)：最角落，不向外伸展 */
-        .piece-6::after, .piece-6::before { display: none; }
 
         @media (max-width: 768px) {
             .puzzle-container {
                 grid-template-columns: repeat(2, 1fr) !important;
                 grid-template-rows: repeat(3, 110px) !important;
+                gap: 12px !important; /* 🟢 手機版的按鈕空隙 */
             }
             .puzzle-piece::after, .puzzle-piece::before { display: none !important; }
-            .piece-1 { border-radius: 20px 0 0 0 !important; }
-            .piece-2 { border-radius: 0 20px 0 0 !important; }
-            .piece-3 { border-radius: 0 !important; }
-            .piece-4 { border-radius: 0 !important; }
-            .piece-5 { border-radius: 0 0 0 20px !important; }
-            .piece-6 { border-radius: 0 0 20px 0 !important; }
+            /* 把手機版強制覆蓋的圓角設定拿掉，使用預設的 16px 即可 */
+            .piece-1, .piece-2, .piece-3, .piece-4, .piece-5, .piece-6 { border-radius: 16px !important; }
 
             #dashboard-section { padding-left: 6px !important; padding-right: 6px !important; }
+            /* ...保留下方其他原有的手機版設定... */
             .platform-card { padding: 15px 10px !important; }
             #section-calendar h2 { font-size: 19px !important; } 
             .fc .fc-toolbar-title { font-size: 15px !important; margin: 0 5px !important; } 
