@@ -99,7 +99,7 @@
             border: none !important;
         }
 
-        /* 🟢 重新設定 6 塊拼圖的層級，讓卡榫完美覆蓋相鄰邊緣，不被切斷 */
+       /* 🟢 重新設定 6 塊拼圖的層級，讓卡榫完美覆蓋相鄰邊緣 */
         .piece-1 { background-color: #3b82f6 !important; border-top-left-radius: 20px; z-index: 5;}
         .piece-2 { background-color: #10b981 !important; z-index: 4;}
         .piece-3 { background-color: #8b5cf6 !important; border-top-right-radius: 20px; z-index: 1;}
@@ -114,36 +114,37 @@
             background-color: inherit;
             border-radius: 50%;
             z-index: -1;
-            width: 34px;
-            height: 34px;
+            width: 32px;  /* 稍微縮小一點點讓比例更精緻 */
+            height: 32px;
             box-shadow: inset 0 0 0 1px rgba(255,255,255,0.2);
+            pointer-events: none; /* 確保卡榫不會擋住滑鼠點擊 */
         }
 
-        /* 🟢 卡榫交錯定位 (完美避開正中央的文字與圖示) */
+        /* 🟢 卡榫交錯定位：推到角落，絕對不會撞到中間的文字！ */
         
-        /* 1號 (藍)：伸向 2號 (偏上) */
-        .piece-1::after { top: 25%; right: -17px; margin-top: -17px; }
+        /* 1號 (藍)：向右伸入 2號 (推到邊界的最上方) */
+        .piece-1::after { top: 12px; right: -16px; }
         .piece-1::before { display: none; }
         
-        /* 2號 (綠)：伸向 3號 (偏下) / 伸向 5號 (偏左) */
-        .piece-2::after { top: 75%; right: -17px; margin-top: -17px; }
-        .piece-2::before { bottom: -17px; left: 25%; margin-left: -17px; }
+        /* 2號 (綠)：向右伸入 3號 (推到最下方) / 向下伸入 5號 (推到最左側) */
+        .piece-2::after { bottom: 12px; right: -16px; }
+        .piece-2::before { left: 12px; bottom: -16px; }
         
-        /* 3號 (紫)：最底層，不往外伸，接受別人的卡榫 */
+        /* 3號 (紫)：最底層，接收所有人，不向外伸 */
         .piece-3::after, .piece-3::before { display: none; }
         
-        /* 4號 (橘)：伸向 5號 (偏上) / 伸向 1號 (偏右) */
-        .piece-4::after { top: 25%; right: -17px; margin-top: -17px; }
-        .piece-4::before { top: -17px; left: 75%; margin-left: -17px; }
+        /* 4號 (橘)：向上伸入 1號 (推到最右側) / 向右伸入 5號 (推到最下方) */
+        .piece-4::after { right: 25px; top: -16px; } 
+        .piece-4::before { bottom: 12px; right: -16px; }
         
-        /* 5號 (紅)：伸向 6號 (偏下) */
-        .piece-5::after { top: 75%; right: -17px; margin-top: -17px; }
+        /* 5號 (紅)：向右伸入 6號 (推到最上方) */
+        .piece-5::after { top: 12px; right: -16px; }
         .piece-5::before { display: none; }
         
-        /* 6號 (青)：伸向 3號 (偏左) */
-        .piece-6::after { top: -17px; left: 25%; margin-left: -17px; }
+        /* 6號 (青)：向上伸入 3號 (推到最左側) */
+        .piece-6::after { left: 25px; top: -16px; }
         .piece-6::before { display: none; }
-        
+
         @media (max-width: 768px) {
             .puzzle-container {
                 grid-template-columns: repeat(2, 1fr) !important;
