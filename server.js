@@ -238,7 +238,29 @@ app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
+// ==========================================
+// --- 留言板 API (讀取與新增) ---
+// ==========================================
+app.get("/api/messages", verifyToken, async (req, res) => {
+    const data = await getSheetData("messages"); 
+    res.json({ data });
+});
+
+app.post("/api/messages", verifyToken, async (req, res) => {
+    try {
+        const newMsg = {
+            id: `msg-${Date.now()}`, user_name: req.user.name, username: req.user.username,
+            role: req.user.role, message: req.body.message, timestamp: new Date().toISOString()
+        };
+        await appendRow("messages", newMsg);
+        io.emit("message_update", newMsg);
+        res.json({ message: "留言成功" });
+    } catch (e) { res.status(500).json({ message: e.message }); }
+});
+
+// ==========================================
 // 🟢 留言板 AI 重點摘要 API
+// ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
         // 1. 檢查是否有設定 API Key
@@ -248,7 +270,7 @@ app.get('/api/summary', verifyToken, async (req, res) => {
             return res.status(500).json({ error: "伺服器未設定 API 金鑰" });
         }
 
-        // 2. 取得所有留言紀錄 (✅ 這裡已經替換為您專屬的讀取指令)
+        // 2. 取得所有留言紀錄
         const allMessages = await getSheetData("messages");
 
         if (!allMessages || allMessages.length === 0) {
