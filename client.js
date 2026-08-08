@@ -708,52 +708,43 @@ function initCalendar() {
         },
 
         // ==========================================
-        // 🟢 功能 B：點擊事件，精準跳出詳細通知
+        // 🟢 功能 B：點擊事件，開啟編輯視窗 (包含刪除功能)
         // ==========================================
         eventClick: function(info) {
-            const eventDate = info.event.start;
-            const monthDayStr = eventDate ? `${eventDate.getMonth() + 1}月${eventDate.getDate()}日` : '';
-            const eventTitle = info.event.title;
+            const evt = info.event;
             
-            // 時間格式化小工具 (轉為 上午/下午)
-            const formatTimeWithAmPm = (date) => {
-                if (!date) return '';
-                let hours = date.getHours();
-                const minutes = date.getMinutes().toString().padStart(2, '0');
-                const ampm = hours >= 12 ? '下午' : '上午';
-                hours = hours % 12;
-                hours = hours ? hours : 12; 
-                return `${ampm}${hours}:${minutes}`;
+            // 時間格式轉換工具 (轉為 input type="datetime-local" 需要的 YYYY-MM-DDThh:mm)
+            const formatForInput = (dateObj) => {
+                if (!dateObj) return '';
+                // 處理時區偏差，確保顯示當地正確時間
+                const localDate = new Date(dateObj.getTime() - (dateObj.getTimezoneOffset() * 60000));
+                return localDate.toISOString().slice(0, 16);
             };
-            
-            const startStr = formatTimeWithAmPm(info.event.start);
-            const endStr = formatTimeWithAmPm(info.event.end);
-            const timeStr = endStr ? `${startStr}-${endStr}` : startStr;
-            
-            const creator = info.event.extendedProps && info.event.extendedProps.creator 
-                            ? info.event.extendedProps.creator 
-                            : '未知';
 
-            // 彈出美化版通知視窗
-            Swal.fire({
-                title: `${monthDayStr} ${eventTitle}`, 
-                html: `
-                    <div class="py-2">
-                        <p class="fs-5 fw-bold text-primary mb-3">⏱️ ${timeStr}</p>
-                        <span class="badge rounded-pill bg-light text-secondary border px-3 py-2" style="font-size: 0.95rem;">
-                            由 (${creator}) 新增
-                        </span>
-                    </div>
-                `,
-                icon: 'info',
-                confirmButtonText: '確定',
-                customClass: {
-                    confirmButton: 'btn btn-primary rounded-pill px-4'
-                },
-                buttonsStyling: false
-            });
+            // 1. 將事件資料填入表單
+            document.getElementById('evt-id').value = evt.id || '';
+            document.getElementById('evt-title').value = evt.title || '';
+            document.getElementById('evt-start').value = formatForInput(evt.start);
+            document.getElementById('evt-end').value = formatForInput(evt.end);
+
+            // 2. 顯示紅色的「刪除」按鈕 (因為這是已經存在的事件)
+            const delBtn = document.getElementById('btn-del-evt');
+            if (delBtn) delBtn.classList.remove('d-none');
+
+            // 3. 呼叫 Bootstrap 的 Modal 顯示視窗
+            new bootstrap.Modal(document.getElementById('eventModal')).show();
         }
     });
+    
+    calendar.render();
+
+    const picker = document.getElementById('calendar-month-picker');
+    if (picker) {
+        picker.addEventListener('change', function () {
+            calendar.gotoDate(this.value);
+        });
+    }
+}
     
     calendar.render();
 

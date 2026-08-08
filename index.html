@@ -58,43 +58,48 @@
         /* ========================================== */
         /* 🧩 現代化網格卡片版 (增加間距，絕不重疊) */
         /* ========================================== */
+        /* ========================================== */
+        /* 🧩 現代化網格卡片版 (強制分離，絕不重疊) */
+        /* ========================================== */
         .puzzle-container {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
-            grid-template-rows: repeat(2, 130px) !important;
-            gap: 16px !important; /* 🟢 這裡產生按鈕之間的空隙 */
-            max-width: 680px !important;
+            grid-auto-rows: 140px !important; /* 自動統一高度 */
+            gap: 20px !important; /* 🟢 按鈕之間的乾淨空隙 */
+            max-width: 700px !important;
             margin: 0 auto !important;
             padding: 0 !important;
             background-color: transparent !important;
-            box-shadow: none !important; /* 移除整體大陰影 */
+            box-shadow: none !important;
         }
 
         .puzzle-piece {
-            position: relative;
-            display: flex;
-            flex-direction: column;
-            justify-content: center;
-            align-items: center;
-            cursor: pointer;
-            color: white;
-            margin: 0 !important;
-            padding: 0 !important;
-            border-radius: 16px !important; /* 🟢 讓每一塊按鈕都有獨立圓角 */
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important; /* 獨立的微陰影 */
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            position: relative !important;
+            display: flex !important;
+            flex-direction: column !important;
+            justify-content: center !important;
+            align-items: center !important;
+            cursor: pointer !important;
+            color: white !important;
+            border-radius: 16px !important;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+            transition: transform 0.2s ease, box-shadow 0.2s ease !important;
+            /* 🟢 強制歸零，殺死所有可能的重疊因素 */
+            margin: 0 !important; 
+            top: 0 !important;
+            left: 0 !important;
+            transform: none !important;
         }
 
         .puzzle-icon { font-size: 2.2rem; margin-bottom: 8px; pointer-events: none; }
         .puzzle-title { font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; pointer-events: none; }
 
-        /* 🟢 滑鼠懸停時的優雅上浮動畫 */
+        /* 滑鼠懸停動畫 */
         .puzzle-piece:hover {
             transform: translateY(-5px) !important; 
             box-shadow: 0 12px 25px rgba(0,0,0,0.18) !important;
         }
 
-        /* 🟢 乾淨的色彩設定，移除容易打架的 z-index */
         .piece-1 { background-color: #3b82f6 !important; }
         .piece-2 { background-color: #10b981 !important; }
         .piece-3 { background-color: #8b5cf6 !important; }
@@ -102,7 +107,7 @@
         .piece-5 { background-color: #ef4444 !important; }
         .piece-6 { background-color: #06b6d4 !important; }
 
-        /* 🟢 徹底關閉圓形卡榫，確保 100% 不會互相遮蓋 */
+        /* 徹底關閉圓形卡榫 */
         .puzzle-piece::after, .puzzle-piece::before {
             display: none !important;
         }
