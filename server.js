@@ -286,7 +286,7 @@ app.get('/api/summary', verifyToken, async (req, res) => {
         // 4. 初始化 Gemini AI 
         const { GoogleGenerativeAI } = require("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // 5. 設定 Prompt 提示詞 (賦予 AI 專業特教助理的角色)
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
@@ -419,7 +419,7 @@ app.get('/api/summary', async (req, res) => {
 
         // 4. 初始化 Gemini AI (使用速度較快的 flash 模型)
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-pro" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
 
         // 5. 設定 Prompt 提示詞 (賦予 AI 專業特教助理的角色)
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
