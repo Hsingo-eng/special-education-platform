@@ -259,7 +259,7 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🟢 留言板 AI 重點摘要 API（標準版）
+// 🟢 留言板 AI 重點摘要 API（原生 Fetch 直連版）
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
@@ -268,6 +268,9 @@ app.get('/api/summary', verifyToken, async (req, res) => {
             console.error("❌ 找不到 GEMINI_API_KEY");
             return res.status(500).json({ error: "伺服器未設定 GEMINI_API_KEY" });
         }
+
+        // 印出 Key 的前 6 碼確認 Railway 到底有沒有讀到新 Key
+        console.log(`👉 目前使用的 API Key 前幾碼為: ${apiKey.substring(0, 6)}...`);
 
         const allMessages = await getSheetData("messages");
         if (!allMessages || allMessages.length === 0) {
@@ -279,19 +282,27 @@ app.get('/api/summary', verifyToken, async (req, res) => {
             return `${roleName} (${m.user_name || m.username || '匿名'}): ${m.message}`;
         }).join('\n');
 
-        const { GoogleGenerativeAI } = require("@google/generative-ai");
-        const genAI = new GoogleGenerativeAI(apiKey);
-        
-        // ⭕ 使用 1.5-flash
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        // 🟢 不使用 SDK，改用官方標準 REST API 直連 endpoint
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({
+                contents: [{ parts: [{ text: prompt }] }]
+            })
+        });
 
-        res.json({ summary: text });
+        const data = await response.json();
+
+        if (!response.ok) {
+            console.error("❌ Google API 回傳錯誤:", data);
+            return res.status(500).json({ error: `Google API 錯誤 (${response.status}): ${data.error?.message || '未知錯誤'}` });
+        }
+
+        const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法解析摘要內容";
+
+        res.json({ summary: resultText });
         console.log("✅ AI 摘要成功生成！");
 
     } catch (error) {
