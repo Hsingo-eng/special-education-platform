@@ -259,46 +259,51 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🟢 留言板 AI 重點摘要 API（修復版）
+// 🟢 留言板 AI 重點摘要 API（自動防呆相容版）
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
-        // 1. 檢查 API Key
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             console.error("❌ 找不到 GEMINI_API_KEY");
             return res.status(500).json({ error: "伺服器未設定 API 金鑰" });
         }
 
-        // 2. 正確從 Google Sheets 讀取留言
         const allMessages = await getSheetData("messages");
 
         if (!allMessages || allMessages.length === 0) {
             return res.json({ summary: "目前留言板尚無內容可以統整喔！" });
         }
 
-        // 3. 組合留言內容
         const messageText = allMessages.map(m => {
             let roleName = m.role === 'teacher' ? '教師' : (m.role === 'therapist' ? '治療師' : '家長');
             return `${roleName} (${m.user_name || m.username || '匿名'}): ${m.message}`;
         }).join('\n');
 
-        // 4. 初始化 Gemini AI (使用極度穩定的模型名稱)
+        const { GoogleGenerativeAI } = require("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
-
-        // 5. 設定 Prompt
+        
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        // 6. 產生摘要
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
+        let text = "";
 
-        // 7. 回傳結果
+        // 嘗試優先使用 gemini-1.5-flash，若失敗自動切換為 gemini-pro
+        try {
+            const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+            const result = await model.generateContent(prompt);
+            const response = await result.response;
+            text = response.text();
+        } catch (modelErr) {
+            console.warn("⚠️ gemini-1.5-flash 呼叫失敗，嘗試備用模型 gemini-pro...", modelErr.message);
+            const fallbackModel = genAI.getGenerativeModel({ model: "gemini-pro" });
+            const result = await fallbackModel.generateContent(prompt);
+            const response = await result.response;
+            text = response.text();
+        }
+
         res.json({ summary: text });
-
         console.log("✅ AI 摘要成功生成！");
+
     } catch (error) {
         console.error("❌ AI 摘要生成失敗:", error);
         res.status(500).json({ error: "AI 摘要生成失敗：" + error.message });
