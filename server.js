@@ -259,7 +259,7 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🟢 留言板 AI 重點摘要 API（支援 AQ. 新型態金鑰版）
+// 🟢 留言板 AI 重點摘要 API（Header 正確版）
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
@@ -281,8 +281,8 @@ app.get('/api/summary', verifyToken, async (req, res) => {
 
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        // 🟢 關鍵修正：將 Key 放入 Header (x-goog-api-key)，相容 AQ. 開頭的新型態金鑰
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent`, {
+        // 使用 HTTP Header 帶入 AQ. 金鑰，路徑改為 v1
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`, {
             method: 'POST',
             headers: { 
                 'Content-Type': 'application/json',
