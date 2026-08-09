@@ -259,24 +259,21 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🟢 留言板 AI 重點摘要 API（Railway 終極穩定版）
+// 🟢 留言板 AI 重點摘要 API（標準版）
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
             console.error("❌ 找不到 GEMINI_API_KEY");
-            return res.status(500).json({ error: "伺服器未設定 API 金鑰" });
+            return res.status(500).json({ error: "伺服器未設定 GEMINI_API_KEY" });
         }
 
-        // 1. 讀取留言
         const allMessages = await getSheetData("messages");
-
         if (!allMessages || allMessages.length === 0) {
             return res.json({ summary: "目前留言板尚無內容可以統整喔！" });
         }
 
-        // 2. 組合留言內容
         const messageText = allMessages.map(m => {
             let roleName = m.role === 'teacher' ? '教師' : (m.role === 'therapist' ? '治療師' : '家長');
             return `${roleName} (${m.user_name || m.username || '匿名'}): ${m.message}`;
@@ -285,33 +282,17 @@ app.get('/api/summary', verifyToken, async (req, res) => {
         const { GoogleGenerativeAI } = require("@google/generative-ai");
         const genAI = new GoogleGenerativeAI(apiKey);
         
+        // ⭕ 使用 1.5-flash
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        let text = "";
-        let success = false;
-
-        // 輪流嘗試 Railway 環境中最容易成功的模型名稱格式
-        const candidateModels = ["gemini-1.5-flash", "models/gemini-1.5-flash", "gemini-pro"];
-
-        for (const modelName of candidateModels) {
-            try {
-                const model = genAI.getGenerativeModel({ model: modelName });
-                const result = await model.generateContent(prompt);
-                const response = await result.response;
-                text = response.text();
-                success = true;
-                console.log(`✅ 使用模型 ${modelName} 成功生成摘要！`);
-                break;
-            } catch (err) {
-                console.warn(`⚠️ 模型 ${modelName} 嘗試失敗，準備嘗試下一個... Error:`, err.message);
-            }
-        }
-
-        if (!success) {
-            throw new Error("所有 Gemini 模型呼叫皆失敗，請確認 GEMINI_API_KEY 是否有效。");
-        }
+        const result = await model.generateContent(prompt);
+        const response = await result.response;
+        const text = response.text();
 
         res.json({ summary: text });
+        console.log("✅ AI 摘要成功生成！");
 
     } catch (error) {
         console.error("❌ AI 摘要生成失敗:", error);
