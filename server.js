@@ -259,49 +259,49 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🟢 留言板 AI 重點摘要 API
+// 🟢 留言板 AI 重點摘要 API（修復版）
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
-        // 1. 檢查是否有設定 API Key
+        // 1. 檢查 API Key
         const apiKey = process.env.GEMINI_API_KEY;
         if (!apiKey) {
-            console.error("找不到 GEMINI_API_KEY");
+            console.error("❌ 找不到 GEMINI_API_KEY");
             return res.status(500).json({ error: "伺服器未設定 API 金鑰" });
         }
 
-        // 2. 取得所有留言紀錄
+        // 2. 正確從 Google Sheets 讀取留言
         const allMessages = await getSheetData("messages");
 
         if (!allMessages || allMessages.length === 0) {
             return res.json({ summary: "目前留言板尚無內容可以統整喔！" });
         }
 
-        // 3. 把留言組合成一段文字讓 AI 閱讀 (加入姓名與角色)
+        // 3. 組合留言內容
         const messageText = allMessages.map(m => {
             let roleName = m.role === 'teacher' ? '教師' : (m.role === 'therapist' ? '治療師' : '家長');
-            return `${roleName} (${m.user_name || m.username}): ${m.message}`;
+            return `${roleName} (${m.user_name || m.username || '匿名'}): ${m.message}`;
         }).join('\n');
 
-        // 4. 初始化 Gemini AI 
-        const { GoogleGenerativeAI } = require("@google/generative-ai");
+        // 4. 初始化 Gemini AI (使用極度穩定的模型名稱)
         const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash-latest" });
 
-        // 5. 設定 Prompt 提示詞 (賦予 AI 專業特教助理的角色)
+        // 5. 設定 Prompt
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        // 6. 呼叫 Gemini 產生內容
+        // 6. 產生摘要
         const result = await model.generateContent(prompt);
         const response = await result.response;
         const text = response.text();
 
-        // 7. 回傳給前端
+        // 7. 回傳結果
         res.json({ summary: text });
 
+        console.log("✅ AI 摘要成功生成！");
     } catch (error) {
-        console.error("AI 摘要生成失敗:", error);
-        res.status(500).json({ error: "AI 摘要生成失敗，請檢查伺服器連線或 API Key" });
+        console.error("❌ AI 摘要生成失敗:", error);
+        res.status(500).json({ error: "AI 摘要生成失敗：" + error.message });
     }
 });
 
@@ -392,51 +392,6 @@ app.put("/api/questions/:id", verifyToken, async (req, res) => {
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
-// 🟢 留言板 AI 重點摘要 API
-app.get('/api/summary', async (req, res) => {
-    try {
-        // 1. 檢查是否有設定 API Key
-        const apiKey = process.env.GEMINI_API_KEY;
-        if (!apiKey) {
-            console.error("找不到 GEMINI_API_KEY");
-            return res.status(500).json({ error: "伺服器未設定 API 金鑰" });
-        }
-
-        // 2. 取得所有留言紀錄
-        // ⚠️ 【注意】請將這行改成您後端實際上用來「讀取留言板資料」的程式碼！
-        // 假設您有一個陣列叫做 messagesData，或是從 Google Sheet 抓取資料
-        const allMessages = await getMessagesFromYourDatabase(); // <-- 這裡請替換成您讀取資料的方法
-
-        if (!allMessages || allMessages.length === 0) {
-            return res.json({ summary: "目前留言板尚無內容可以統整喔！" });
-        }
-
-        // 3. 把留言組合成一段文字讓 AI 閱讀
-        const messageText = allMessages.map(m => {
-            let roleName = m.role === 'teacher' ? '教師' : (m.role === 'therapist' ? '治療師' : '家長');
-            return `${roleName}: ${m.message}`;
-        }).join('\n');
-
-        // 4. 初始化 Gemini AI (使用速度較快的 flash 模型)
-        const genAI = new GoogleGenerativeAI(apiKey);
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
-        // 5. 設定 Prompt 提示詞 (賦予 AI 專業特教助理的角色)
-        const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
-
-        // 6. 呼叫 Gemini 產生內容
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        const text = response.text();
-
-        // 7. 回傳給前端
-        res.json({ summary: text });
-
-    } catch (error) {
-        console.error("AI 摘要生成失敗:", error);
-        res.status(500).json({ error: "AI 摘要生成失敗，請檢查伺服器連線或 API Key" });
-    }
-});
 
 // 🟢 終極防呆版：直接在裡面寫死 process.env.PORT，不用管變數叫什麼了！
 server.listen(process.env.PORT || 8080, "0.0.0.0", () => {
