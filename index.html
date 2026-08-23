@@ -55,20 +55,18 @@
             margin-top: 1.5rem;
         }
 
-        /* ========================================== */
-        /* 🧩 現代化網格卡片版 (增加間距，絕不重疊) */
-        /* ========================================== */
-        /* ========================================== */
-        /* 🧩 現代化網格卡片版 (強制分離，絕不重疊) */
+       /* ========================================== */
+        /* 🧩 現代化網格卡片版 (精緻縮小版，徹底解決重疊) */
         /* ========================================== */
         .puzzle-container {
             display: grid !important;
             grid-template-columns: repeat(3, 1fr) !important;
-            grid-auto-rows: 140px !important; /* 自動統一高度 */
-            gap: 20px !important; /* 🟢 按鈕之間的乾淨空隙 */
-            max-width: 700px !important;
+            grid-template-rows: repeat(2, 110px) !important; /* 🟢 關鍵：高度從 140px 縮小到 110px */
+            gap: 16px !important; /* 🟢 按鈕之間維持乾淨的空隙 */
+            max-width: 620px !important; /* 🟢 整體寬度也稍微收斂 */
+            height: auto !important;
             margin: 0 auto !important;
-            padding: 0 !important;
+            padding: 10px !important;
             background-color: transparent !important;
             box-shadow: none !important;
         }
@@ -81,18 +79,21 @@
             align-items: center !important;
             cursor: pointer !important;
             color: white !important;
-            border-radius: 16px !important;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1) !important;
+            border-radius: 12px !important; /* 配合縮小，圓角稍微收斂一點 */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.08) !important;
             transition: transform 0.2s ease, box-shadow 0.2s ease !important;
-            /* 🟢 強制歸零，殺死所有可能的重疊因素 */
-            margin: 0 !important; 
-            top: 0 !important;
-            left: 0 !important;
-            transform: none !important;
+            
+            /* 確保按鈕乖乖待在格子裡 */
+            height: 100% !important; 
+            width: 100% !important;  
+            margin: 0 !important;
+            padding: 0 !important;
+            box-sizing: border-box !important;
         }
 
-        .puzzle-icon { font-size: 2.2rem; margin-bottom: 8px; pointer-events: none; }
-        .puzzle-title { font-size: 1.1rem; font-weight: bold; letter-spacing: 1px; pointer-events: none; }
+        /* 🟢 配合按鈕縮小，將圖示與文字微調，保持視覺乾淨 */
+        .puzzle-icon { font-size: 1.8rem !important; margin-bottom: 6px !important; pointer-events: none; }
+        .puzzle-title { font-size: 1rem !important; font-weight: bold; letter-spacing: 1px; pointer-events: none; }
 
         /* 滑鼠懸停動畫 */
         .puzzle-piece:hover {
@@ -115,8 +116,8 @@
         @media (max-width: 768px) {
             .puzzle-container {
                 grid-template-columns: repeat(2, 1fr) !important;
-                grid-template-rows: repeat(3, 110px) !important;
-                gap: 12px !important; /* 🟢 手機版的按鈕空隙 */
+                grid-template-rows: repeat(3, 100px) !important; /* 🟢 手機版高度縮小到 100px */
+                gap: 12px !important; 
             }
             .puzzle-piece::after, .puzzle-piece::before { display: none !important; }
             /* 把手機版強制覆蓋的圓角設定拿掉，使用預設的 16px 即可 */
@@ -248,8 +249,7 @@
 
     <div id="dashboard-section" class="container mt-4 mb-5 px-3">
         <div class="text-center mb-4">
-            <h4 class="fw-bold text-primary mb-1" style="letter-spacing: 2px;">特殊教育專業團隊溝通平台</h4>
-            <p class="text-muted small">點擊下方拼圖區塊進入功能</p>
+            <h4 class="fw-bold mb-1" style="letter-spacing: 2px; color: #2C3E50;">特殊教育專業團隊溝通平台</h4>
         </div>
 
         <div class="puzzle-container">
