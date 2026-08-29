@@ -1107,9 +1107,9 @@ if (logImageInput) {
         reader.onload = function(event) {
             const img = new Image();
             img.onload = function() {
-                // 設定最高 800px 寬度，保留乾淨的色彩與線條，同時避免 Base64 字串過長
+                // 設定最高 400px 寬度，確保轉換後的字串能塞進 Google Sheet 單一格內
                 const canvas = document.createElement('canvas');
-                const MAX_WIDTH = 800;
+                const MAX_WIDTH = 400;
                 let width = img.width;
                 let height = img.height;
 
@@ -1122,13 +1122,12 @@ if (logImageInput) {
                 canvas.height = height;
                 const ctx = canvas.getContext('2d');
                 
-                // 為了讓圖片線條更平滑，關閉影像平滑化造成的邊緣模糊
                 ctx.imageSmoothingEnabled = true;
-                ctx.imageSmoothingQuality = 'high';
+                ctx.imageSmoothingQuality = 'medium';
                 ctx.drawImage(img, 0, 0, width, height);
 
-                // 輸出高品質 JPEG Base64 字串
-                const base64String = canvas.toDataURL('image/jpeg', 0.85);
+                // 輸出 JPEG，並將畫質調降至 0.6 (60%) 以大幅縮減字串長度
+                const base64String = canvas.toDataURL('image/jpeg', 0.6);
                 
                 // 顯示預覽圖
                 document.getElementById('log-image-base64').value = base64String;

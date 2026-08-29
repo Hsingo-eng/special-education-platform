@@ -21,7 +21,8 @@ app.use(cors({
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
     allowedHeaders: ["Content-Type", "Authorization"]
 }));
-app.use(express.json());
+app.use(express.json({ limit: '10mb' }));
+app.use(express.urlencoded({ limit: '10mb', extended: true }));
 
 const server = http.createServer(app);
 const io = new Server(server, {
@@ -263,7 +264,7 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
-        const apiKey = process.env.GEMINI_API_KEY;
+        const apiKey = process.env.GEMINI_API_KEY?.trim();
         if (!apiKey) {
             console.error("❌ 找不到 GEMINI_API_KEY");
             return res.status(500).json({ error: "伺服器未設定 GEMINI_API_KEY" });
@@ -274,22 +275,33 @@ app.get('/api/summary', verifyToken, async (req, res) => {
             return res.json({ summary: "目前留言板尚無內容可以統整喔！" });
         }
 
-        const messageText = allMessages.map(m => {
-            let roleName = m.role === 'teacher' ? '教師' : (m.role === 'therapist' ? '治療師' : '家長');
-            return `${roleName} (${m.user_name || m.username || '匿名'}): ${m.message}`;
-        }).join('\n');
+        const messageText = allMessages
+            .filter(m => (m.message || '').trim())
+            .map(m => {
+                const roleName = m.role === 'teacher' ? '教師' : (m.role === 'therapist' ? '治療師' : '家長');
+                return `${roleName} (${m.user_name || m.username || '匿名'}): ${m.message}`;
+            })
+            .join('\n');
 
+        if (!messageText) {
+            return res.json({ summary: "目前留言板內容為空，無法生成摘要。" });
+        }
+
+        const modelName = process.env.GEMINI_MODEL || 'gemini-1.5-flash';
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        // 使用 HTTP Header 帶入 AQ. 金鑰，路徑改為 v1
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent`, {
+        const response = await fetch(`https://generativelanguage.googleapis.com/v1/models/${modelName}:generateContent`, {
             method: 'POST',
-            headers: { 
+            headers: {
                 'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey.trim()
+                'x-goog-api-key': apiKey
             },
             body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }]
+                contents: [{ parts: [{ text: prompt }] }],
+                generationConfig: {
+                    temperature: 0.2,
+                    maxOutputTokens: 300
+                }
             })
         });
 
@@ -297,17 +309,22 @@ app.get('/api/summary', verifyToken, async (req, res) => {
 
         if (!response.ok) {
             console.error("❌ Google API 回傳錯誤細節:", JSON.stringify(data));
-            return res.status(500).json({ error: `Google API 錯誤 (${response.status}): ${data.error?.message || '驗證失敗'}` });
+            return res.status(500).json({
+                error: `Google API 錯誤 (${response.status}): ${data.error?.message || '驗證失敗'}`
+            });
         }
 
-        const resultText = data.candidates?.[0]?.content?.parts?.[0]?.text || "無法解析摘要內容";
+        const resultText = data.candidates
+            ?.map(candidate => candidate.content?.parts?.map(part => part.text).join('') || '')
+            .join('\n')
+            .trim() || "無法解析摘要內容";
 
         res.json({ summary: resultText });
         console.log("✅ AI 摘要成功生成！");
 
     } catch (error) {
         console.error("❌ AI 摘要生成失敗:", error);
-        res.status(500).json({ error: "AI 摘要生成失敗：" + error.message });
+        res.status(500).json({ error: "AI 摘要生成失敗：" + (error?.message || '未知錯誤') });
     }
 });
 
