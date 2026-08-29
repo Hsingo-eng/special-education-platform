@@ -350,10 +350,11 @@ app.get("/api/home_logs", verifyToken, async (req, res) => {
 // 2. 新增居家表現貼文 (家長端)
 app.post("/api/home_logs", verifyToken, async (req, res) => {
     try {
+        const roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
         const newLog = {
             id: `log-${Date.now()}`,
             datetime: new Date().toISOString(),
-            author: `${req.user.name} (${req.user.role === 'parents' ? '家長' : '教師'})`,
+            author: `${req.user.name} | ${roleLabel}`,
             content: req.body.content || "",
             image: req.body.image || "",
             replies: JSON.stringify([]) // 初始化空的回覆陣列

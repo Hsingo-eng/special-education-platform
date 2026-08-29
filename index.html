@@ -113,6 +113,69 @@
             display: none !important;
         }
 
+        /* ========================================== */
+        /* 💬 提問與回覆：對話串卡片設計 */
+        /* ========================================== */
+        .thread-card {
+            border-radius: 16px;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            border: 1px solid #F1F5F9 !important;
+        }
+        .thread-card:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.06) !important;
+        }
+
+        /* 提問與回覆的共用頭像 */
+        .thread-avatar {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+
+        /* 對話泡泡基礎設定 */
+        .chat-bubble {
+            padding: 14px 20px;
+            border-radius: 18px;
+            max-width: 85%;
+            line-height: 1.6;
+            font-size: 1rem;
+            position: relative;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.02);
+        }
+
+        /* 提問泡泡 (偏左、淺灰底) */
+        .bubble-question {
+            background-color: #F8FAFC;
+            color: #334155;
+            border: 1px solid #E2E8F0;
+            border-top-left-radius: 4px; /* 創造對話尾巴效果 */
+        }
+
+        /* 回覆泡泡 (偏右、淺藍底) */
+        .bubble-reply {
+            background-color: #EFF6FF;
+            color: #1E3A8A;
+            border: 1px solid #DBEAFE;
+            border-top-right-radius: 4px;
+        }
+
+        /* 虛線分隔線 */
+        .border-dashed {
+            border-top: 2px dashed #E2E8F0 !important;
+        }
+
+/* 手機版適配 */
+@media (max-width: 768px) {
+    .chat-bubble { max-width: 95%; padding: 12px 16px; }
+    .thread-card .card-body { padding: 1.2rem !important; }
+}
+
         @media (max-width: 768px) {
             .puzzle-container {
                 grid-template-columns: repeat(2, 1fr) !important;
@@ -325,13 +388,18 @@
             </div>
 
             <div id="section-questions" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-5">
-                    <h2 class="h2-title mb-0">提問與回覆</h2>
-                    <button class="btn btn-info text-white btn-sm rounded-pill" onclick="openQuestionModal()">
-                        <i class="fas fa-plus-circle"></i> 我要提問
+                <div class="d-flex justify-content-between align-items-center mb-4">
+                    <div>
+                        <h2 class="h2-title mb-1"><i class="fas fa-comments text-primary me-2"></i>提問與回覆</h2>
+                        <p class="text-muted small mb-0">跨專業團隊溝通與諮詢</p>
+                    </div>
+                    <button class="btn btn-info text-white btn-sm rounded-pill fw-bold px-3 shadow-sm" onclick="openQuestionModal()">
+                        <i class="fas fa-plus-circle me-1"></i> 我要提問
                     </button>
                 </div>
-                <div id="questions-list" class="row g-3"></div>
+                
+                <!-- 將原本的 row 替換為 flex-column 垂直列表 -->
+                <div id="questions-list" class="d-flex flex-column gap-4 pb-5"></div>
             </div>
 
             <div id="section-calendar" class="d-none animate-fade">

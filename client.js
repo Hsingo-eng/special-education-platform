@@ -25,6 +25,20 @@ const getUserRoleLabel = (role) => {
     return '家長';
 };
 
+const normalizeRoleLabel = (label = '') => {
+    if (!label) return '家長';
+    const clean = String(label)
+        .replace(/老師\s*\(教師\)|教師\s*\(老師\)|治療師\s*\(治療師\)|家長\s*\(家長\)/g, match => {
+            if (match.includes('老師') || match.includes('教師')) return '教師';
+            if (match.includes('治療師')) return '治療師';
+            return '家長';
+        })
+        .replace(/\s*\((教師|治療師|家長|老師)\)\s*/g, '')
+        .replace(/老師/g, '教師');
+
+    return clean || '家長';
+};
+
 // ==========================================
 // 🔔 1. 通知系統邏輯
 // ==========================================
@@ -365,7 +379,9 @@ async function loadQuestions() {
                 .replace(/therapist/g, '治療師')
                 .replace(/parents/g, '家長');
 
-            let askerStr = q.asker_name.replace(/老師/g, '教師');
+            let askerStr = normalizeRoleLabel(q.asker_name || '').includes('教師')
+                ? q.asker_name.replace(/老師/g, '教師')
+                : q.asker_name;
             let safeReply = encodeURIComponent(q.reply || '');
 
             let replyHTML = '';
@@ -448,10 +464,7 @@ function openReplyModal(questionId, encodedExistingReply) {
         }
     }).then(async (result) => {
         if (result.isConfirmed) {
-            let roleName = '家長';
-            if (currentUser.role === 'teacher') roleName = '教師';
-            if (currentUser.role === 'therapist') roleName = '治療師';
-
+            const roleName = getUserRoleLabel(currentUser?.role);
             const newReplyBlock = `[REPLY]${roleName}|${currentUser.name || currentUser.username}|${result.value}`;
             const finalReply = existingReply ? (existingReply + '[SPLIT]' + newReplyBlock) : newReplyBlock;
 
@@ -561,14 +574,12 @@ async function loadMessages() {
             div.className = `msg-row ${isSelf ? "self" : "other"}`;
 
             let sticker = 'sticker3.png';
-            let displayRole = '家長';
+            let displayRole = getUserRoleLabel(msg.role || 'parents');
 
             if (msg.role === 'teacher') {
                 sticker = 'sticker1.png';
-                displayRole = '教師';
             } else if (msg.role === 'therapist') {
                 sticker = 'sticker2.png';
-                displayRole = '治療師';
             }
 
             div.innerHTML = `
@@ -877,27 +888,35 @@ function openQuestionModal() {
                 <label class="form-label text-secondary small fw-bold mb-2">選擇提問對象 (可複選)：</label>
                 <div class="d-flex justify-content-start gap-4 mb-3">
                     <div class="form-check">
-                        <input class="form-check-input q-target-cb" type="checkbox" value="teacher" id="q-tgt-teacher">
-                        <label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;">老師</label>
+                        <!-- value 改為統一的中文名稱 -->
+                        <input class="form-check-input q-target-cb" type="checkbox" value="教師" id="q-tgt-teacher">
+                        <label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;">👨‍🏫 教師</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input q-target-cb" type="checkbox" value="therapist" id="q-tgt-therapist">
-                        <label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;">治療師</label>
+                        <input class="form-check-input q-target-cb" type="checkbox" value="治療師" id="q-tgt-therapist">
+                        <label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;">👩‍⚕️ 治療師</label>
                     </div>
                     <div class="form-check">
-                        <input class="form-check-input q-target-cb" type="checkbox" value="parents" id="q-tgt-parents">
-                        <label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;">家長</label>
+                        <input class="form-check-input q-target-cb" type="checkbox" value="家長" id="q-tgt-parents">
+                        <label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;">👨‍👩‍👧 家長</label>
                     </div>
                 </div>
             </div>
-            <textarea id="swal-q-text" class="swal2-textarea mt-0" placeholder="請輸入您的問題..." style="width: 80%;"></textarea>
+            <textarea id="swal-q-text" class="swal2-textarea mt-0" placeholder="請輸入您的問題..." style="width: 80%; border-radius: 12px;"></textarea>
         `,
         showCancelButton: true,
-        confirmButtonText: '送出提問',
+        confirmButtonText: '<i class="fas fa-paper-plane me-1"></i> 送出提問',
         cancelButtonText: '取消',
+        // 套用與主畫面一致的圓角按鈕風格
+        customClass: {
+            confirmButton: 'btn btn-primary rounded-pill px-4',
+            cancelButton: 'btn btn-light rounded-pill px-4'
+        },
+        buttonsStyling: false,
         preConfirm: () => {
             const checkedBoxes = document.querySelectorAll('.q-target-cb:checked');
-            const targets = Array.from(checkedBoxes).map(cb => cb.value).join(',');
+            // 將複選的對象用逗號隔開 (例如："教師, 治療師")
+            const targets = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
             const question = document.getElementById('swal-q-text').value.trim();
 
             if (!targets) {
@@ -920,10 +939,13 @@ function openQuestionModal() {
                     body: JSON.stringify(result.value)
                 });
                 if (res.ok) {
-                    Swal.fire('成功', '提問已送出！', 'success');
-                    loadQuestions();
+                    // 送出成功後，顯示簡短的成功提示並自動關閉
+                    Swal.fire({ icon: 'success', title: '成功', text: '提問已送出！', timer: 1500, showConfirmButton: false });
+                    loadQuestions(); // 重新載入對話串
                 } else throw new Error('伺服器錯誤');
-            } catch (err) { Swal.fire('錯誤', '送出失敗，請檢查後端設定', 'error'); }
+            } catch (err) { 
+                Swal.fire('錯誤', '送出失敗，請檢查後端設定', 'error'); 
+            }
         }
     });
 }
