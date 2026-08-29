@@ -4,6 +4,27 @@ let token = localStorage.getItem("token");
 let socket = null;
 let calendar = null;
 
+const APP_SECTIONS = [
+    'login-section',
+    'dashboard-section',
+    'content-area',
+    'section-records',
+    'section-iep',
+    'section-messages',
+    'section-questions',
+    'section-calendar',
+    'section-home-log'
+];
+
+const safeCall = (fn) => typeof fn === 'function' && fn();
+const hasElement = (id) => !!document.getElementById(id);
+
+const getUserRoleLabel = (role) => {
+    if (role === 'teacher') return '教師';
+    if (role === 'therapist') return '治療師';
+    return '家長';
+};
+
 // ==========================================
 // 🔔 1. 通知系統邏輯
 // ==========================================
@@ -244,6 +265,46 @@ function updateUI(user) {
 // 🟢 4. 畫面切換控制
 // ==========================================
 
+const getAuthHeaders = (extraHeaders = {}) => ({
+    Authorization: `Bearer ${token}`,
+    ...extraHeaders
+});
+
+async function apiRequest(url, options = {}) {
+    const { headers = {}, body, ...rest } = options;
+    const isFormData = body instanceof FormData;
+    const mergedHeaders = {
+        ...headers,
+        ...(isFormData ? {} : { 'Content-Type': headers['Content-Type'] || 'application/json' })
+    };
+
+    return fetch(url, {
+        ...rest,
+        body,
+        headers: getAuthHeaders(mergedHeaders)
+    });
+}
+
+const getSectionElement = (id) => document.getElementById(id);
+
+const SECTION_LOADERS = {
+    messages: () => safeCall(loadMessages),
+    questions: () => safeCall(loadQuestions),
+    records: () => safeCall(loadRecords),
+    iep: () => safeCall(loadIepFiles),
+    'home-log': () => safeCall(loadHomeLogs),
+};
+
+function loadSectionData(sectionId) {
+    if (sectionId in SECTION_LOADERS) {
+        SECTION_LOADERS[sectionId]?.();
+    }
+
+    if (sectionId === 'calendar' && calendar) {
+        setTimeout(() => calendar.render(), 100);
+    }
+}
+
 window.addEventListener('popstate', function (event) {
     const section = event.state ? event.state.section : 'dashboard';
     executeShowSection(section);
@@ -255,45 +316,30 @@ function showSection(sectionId) {
 }
 
 function executeShowSection(sectionId) {
-    const allSections = [
-        'login-section', 
-        'dashboard-section', 
-        'content-area',
-        'section-records', 
-        'section-iep', 
-        'section-messages', 
-        'section-questions',
-        'section-calendar',
-        'section-home-log'
-    ];
-    
-    allSections.forEach(id => {
-        const el = document.getElementById(id);
+    APP_SECTIONS.forEach(id => {
+        const el = getSectionElement(id);
         if (el) el.classList.add('d-none');
     });
 
     if (sectionId === 'login') {
-        document.getElementById('login-section').classList.remove('d-none');
-    } 
-    else if (sectionId === 'dashboard') {
-        document.getElementById('dashboard-section').classList.remove('d-none');
-    } 
-    else {
-        const contentArea = document.getElementById('content-area');
-        if (contentArea) contentArea.classList.remove('d-none');
-
-        const targetSection = document.getElementById('section-' + sectionId);
-        if (targetSection) targetSection.classList.remove('d-none');
-
-        if (sectionId === 'messages' && typeof loadMessages === 'function') loadMessages();
-        if (sectionId === 'questions' && typeof loadQuestions === 'function') loadQuestions();
-        if (sectionId === 'records' && typeof loadRecords === 'function') loadRecords();
-        if (sectionId === 'iep' && typeof loadIepFiles === 'function') loadIepFiles();
-        
-        if (sectionId === 'calendar' && calendar) {
-            setTimeout(() => calendar.render(), 100);
-        }
+        const loginSection = getSectionElement('login-section');
+        if (loginSection) loginSection.classList.remove('d-none');
+        return;
     }
+
+    if (sectionId === 'dashboard') {
+        const dashboardSection = getSectionElement('dashboard-section');
+        if (dashboardSection) dashboardSection.classList.remove('d-none');
+        return;
+    }
+
+    const contentArea = getSectionElement('content-area');
+    if (contentArea) contentArea.classList.remove('d-none');
+
+    const targetSection = getSectionElement('section-' + sectionId);
+    if (targetSection) targetSection.classList.remove('d-none');
+
+    loadSectionData(sectionId);
 }
 
 // ==========================================
@@ -302,7 +348,7 @@ function executeShowSection(sectionId) {
 
 async function loadQuestions() {
     try {
-        const res = await fetch(`${API_URL}/api/questions`, { headers: { "Authorization": `Bearer ${token}` } });
+        const res = await apiRequest(`${API_URL}/api/questions`);
         const json = await res.json();
         const list = document.getElementById("questions-list");
         if (!list) return;
@@ -410,9 +456,9 @@ function openReplyModal(questionId, encodedExistingReply) {
             const finalReply = existingReply ? (existingReply + '[SPLIT]' + newReplyBlock) : newReplyBlock;
 
             try {
-                const res = await fetch(`${API_URL}/api/questions/${questionId}`, {
+                const res = await apiRequest(`${API_URL}/api/questions/${questionId}`, {
                     method: 'PUT',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({ reply: finalReply })
                 });
 
@@ -430,7 +476,7 @@ function openReplyModal(questionId, encodedExistingReply) {
 
 async function loadRecords() {
     try {
-        const res = await fetch(`${API_URL}/api/records`, { headers: { "Authorization": `Bearer ${token}` } });
+        const res = await apiRequest(`${API_URL}/api/records`);
         const json = await res.json();
         const list = document.getElementById("record-list");
         if (!list) return;
@@ -502,9 +548,7 @@ async function loadRecords() {
 
 async function loadMessages() {
     try {
-        const res = await fetch(`${API_URL}/api/messages`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await apiRequest(`${API_URL}/api/messages`);
         const json = await res.json();
         const chatBox = document.getElementById("chat-box");
         if (!chatBox) return;
@@ -542,9 +586,7 @@ async function loadMessages() {
 
 async function loadIepFiles() {
     try {
-        const res = await fetch(`${API_URL}/api/iep`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await apiRequest(`${API_URL}/api/iep`);
         if (!res.ok) throw new Error("API Error");
         const json = await res.json();
         const list = document.getElementById("iep-list");
@@ -985,9 +1027,7 @@ async function getAiSummary() {
             didOpen: () => Swal.showLoading()
         });
 
-        const res = await fetch(`${API_URL}/api/summary`, {
-            headers: { "Authorization": `Bearer ${token}` }
-        });
+        const res = await apiRequest(`${API_URL}/api/summary`);
 
         const data = await res.json();
 
@@ -1102,21 +1142,6 @@ if (logImageInput) {
 }
 
 // 3. 收集資料準備送往後端
-function submitHomeLog() {
-    const textContent = document.getElementById('log-text').value.trim();
-    const imageBase64 = document.getElementById('log-image-base64').value;
-
-    if (!textContent && !imageBase64) {
-        Swal.fire({ icon: 'warning', title: '內容不可空白', text: '請填寫文字或上傳照片！' });
-        return;
-    }
-
-    const postData = {
-        content: textContent,
-        image: imageBase64
-    };
-
-    // 替換原本的 submitHomeLog 函數
 async function submitHomeLog() {
     const textContent = document.getElementById('log-text').value.trim();
     const imageBase64 = document.getElementById('log-image-base64').value;
@@ -1132,11 +1157,11 @@ async function submitHomeLog() {
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
             body: JSON.stringify({ content: textContent, image: imageBase64 })
         });
-        
+
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('homeLogModal')).hide();
             Swal.fire({ icon: 'success', title: '發佈成功！', timer: 1500, showConfirmButton: false });
-            loadHomeLogs(); // 重新載入貼文牆
+            loadHomeLogs();
         } else {
             throw new Error('伺服器錯誤');
         }
@@ -1152,9 +1177,7 @@ async function loadHomeLogs() {
     feedContainer.innerHTML = '<div class="text-center text-secondary py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
 
     try {
-        const res = await fetch(`${API_URL}/api/home_logs`, {
-            headers: { 'Authorization': `Bearer ${token}` }
-        });
+        const res = await apiRequest(`${API_URL}/api/home_logs`);
         const json = await res.json();
         
         if (!json.data || json.data.length === 0) {
@@ -1211,4 +1234,37 @@ async function loadHomeLogs() {
         feedContainer.innerHTML = '<div class="text-center text-danger py-4">載入失敗，請稍後再試。</div>';
     }
 }
+
+// 發送回覆
+async function submitLogReply(logId) {
+    const inputEl = document.getElementById(`reply-input-${logId}`);
+    const replyText = inputEl.value.trim();
+    if (!replyText) return;
+
+    try {
+        inputEl.disabled = true;
+        const res = await apiRequest(`${API_URL}/api/home_logs/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ logId, replyText })
+        });
+        
+        if (res.ok) {
+            loadHomeLogs(); // 重新載入以顯示最新回覆
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '回覆失敗' });
+        inputEl.disabled = false;
+    }
 }
+
+// ⚠️ 請找到原本用來切換頁面的 showSection(sectionId) 函數
+// 並在裡面加入判斷式，確保進入居家表現時會載入貼文
+/*
+function showSection(sectionId) {
+    // ... 原本的切換邏輯 ...
+    if (sectionId === 'home-log') {
+        loadHomeLogs();
+    }
+}
+*/
