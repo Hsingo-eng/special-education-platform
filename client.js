@@ -1043,3 +1043,172 @@ window.deleteIep = async function (id) {
         }
     }
 };
+
+// ==========================================
+// 🏠 居家表現：圖片壓縮與發文視窗
+// ==========================================
+
+// 1. 開啟發文視窗並清空舊資料
+function openHomeLogModal() {
+    document.getElementById('homeLogForm').reset();
+    document.getElementById('log-image-preview-container').classList.add('d-none');
+    document.getElementById('log-image-base64').value = '';
+    new bootstrap.Modal(document.getElementById('homeLogModal')).show();
+}
+
+// 2. 圖片選擇與壓縮處理
+const logImageInput = document.getElementById('log-image-input');
+if (logImageInput) {
+    logImageInput.addEventListener('change', function(e) {
+        const file = e.target.files[0];
+        if (!file) return;
+
+        const reader = new FileReader();
+        reader.onload = function(event) {
+            const img = new Image();
+            img.onload = function() {
+                // 設定最高 800px 寬度，保留乾淨的色彩與線條，同時避免 Base64 字串過長
+                const canvas = document.createElement('canvas');
+                const MAX_WIDTH = 800;
+                let width = img.width;
+                let height = img.height;
+
+                if (width > MAX_WIDTH) {
+                    height = Math.round((height * MAX_WIDTH) / width);
+                    width = MAX_WIDTH;
+                }
+
+                canvas.width = width;
+                canvas.height = height;
+                const ctx = canvas.getContext('2d');
+                
+                // 為了讓圖片線條更平滑，關閉影像平滑化造成的邊緣模糊
+                ctx.imageSmoothingEnabled = true;
+                ctx.imageSmoothingQuality = 'high';
+                ctx.drawImage(img, 0, 0, width, height);
+
+                // 輸出高品質 JPEG Base64 字串
+                const base64String = canvas.toDataURL('image/jpeg', 0.85);
+                
+                // 顯示預覽圖
+                document.getElementById('log-image-base64').value = base64String;
+                document.getElementById('log-image-preview').src = base64String;
+                document.getElementById('log-image-preview-container').classList.remove('d-none');
+            };
+            img.src = event.target.result;
+        };
+        reader.readAsDataURL(file);
+    });
+}
+
+// 3. 收集資料準備送往後端
+function submitHomeLog() {
+    const textContent = document.getElementById('log-text').value.trim();
+    const imageBase64 = document.getElementById('log-image-base64').value;
+
+    if (!textContent && !imageBase64) {
+        Swal.fire({ icon: 'warning', title: '內容不可空白', text: '請填寫文字或上傳照片！' });
+        return;
+    }
+
+    const postData = {
+        content: textContent,
+        image: imageBase64
+    };
+
+    // 替換原本的 submitHomeLog 函數
+async function submitHomeLog() {
+    const textContent = document.getElementById('log-text').value.trim();
+    const imageBase64 = document.getElementById('log-image-base64').value;
+
+    if (!textContent && !imageBase64) {
+        return Swal.fire({ icon: 'warning', title: '內容不可空白', text: '請填寫文字或上傳照片！' });
+    }
+
+    try {
+        Swal.fire({ title: '發佈中...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        const res = await fetch(`${API_URL}/api/home_logs`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ content: textContent, image: imageBase64 })
+        });
+        
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('homeLogModal')).hide();
+            Swal.fire({ icon: 'success', title: '發佈成功！', timer: 1500, showConfirmButton: false });
+            loadHomeLogs(); // 重新載入貼文牆
+        } else {
+            throw new Error('伺服器錯誤');
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '發佈失敗', text: '請檢查網路連線。' });
+    }
+}
+
+// 載入貼文牆
+async function loadHomeLogs() {
+    const feedContainer = document.getElementById('home-log-feed');
+    if (!feedContainer) return;
+    feedContainer.innerHTML = '<div class="text-center text-secondary py-4"><i class="fas fa-spinner fa-spin fa-2x"></i></div>';
+
+    try {
+        const res = await fetch(`${API_URL}/api/home_logs`, {
+            headers: { 'Authorization': `Bearer ${token}` }
+        });
+        const json = await res.json();
+        
+        if (!json.data || json.data.length === 0) {
+            feedContainer.innerHTML = `
+                <div class="text-center text-muted py-5">
+                    <i class="fas fa-home fa-3x mb-3" style="color: #E5E7EB;"></i>
+                    <p>目前尚無居家表現紀錄</p>
+                </div>`;
+            return;
+        }
+
+        // 渲染貼文
+        feedContainer.innerHTML = json.data.map(log => {
+            const dateStr = new Date(log.datetime).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const imageHtml = log.image ? `<img src="${log.image}" class="img-fluid rounded-3 mb-3 border" style="max-height: 300px; object-fit: contain; width: 100%;">` : '';
+            
+            // 渲染回覆區塊
+            const repliesHtml = log.replies.map(r => `
+                <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold small text-dark">${r.author}</span>
+                        <span class="text-muted" style="font-size: 0.75rem;">${new Date(r.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p class="mb-0 small text-secondary">${r.text}</p>
+                </div>
+            `).join('');
+
+            return `
+                <div class="card border-0 shadow-sm rounded-4 mb-4">
+                    <div class="card-body p-4">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-user-circle me-2"></i>${log.author}</h6>
+                            <span class="text-muted small">${dateStr}</span>
+                        </div>
+                        <p class="text-dark mb-3" style="white-space: pre-wrap;">${log.content}</p>
+                        ${imageHtml}
+                        <hr class="text-muted opacity-25">
+                        
+                        <!-- 回覆列表 -->
+                        <div class="replies-container mb-3">
+                            ${repliesHtml}
+                        </div>
+                        
+                        <!-- 新增回覆輸入框 -->
+                        <div class="input-group input-group-sm mt-3">
+                            <input type="text" id="reply-input-${log.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="撰寫專業回饋或建議...">
+                            <button class="btn btn-primary rounded-pill-end px-3" onclick="submitLogReply('${log.id}')">回覆</button>
+                        </div>
+                    </div>
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        feedContainer.innerHTML = '<div class="text-center text-danger py-4">載入失敗，請稍後再試。</div>';
+    }
+}
+}

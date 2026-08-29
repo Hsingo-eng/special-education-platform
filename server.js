@@ -311,6 +311,74 @@ app.get('/api/summary', verifyToken, async (req, res) => {
     }
 });
 
+// ==========================================
+// 🏠 居家表現 API (貼文與雙向回覆)
+// ==========================================
+
+// 1. 取得所有居家表現紀錄
+app.get("/api/home_logs", verifyToken, async (req, res) => {
+    try {
+        const data = await getSheetData("home_logs");
+        // 將字串格式的 replies 轉回 JSON 陣列，若無則為空陣列
+        const parsedData = data.map(log => ({
+            ...log,
+            replies: log.replies ? JSON.parse(log.replies) : []
+        })).reverse(); // 反轉陣列，讓最新貼文在最上方
+        res.json({ data: parsedData });
+    } catch (e) {
+        res.status(500).json({ message: "讀取失敗: " + e.message });
+    }
+});
+
+// 2. 新增居家表現貼文 (家長端)
+app.post("/api/home_logs", verifyToken, async (req, res) => {
+    try {
+        const newLog = {
+            id: `log-${Date.now()}`,
+            datetime: new Date().toISOString(),
+            author: `${req.user.name} (${req.user.role === 'parents' ? '家長' : '教師'})`,
+            content: req.body.content || "",
+            image: req.body.image || "",
+            replies: JSON.stringify([]) // 初始化空的回覆陣列
+        };
+        await appendRow("home_logs", newLog);
+        res.json({ message: "發佈成功" });
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
+});
+
+// 3. 新增回覆 (教師與治療師端)
+app.post("/api/home_logs/reply", verifyToken, async (req, res) => {
+    try {
+        const { logId, replyText } = req.body;
+        const allLogs = await getSheetData("home_logs");
+        const logIndex = allLogs.findIndex(log => log.id === logId);
+        
+        if (logIndex === -1) return res.status(404).json({ message: "找不到該貼文" });
+
+        const replies = allLogs[logIndex].replies ? JSON.parse(allLogs[logIndex].replies) : [];
+        
+        // 標示回覆者的專業身分
+        let roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
+        replies.push({
+            id: `rep-${Date.now()}`,
+            author: `${req.user.name} | ${roleLabel}`,
+            text: replyText,
+            timestamp: new Date().toISOString()
+        });
+
+        // ⚠️ 這裡需要更新整行資料。若您的 Google Sheet 操作模組尚未實作 updateRow，
+        // 建議透過 Google Apps Script 或 sheets.spreadsheets.values.update 來覆寫該儲存格。
+        // 這裡提供資料打包示範，請依據您的資料庫連線方式更新 `replies` 欄位。
+        await updateSheetCell("home_logs", logIndex + 2, "F", JSON.stringify(replies)); 
+
+        res.json({ message: "回覆成功" });
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
+});
+
 // --- IEP API ---
 app.get("/api/iep", verifyToken, async (req, res) => {
     const data = await getSheetData("iep_files"); res.json({ data });

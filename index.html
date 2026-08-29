@@ -343,18 +343,19 @@
             </div>
 
             <div id="section-home-log" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-5">
+                <div class="d-flex justify-content-between align-items-center mb-4">
                     <h2 class="h2-title mb-0">居家表現紀錄</h2>
-                    <button class="btn btn-primary btn-sm rounded-pill">
+                    <!-- 限制只有家長可以發佈新貼文 -->
+                    <button class="btn btn-primary btn-sm rounded-pill role-only" data-allow="parents" onclick="openHomeLogModal()">
                         <i class="fas fa-plus"></i> 新增紀錄
                     </button>
                 </div>
-                <div id="home-log-list" class="text-center text-muted py-5">
-                    <i class="fas fa-home fa-3x mb-3" style="color: #E5E7EB;"></i>
-                    <p>目前尚無居家表現紀錄</p>
+                
+                <!-- 貼文列表顯示區 -->
+                <div id="home-log-feed" class="d-flex flex-column gap-4">
+                    <!-- 這裡將透過 JS 動態載入貼文與多層回覆 -->
                 </div>
             </div>
-
         </div>
     </div>
 
@@ -521,6 +522,41 @@
                     <button type="button" class="btn btn-outline-danger d-none" id="btn-del-evt" onclick="deleteEvent()">刪除</button>
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-dark" onclick="saveEvent()">儲存事件</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 居家表現發文視窗 -->
+    <div class="modal fade" id="homeLogModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold" style="color: #2C3E50;">
+                        <i class="fas fa-home text-primary me-2"></i>新增居家表現
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="homeLogForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">表現描述</label>
+                            <textarea class="form-control" id="log-text" rows="4" placeholder="請描述幼兒在家的狀況..." style="border-radius: 12px; resize: none; border: 1px solid #e2e8f0;"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">上傳照片 (選填)</label>
+                            <input class="form-control" type="file" id="log-image-input" accept="image/*" style="border-radius: 8px; border: 1px solid #e2e8f0;">
+                        </div>
+                        <!-- 圖片預覽區 -->
+                        <div id="log-image-preview-container" class="d-none text-center mt-3 p-2 bg-light rounded-3">
+                            <img id="log-image-preview" src="" alt="預覽" class="img-fluid rounded shadow-sm" style="max-height: 250px; object-fit: contain;">
+                            <input type="hidden" id="log-image-base64">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitHomeLog()">準備發佈</button>
                 </div>
             </div>
         </div>
