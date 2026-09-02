@@ -357,9 +357,19 @@ function executeShowSection(sectionId) {
 }
 
 // ==========================================
-// 🟢 5. 資料載入
+// 💡 提問與回覆：角色視覺對照輔助函數
 // ==========================================
+function getRoleVisuals(roleString) {
+    if (!roleString) return { icon: '👤', class: 'text-secondary' };
+    if (roleString.includes('教師')) return { icon: '👩‍🏫', class: 'text-primary' };
+    if (roleString.includes('治療師')) return { icon: '👩‍⚕️', class: 'text-success' };
+    if (roleString.includes('家長')) return { icon: '👨‍👩‍👧', class: 'text-warning' };
+    return { icon: '👤', class: 'text-secondary' };
+}
 
+// ==========================================
+// 💬 提問與回覆：載入與渲染功能 (新版對話 UI)
+// ==========================================
 async function loadQuestions() {
     try {
         const res = await apiRequest(`${API_URL}/api/questions`);
@@ -368,12 +378,15 @@ async function loadQuestions() {
         if (!list) return;
 
         if (!json.data || json.data.length === 0) {
-            list.innerHTML = '<div class="col-12 text-center text-muted py-5">目前沒有提問資料</div>';
+            list.innerHTML = '<div class="text-center py-5 text-muted"><i class="far fa-comments fa-3x mb-3"></i><p>目前尚無任何提問紀錄</p></div>';
             return;
         }
 
+        // 依日期排序 (最新在上)
         const sortedQuestions = json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
         list.innerHTML = sortedQuestions.map(q => {
+            // 1. 處理提問對象與提問者名稱
             let targetStr = (q.target_role || '所有人')
                 .replace(/teacher/g, '教師')
                 .replace(/therapist/g, '治療師')
@@ -382,67 +395,100 @@ async function loadQuestions() {
             let askerStr = normalizeRoleLabel(q.asker_name || '').includes('教師')
                 ? q.asker_name.replace(/老師/g, '教師')
                 : q.asker_name;
+                
             let safeReply = encodeURIComponent(q.reply || '');
 
-            let replyHTML = '';
-            if (q.reply && q.reply.trim() !== "") {
-                const replyList = q.reply.split('[SPLIT]');
+            // 2. 取得角色專屬圖示與顏色
+            const askerVis = getRoleVisuals(askerStr);
+            const targetVis = getRoleVisuals(targetStr);
 
-                replyHTML = replyList.map(r => {
+            // 3. 渲染上半部：卡片表頭與提問內容
+            let html = `
+            <div class="conversation-card mb-4">
+                <!-- 表頭：發問者指向回覆對象 -->
+                <div class="conversation-header d-flex justify-content-between align-items-center">
+                    <div class="conversation-participants">
+                        <span class="${askerVis.class}">${askerVis.icon} ${askerStr}</span>
+                        <i class="fas fa-arrow-right participant-arrow"></i>
+                        <span class="${targetVis.class}">${targetVis.icon} ${targetStr}</span>
+                    </div>
+                    <div class="text-muted small">${q.date}</div>
+                </div>
+
+                <!-- 提問內容區 -->
+                <div class="message-section question-section">
+                    <div class="message-header">
+                        <span>${askerVis.icon}</span>
+                        <span>${askerStr} <span class="text-muted fw-normal">提出問題</span></span>
+                    </div>
+                    <div class="message-content">${q.question}</div>
+                </div>
+            `;
+
+            // 4. 判斷並渲染下半部：回覆內容與底部狀態列
+            if (q.reply && q.reply.trim() !== "") {
+                // ✅ 已有回覆：解析並渲染所有的回覆紀錄
+                const replyList = q.reply.split('[SPLIT]');
+                
+                let repliesHtml = replyList.map(r => {
+                    let roleName = '回覆者';
+                    let replyName = q.replier_name || '回覆者';
+                    let replyText = r;
+                    let rVis = getRoleVisuals(replyName);
+
+                    // 解析您原本設計的 [REPLY] 標籤
                     if (r.startsWith('[REPLY]')) {
                         const contentPart = r.replace('[REPLY]', '');
                         const parts = contentPart.split('|');
                         if (parts.length >= 3) {
-                            const role = parts[0];
-                            const name = parts[1];
-                            const text = parts.slice(2).join('|');
-                            return `
-                                <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
-                                    <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
-                                        <i class="fas fa-comment-dots"></i> ${name} 回覆：
-                                    </div>
-                                    <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${text}</div>
-                                </div>
-                            `;
+                            roleName = parts[0];
+                            replyName = parts[1];
+                            replyText = parts.slice(2).join('|');
+                            rVis = getRoleVisuals(roleName);
                         }
                     }
 
                     return `
-                        <div class="bg-light rounded p-2 mt-2 mb-2 text-start text-dark" style="border-left: 4px solid #10B981;">
-                            <div class="fw-bold text-success mb-1" style="font-size: 0.9rem;">
-                                <i class="fas fa-comment-dots"></i> ${q.replier_name || '回覆者'} 回覆：
+                    <div class="message-section reply-section">
+                        <div class="conversation-connector"><i class="fas fa-arrow-down"></i></div>
+                        <div class="message-header d-flex justify-content-between">
+                            <div>
+                                <span>${rVis.icon}</span>
+                                <span>${replyName} <span class="text-muted fw-normal">回覆</span></span>
                             </div>
-                            <div style="white-space: pre-wrap; font-size: 0.95rem; padding-left: 2px;">${r}</div>
                         </div>
-                    `;
+                        <div class="message-content">${replyText}</div>
+                    </div>`;
                 }).join('');
+                
+                html += repliesHtml;
+                
+                // 已回覆的底部狀態列 (提供補充回覆按鈕)
+                html += `
+                <div class="conversation-footer">
+                    <span class="status-badge status-replied"><i class="fas fa-check-circle me-1"></i> 已回覆</span>
+                    <button class="btn btn-outline-secondary btn-sm rounded-pill fw-bold px-3" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                        <i class="fas fa-reply me-1"></i> 補充回覆
+                    </button>
+                </div>`;
             } else {
-                replyHTML = `<div class="mt-2 mb-2"><span class="badge bg-warning text-dark">待回覆</span></div>`;
+                // 🟡 尚未回覆的底部狀態列
+                html += `
+                <div class="conversation-footer">
+                    <span class="status-badge status-pending"><i class="fas fa-hourglass-half me-1"></i> 等待 ${targetStr} 回覆</span>
+                    <button class="btn btn-outline-primary reply-button px-4" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                        <i class="fas fa-reply me-1"></i> 回覆此問題
+                    </button>
+                </div>`;
             }
 
-            return `
-            <div class="col-12 mb-3">
-                <div class="card question-card h-100" data-role="${q.asker_role}">
-                    <div class="card-body">
-                        <div class="d-flex justify-content-between align-items-start mb-2">
-                            <span class="badge bg-light text-dark mb-2">To: ${targetStr}</span>
-                            <small class="text-muted">${q.date}</small>
-                        </div>
-                        <h5 class="card-title">${askerStr} 問：</h5>
-                        <p class="card-text">${q.question}</p>
-                        
-                        ${replyHTML}
-                        
-                        <div class="text-end mt-2">
-                            <button class="btn btn-sm btn-outline-primary rounded-pill" onclick="openReplyModal('${q.id}', '${safeReply}')">
-                                <i class="fas fa-reply"></i> 我要回覆
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        `}).join("");
-    } catch (err) { console.error("Load questions failed:", err); }
+            html += `</div>`; // 結束 conversation-card
+            return html;
+        }).join('');
+        
+    } catch (err) { 
+        console.error("Load questions failed:", err); 
+    }
 }
 
 function openReplyModal(questionId, encodedExistingReply) {
