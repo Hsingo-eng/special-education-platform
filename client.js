@@ -385,7 +385,7 @@ function getRoleVisuals(roleString) {
         className = 'text-success';
     }
     return {
-        avatar: `<img src="${avatar}" class="role-avatar" alt="角色頭像">`,
+        avatar: `<img src="${avatar}" class="role-avatar" alt="角色頭像" style="width:24px;height:24px;max-width:24px;max-height:24px;object-fit:contain;vertical-align:middle;">`,
         class: className
     };
 }
