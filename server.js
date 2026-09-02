@@ -147,10 +147,21 @@ const checkRole = (allowedRoles) => {
 const getRoleLabel = (role) => role === 'teacher' ? '教師' : (role === 'therapist' ? '治療師' : '家長');
 
 const cleanHomeAuthorName = (name, roleLabel) => String(name || '')
+    .replace(/\s*[|｜]\s*/g, ' ')
     .replace(/\s*[|｜]\s*(教師|老師|治療師|家長)\s*$/, '')
     .replace(new RegExp(`\\s*[（(]\\s*${roleLabel === '教師' ? '(?:教師|老師)' : roleLabel}\\s*[)）]\\s*$`), '')
     .replace(new RegExp(`${roleLabel === '教師' ? '(?:教師|老師)' : roleLabel}$`), '')
     .trim();
+
+const cleanQuestionPersonName = (name, role) => {
+    const roleLabel = getRoleLabel(role);
+    const rolePattern = roleLabel === '教師' ? '(?:教師|老師)' : roleLabel;
+    return String(name || '')
+        .replace(/\s*[|｜]\s*/g, ' ')
+        .replace(new RegExp(`\\s*[（(]\\s*${rolePattern}\\s*[)）]`, 'g'), '')
+        .replace(new RegExp(`\\s*${rolePattern}\\s*$`), '')
+        .trim() || roleLabel;
+};
 
 // --- API 路由 ---
 app.get("/", (req, res) => res.send("特教平台後端伺服器運作中！🚀"));
@@ -473,7 +484,7 @@ app.get("/api/questions", verifyToken, async (req, res) => {
 app.post("/api/questions", verifyToken, async (req, res) => {
     try {
         const newQuestion = {
-            id: `q-${Date.now()}`, date: new Date().toISOString().split('T')[0], asker_name: req.user.name,
+            id: `q-${Date.now()}`, date: new Date().toISOString().split('T')[0], asker_name: cleanQuestionPersonName(req.user.name, req.user.role),
             asker_role: req.user.role, target_role: req.body.target_role, question: req.body.question,
             replier_name: "", reply: "", status: "待回覆"
         };
@@ -486,7 +497,7 @@ app.post("/api/questions", verifyToken, async (req, res) => {
 app.put("/api/questions/:id", verifyToken, async (req, res) => {
     try {
         const { id } = req.params; const { reply } = req.body;
-        await updateRow("questions", id, { reply: reply, replier_name: req.user.name, status: "已回覆" });
+        await updateRow("questions", id, { reply: reply, replier_name: cleanQuestionPersonName(req.user.name, req.user.role), status: "已回覆" });
         io.emit("question_update", { action: 'reply', replier_name: req.user.name });
         res.json({ message: "回覆成功" });
     } catch (e) { res.status(500).json({ message: e.message }); }

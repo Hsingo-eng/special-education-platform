@@ -390,6 +390,24 @@ function getRoleVisuals(roleString) {
     };
 }
 
+const getQuestionRoleLabel = (role = '') => {
+    if (role === 'teacher' || String(role).includes('教師') || String(role).includes('老師')) return '教師';
+    if (role === 'therapist' || String(role).includes('治療師')) return '治療師';
+    if (role === 'parents' || String(role).includes('家長')) return '家長';
+    return '回覆者';
+};
+
+const cleanQuestionPersonName = (name = '', role = '') => {
+    const roleLabel = getQuestionRoleLabel(role);
+    const rolePattern = roleLabel === '教師' ? '(?:教師|老師)' : roleLabel;
+    const cleanedName = String(name)
+        .replace(/\s*[|｜]\s*/g, ' ')
+        .replace(new RegExp(`\\s*[（(]\\s*${rolePattern}\\s*[)）]`, 'g'), '')
+        .replace(new RegExp(`\\s*${rolePattern}\\s*$`), '')
+        .trim();
+    return cleanedName || roleLabel;
+};
+
 // ==========================================
 // 💬 提問與回覆：載入與渲染功能 (強烈區塊設計版)
 // ==========================================
@@ -410,10 +428,11 @@ async function loadQuestions() {
         
         list.innerHTML = sortedQuestions.map(q => {
             let targetStr = (q.target_role || '所有人').replace(/teacher/g, '教師').replace(/therapist/g, '治療師').replace(/parents/g, '家長');
-            let askerStr = normalizeRoleLabel(q.asker_name || '').includes('教師') ? q.asker_name.replace(/老師/g, '教師') : q.asker_name;
+            const askerRole = getQuestionRoleLabel(q.asker_role || q.asker_name);
+            const askerStr = cleanQuestionPersonName(q.asker_name, askerRole);
             let safeReply = encodeURIComponent(q.reply || '');
 
-            const askerVis = getRoleVisuals(askerStr);
+            const askerVis = getRoleVisuals(askerRole);
             const targetVis = getRoleVisuals(targetStr);
 
             // ========================================
@@ -451,16 +470,18 @@ async function loadQuestions() {
                 const replyList = q.reply.split('[SPLIT]');
                 let repliesHtml = replyList.map(r => {
                     let roleName = '回覆者'; let replyName = q.replier_name || '回覆者'; let replyText = r;
-                    let rVis = getRoleVisuals(replyName);
 
                     if (r.startsWith('[REPLY]')) {
                         const contentPart = r.replace('[REPLY]', '');
                         const parts = contentPart.split('|');
                         if (parts.length >= 3) {
                             roleName = parts[0]; replyName = parts[1]; replyText = parts.slice(2).join('|');
-                            rVis = getRoleVisuals(roleName);
                         }
                     }
+
+                    const replyRole = getQuestionRoleLabel(roleName === '回覆者' ? replyName : roleName);
+                    replyName = cleanQuestionPersonName(replyName, replyRole);
+                    const rVis = getRoleVisuals(replyRole);
 
                     return `
                     <div class="text-center text-muted my-3"><i class="fas fa-arrow-down" style="color: #94a3b8;"></i></div>
