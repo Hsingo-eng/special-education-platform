@@ -39,6 +39,21 @@ const normalizeRoleLabel = (label = '') => {
     return clean || '家長';
 };
 
+const formatHomeAuthor = (author = '') => {
+    const parts = String(author).split(/[|｜]/).map(part => part.trim()).filter(Boolean);
+    if (parts.length < 2) return author;
+
+    const role = normalizeRoleLabel(parts.pop());
+    let name = parts.join(' | ');
+    const roleSuffix = role === '教師' ? '(?:教師|老師)' : role;
+    name = name
+        .replace(new RegExp(`\\s*[（(]\\s*${roleSuffix}\\s*[)）]\\s*$`), '')
+        .replace(new RegExp(`${roleSuffix}$`), '')
+        .trim();
+
+    return `${name} | ${role}`;
+};
+
 // ==========================================
 // 🔔 1. 通知系統邏輯
 // ==========================================
@@ -360,11 +375,19 @@ function executeShowSection(sectionId) {
 // 💡 提問與回覆：角色視覺對照輔助函數
 // ==========================================
 function getRoleVisuals(roleString) {
-    if (!roleString) return { icon: '👤', class: 'text-secondary' };
-    if (roleString.includes('教師')) return { icon: '👩‍🏫', class: 'text-primary' };
-    if (roleString.includes('治療師')) return { icon: '👩‍⚕️', class: 'text-success' };
-    if (roleString.includes('家長')) return { icon: '👨‍👩‍👧', class: 'text-warning' };
-    return { icon: '👤', class: 'text-secondary' };
+    let avatar = 'sticker3.png';
+    let className = 'text-warning';
+    if (roleString && roleString.includes('教師')) {
+        avatar = 'sticker1.png';
+        className = 'text-primary';
+    } else if (roleString && roleString.includes('治療師')) {
+        avatar = 'sticker2.png';
+        className = 'text-success';
+    }
+    return {
+        avatar: `<img src="${avatar}" class="role-avatar" alt="角色頭像">`,
+        class: className
+    };
 }
 
 // ==========================================
@@ -401,9 +424,9 @@ async function loadQuestions() {
                 
                 <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border-bottom: 1px solid #cbd5e1; padding: 12px 20px;">
                     <div class="fw-bold" style="font-size: 1rem; color: #334155;">
-                        <span class="${askerVis.class}">${askerVis.icon} ${askerStr}</span>
+                        <span class="${askerVis.class}">${askerVis.avatar} ${askerStr}</span>
                         <i class="fas fa-arrow-right mx-2 text-muted"></i>
-                        <span class="${targetVis.class}">${targetVis.icon} ${targetStr}</span>
+                        <span class="${targetVis.class}">${targetVis.avatar} ${targetStr}</span>
                     </div>
                     <div class="text-muted small">${q.date}</div>
                 </div>
@@ -415,7 +438,7 @@ async function loadQuestions() {
                     <!-- ======================================== -->
                     <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 6px solid #0ea5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
                         <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
-                            ${askerVis.icon} ${askerStr} <span class="ms-2 text-muted fw-normal">提出問題</span>
+                            ${askerVis.avatar} ${askerStr} <span class="ms-2 text-muted fw-normal">提出問題</span>
                         </div>
                         <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${q.question}</div>
                     </div>
@@ -445,7 +468,7 @@ async function loadQuestions() {
                     <!-- 淺綠色底, 左側綠色粗框 -->
                     <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 6px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
                         <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
-                            ${rVis.icon} ${replyName} <span class="ms-2 text-muted fw-normal">回覆</span>
+                            ${rVis.avatar} ${replyName} <span class="ms-2 text-muted fw-normal">回覆</span>
                         </div>
                         <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${replyText}</div>
                     </div>`;
@@ -936,15 +959,15 @@ function openQuestionModal() {
                     <div class="form-check">
                         <!-- value 改為統一的中文名稱 -->
                         <input class="form-check-input q-target-cb" type="checkbox" value="教師" id="q-tgt-teacher">
-                        <label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;">👨‍🏫 教師</label>
+                        <label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;"><img src="sticker1.png" class="role-avatar" alt="教師頭像">教師</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input q-target-cb" type="checkbox" value="治療師" id="q-tgt-therapist">
-                        <label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;">👩‍⚕️ 治療師</label>
+                        <label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;"><img src="sticker2.png" class="role-avatar" alt="治療師頭像">治療師</label>
                     </div>
                     <div class="form-check">
                         <input class="form-check-input q-target-cb" type="checkbox" value="家長" id="q-tgt-parents">
-                        <label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;">👨‍👩‍👧 家長</label>
+                        <label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;"><img src="sticker3.png" class="role-avatar" alt="家長頭像">家長</label>
                     </div>
                 </div>
             </div>
@@ -1260,23 +1283,29 @@ async function loadHomeLogs() {
         feedContainer.innerHTML = json.data.map(log => {
             const dateStr = new Date(log.datetime).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             const imageHtml = log.image ? `<img src="${log.image}" class="img-fluid rounded-3 mb-3 border" style="max-height: 300px; object-fit: contain; width: 100%;">` : '';
+            const authorDisplay = formatHomeAuthor(log.author);
+            const authorAvatar = getRoleVisuals(authorDisplay).avatar;
             
             // 渲染回覆區塊
-            const repliesHtml = log.replies.map(r => `
+            const repliesHtml = log.replies.map(r => {
+                const replyDisplay = formatHomeAuthor(r.author);
+                const replyAvatar = getRoleVisuals(replyDisplay).avatar;
+                return `
                 <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
                     <div class="d-flex justify-content-between align-items-center mb-1">
-                        <span class="fw-bold small text-dark">${r.author}</span>
+                        <span class="fw-bold small text-dark">${replyAvatar} ${replyDisplay}</span>
                         <span class="text-muted" style="font-size: 0.75rem;">${new Date(r.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                     </div>
                     <p class="mb-0 small text-secondary">${r.text}</p>
                 </div>
-            `).join('');
+            `;
+            }).join('');
 
             return `
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
                         <div class="d-flex justify-content-between align-items-center mb-3">
-                            <h6 class="fw-bold mb-0 text-primary"><i class="fas fa-user-circle me-2"></i>${log.author}</h6>
+                            <h6 class="fw-bold mb-0 text-primary">${authorAvatar} ${authorDisplay}</h6>
                             <span class="text-muted small">${dateStr}</span>
                         </div>
                         <p class="text-dark mb-3" style="white-space: pre-wrap;">${log.content}</p>

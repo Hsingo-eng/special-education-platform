@@ -144,6 +144,14 @@ const checkRole = (allowedRoles) => {
     };
 };
 
+const getRoleLabel = (role) => role === 'teacher' ? '教師' : (role === 'therapist' ? '治療師' : '家長');
+
+const cleanHomeAuthorName = (name, roleLabel) => String(name || '')
+    .replace(/\s*[|｜]\s*(教師|老師|治療師|家長)\s*$/, '')
+    .replace(new RegExp(`\\s*[（(]\\s*${roleLabel === '教師' ? '(?:教師|老師)' : roleLabel}\\s*[)）]\\s*$`), '')
+    .replace(new RegExp(`${roleLabel === '教師' ? '(?:教師|老師)' : roleLabel}$`), '')
+    .trim();
+
 // --- API 路由 ---
 app.get("/", (req, res) => res.send("特教平台後端伺服器運作中！🚀"));
 
@@ -350,11 +358,11 @@ app.get("/api/home_logs", verifyToken, async (req, res) => {
 // 2. 新增居家表現貼文 (家長端)
 app.post("/api/home_logs", verifyToken, async (req, res) => {
     try {
-        const roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
+        const roleLabel = getRoleLabel(req.user.role);
         const newLog = {
             id: `log-${Date.now()}`,
             datetime: new Date().toISOString(),
-            author: `${req.user.name} | ${roleLabel}`,
+            author: `${cleanHomeAuthorName(req.user.name, roleLabel) || req.user.username} | ${roleLabel}`,
             content: req.body.content || "",
             image: req.body.image || "",
             replies: JSON.stringify([]) // 初始化空的回覆陣列
@@ -378,10 +386,10 @@ app.post("/api/home_logs/reply", verifyToken, async (req, res) => {
         const replies = allLogs[logIndex].replies ? JSON.parse(allLogs[logIndex].replies) : [];
         
         // 標示回覆者的專業身分
-        let roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
+        const roleLabel = getRoleLabel(req.user.role);
         replies.push({
             id: `rep-${Date.now()}`,
-            author: `${req.user.name} | ${roleLabel}`,
+            author: `${cleanHomeAuthorName(req.user.name, roleLabel) || req.user.username} | ${roleLabel}`,
             text: replyText,
             timestamp: new Date().toISOString()
         });
