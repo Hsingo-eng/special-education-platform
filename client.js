@@ -113,6 +113,8 @@ function renderNotificationList() {
         else if (n.type === 'iep') { iconClass = 'iep'; iconName = 'fas fa-folder-open'; }
         else if (n.type === 'message') { iconClass = 'message'; iconName = 'fas fa-comments'; }
         else if (n.type === 'question') { iconClass = 'question'; iconName = 'fas fa-question-circle'; }
+        // 👇 新增居家表現的通知圖示設定
+        else if (n.type === 'home_log') { iconClass = 'record'; iconName = 'fas fa-home'; }
 
         const date = new Date(n.time);
         const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
@@ -216,6 +218,13 @@ if (typeof io !== 'undefined') {
         }
         const qSection = document.getElementById('section-questions');
         if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
+    });
+
+    // 👇 新增居家表現的推播接收器
+    socket.on("home_log_update", (data) => {
+        addNotification('home_log', data.message || '居家表現有新貼文或回覆');
+        const hlSection = document.getElementById('section-home-log');
+        if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
     });
 }
 
