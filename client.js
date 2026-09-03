@@ -36,22 +36,38 @@ const normalizeRoleLabel = (label = '') => {
         .replace(/\s*\((教師|治療師|家長|老師)\)\s*/g, '')
         .replace(/老師/g, '教師');
 
+    const normalized = clean.toLowerCase();
+    if (normalized === 'teacher') return '教師';
+    if (normalized === 'therapist') return '治療師';
+    if (normalized === 'parent' || normalized === 'parents') return '家長';
     return clean || '家長';
 };
 
 const formatHomeAuthor = (author = '') => {
-    const parts = String(author).split(/[|｜]/).map(part => part.trim()).filter(Boolean);
-    if (parts.length < 2) return author;
-
-    const role = normalizeRoleLabel(parts.pop());
-    let name = parts.join(' | ');
+    const rawAuthor = String(author).trim();
+    const parts = rawAuthor.split(/[|｜]/).map(part => part.trim()).filter(Boolean);
+    const roleText = parts.length > 1 ? parts.pop() : rawAuthor;
+    const role = normalizeRoleLabel(roleText);
+    let name = parts.join(' ');
     const roleSuffix = role === '教師' ? '(?:教師|老師)' : role;
     name = name
         .replace(new RegExp(`\\s*[（(]\\s*${roleSuffix}\\s*[)）]\\s*$`), '')
         .replace(new RegExp(`${roleSuffix}$`), '')
         .trim();
 
-    return `${name} | ${role}`;
+    const roleOnlyNames = {
+        teacher: '教師',
+        therapist: '治療師',
+        parents: '家長',
+        parent: '家長',
+        教師: '教師',
+        老師: '教師',
+        治療師: '治療師',
+        家長: '家長'
+    };
+    if (roleOnlyNames[name] || roleOnlyNames[name.toLowerCase()]) name = '';
+
+    return name ? `${name} | ${role}` : role;
 };
 
 // ==========================================
@@ -397,6 +413,18 @@ const getQuestionRoleLabel = (role = '') => {
     return '回覆者';
 };
 
+const getQuestionTargetRoles = (target = '') => {
+    const targetText = String(target || '所有人');
+    if (targetText.includes('所有人')) return ['所有人'];
+
+    return [...new Set(
+        targetText
+            .split(/[,，、]/)
+            .map(item => getQuestionRoleLabel(item.trim()))
+            .filter(role => role !== '回覆者')
+    )];
+};
+
 const cleanQuestionPersonName = (name = '', role = '') => {
     const roleLabel = getQuestionRoleLabel(role);
     const rolePattern = roleLabel === '教師' ? '(?:教師|老師)' : roleLabel;
@@ -427,13 +455,16 @@ async function loadQuestions() {
         const sortedQuestions = json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
         
         list.innerHTML = sortedQuestions.map(q => {
-            let targetStr = (q.target_role || '所有人').replace(/teacher/g, '教師').replace(/therapist/g, '治療師').replace(/parents/g, '家長');
+            const targetRoles = getQuestionTargetRoles(q.target_role);
+            const targetStr = targetRoles.join(', ');
             const askerRole = getQuestionRoleLabel(q.asker_role || q.asker_name);
             const askerStr = cleanQuestionPersonName(q.asker_name, askerRole);
             let safeReply = encodeURIComponent(q.reply || '');
 
             const askerVis = getRoleVisuals(askerRole);
-            const targetVis = getRoleVisuals(targetStr);
+            const targetVisuals = targetRoles.map(role => getRoleVisuals(role));
+            const targetAvatars = targetVisuals.map(visual => visual.avatar).join(' ');
+            const targetClass = targetVisuals[0]?.class || 'text-warning';
 
             // ========================================
             // 1. 卡片外框與表頭區塊 (灰色底, 清楚的邊框)
@@ -445,7 +476,7 @@ async function loadQuestions() {
                     <div class="fw-bold" style="font-size: 1rem; color: #334155;">
                         <span class="${askerVis.class}">${askerVis.avatar} ${askerStr}</span>
                         <i class="fas fa-arrow-right mx-2 text-muted"></i>
-                        <span class="${targetVis.class}">${targetVis.avatar} ${targetStr}</span>
+                        <span class="${targetClass}">${targetAvatars} ${targetStr}</span>
                     </div>
                     <div class="text-muted small">${q.date}</div>
                 </div>
