@@ -773,6 +773,7 @@ function initCalendar() {
     calendar = new FullCalendar.Calendar(el, {
         initialView: 'dayGridMonth',
         locale: 'zh-tw',
+        fixedWeekCount: false, //
         headerToolbar: {
             left: 'prev,next today',
             center: 'title',
