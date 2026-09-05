@@ -7,8 +7,6 @@
     /* 🆕 實心灰色拼圖 SVG (用於功能按鈕背景) */
     --puzzle-filled-gray: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20,20 L40,20 C40,10 45,5 50,5 C55,5 60,10 60,20 L80,20 L80,40 C90,40 95,45 95,50 C95,55 90,60 80,60 L80,80 L60,80 C60,90 55,95 50,95 C45,95 40,90 40,80 L20,80 L20,60 C10,60 5,55 5,50 C5,45 10,40 20,40 Z' fill='%23E2E8F0' stroke='none'/%3E%3C/svg%3E");
 
-    /* 線條拼圖紋理 SVG：清楚的交錯卡榫，保持低對比以免干擾內容 */
-    --puzzle-pattern-url: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 H34 C34 42 40 37 47 37 C54 37 58 42 58 50 H100 M50 0 V34 C42 34 37 40 37 47 C37 54 42 58 50 58 V100' stroke='%2394a3b8' stroke-width='1.2' fill='none' opacity='0.42' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     /* --- 🎨 Color Palette (配色系統) --- */
     --bg-root: #F6F8FA;      
     --bg-surface: #FFFFFF;   
@@ -131,18 +129,10 @@ h1, .h1-title {
     margin-bottom: 1.5rem;
 }
 
-h2, .h2-title {
-    font-size: 1.25rem;
-    font-weight: 600;
-    color: var(--text-primary);
-    margin-bottom: 1rem;
-}
-
-.body-text {
-    font-size: 1rem;
-    color: var(--text-secondary);
-}
-
+            #dashboard-section::before,
+            #dashboard-section::after {
+                display: none;
+            }
 .section-label {
     display: block;
     font-family: var(--font-mono);
@@ -249,11 +239,7 @@ hr::before {
     padding: 0 5vw; 
     overflow: hidden; /* 禁止出現捲軸 */
     position: relative;
-    /* 確保背景紋理延伸 */
-    background-image: 
-        radial-gradient(circle at center, rgba(246, 248, 250, 1) 40%, rgba(246, 248, 250, 0.8) 100%),
-        var(--puzzle-pattern-url);
-    background-size: cover, 120px 120px;
+    background-image: radial-gradient(circle at center, rgba(246, 248, 250, 1) 40%, rgba(246, 248, 250, 0.8) 100%);
 }
 
 /* 2. Hero 網格：確保高度佔滿 */
@@ -283,23 +269,6 @@ hr::before {
 /* 隱藏藍色圈圈 */
 .circle-sketch::after {
     display: none !important;
-}
-
-/* 🧩 Puzzle Design: Hero 背景紋理透明度調整 */
-#login-section::before {
-    content: '';
-    position: absolute;
-    top: -5%;
-    left: -2%;
-    width: 400px;
-    height: 400px;
-    background-image: var(--puzzle-pattern-url); /* 若有特定SVG形狀可替換 */
-    background-repeat: no-repeat;
-    background-size: contain;
-    opacity: 0.1; /* 10% */
-    transform: rotate(-15deg);
-    pointer-events: none;
-    z-index: 0;
 }
 
 /* 標題字體加大 */
@@ -405,19 +374,47 @@ hr::before {
     padding-top: 2rem; 
     padding-bottom: 5rem;
     
-    /* 設定淡灰色拼圖線條背景 */
-    background-image: var(--puzzle-pattern-url);
-    background-size: 100px 100px; /* 調整紋理大小 */
-    background-repeat: repeat;
-    background-attachment: fixed; /* 讓背景固定，卡片滑動時更有層次感 */
-    
-    /* 確保背景圖案在最底層，不會蓋住卡片 */
+    background-color: var(--bg-root);
     z-index: 0;
 }
 
-/* 移除原本可能存在的 ::before 裝飾，避免干擾 */
+/* 兩側動態拼圖裝飾：只做視覺效果，不攔截任何操作 */
+#dashboard-section::before,
+#dashboard-section::after {
+    content: '';
+    position: absolute;
+    top: 18%;
+    width: 112px;
+    height: 112px;
+    background: var(--puzzle-filled-gray) center / contain no-repeat;
+    opacity: 0.78;
+    pointer-events: none;
+    z-index: 0;
+}
+
 #dashboard-section::before {
-    display: none !important;
+    left: -34px;
+    animation: puzzle-float-left 5.5s ease-in-out infinite;
+}
+
+#dashboard-section::after {
+    right: -34px;
+    animation: puzzle-float-right 6.2s ease-in-out infinite 0.6s;
+}
+
+#dashboard-section > * {
+    position: relative;
+    z-index: 1;
+}
+
+@keyframes puzzle-float-left {
+    0%, 100% { transform: translate(0, 0) rotate(-12deg); }
+    50% { transform: translate(18px, 24px) rotate(4deg); }
+}
+
+@keyframes puzzle-float-right {
+    0%, 100% { transform: translate(0, 0) rotate(14deg); }
+    50% { transform: translate(-18px, 18px) rotate(-5deg); }
 }
 
 .fc { font-family: var(--font-main); }

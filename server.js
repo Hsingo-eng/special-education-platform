@@ -321,7 +321,7 @@ app.get('/api/summary', verifyToken, async (req, res) => {
         }
 
         // 🌟 使用 Google 官方 SDK 直接生成內容，捨棄容易出錯的 fetch 網址寫法
-        const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
         const result = await model.generateContent(prompt);
