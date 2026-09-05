@@ -186,12 +186,23 @@ app.get("/api/calendar", verifyToken, async (req, res) => {
         const response = await calendar.events.list({
             calendarId: CALENDAR_ID, timeMin: startOfMonth.toISOString(), maxResults: 50, singleEvents: true, orderBy: 'startTime',
         });
-        const events = response.data.items.map(event => ({
-            id: event.id, title: event.summary, start: event.start.dateTime || event.start.date, end: event.end.dateTime || event.end.date,
-            description: event.description, role: event.description && event.description.includes("老師") ? 'teacher' : 'therapist'
-        }));
+        
+        // ✨ 新增 .filter(...) 條件，只要標題包含「生日」就直接過濾掉，不送到前端
+        const events = response.data.items
+            .filter(event => event.summary && !event.summary.includes("生日")) 
+            .map(event => ({
+                id: event.id, 
+                title: event.summary, 
+                start: event.start.dateTime || event.start.date, 
+                end: event.end.dateTime || event.end.date,
+                description: event.description, 
+                role: event.description && event.description.includes("老師") ? 'teacher' : 'therapist'
+            }));
+            
         res.json({ data: events });
-    } catch (error) { res.status(500).json({ message: "無法讀取行事曆" }); }
+    } catch (error) { 
+        res.status(500).json({ message: "無法讀取行事曆" }); 
+    }
 });
 
 app.post("/api/calendar", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
@@ -228,9 +239,12 @@ app.delete("/api/calendar/:id", verifyToken, checkRole(['teacher', 'therapist'])
         await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: id });
         io.emit('calendar_update', { action: 'delete' });
         res.json({ message: "刪除成功" });
-    } catch (error) { res.status(500).json({ message: "刪除失敗" }); }
+    } catch (error) { 
+        // ✨ 加入 console.error，將 Google 的真實報錯印在 Railway 的 Logs 裡面
+        console.error("Google Calendar 刪除失敗:", error.message || error);
+        res.status(500).json({ message: "刪除失敗" }); 
+    }
 });
-
 // --- 治療紀錄 API ---
 app.get("/api/records", verifyToken, async (req, res) => {
     if (req.user.role === 'parents') return res.status(403).json({ message: "家長權限無法查看" });
