@@ -7,8 +7,8 @@
     /* 🆕 實心灰色拼圖 SVG (用於功能按鈕背景) */
     --puzzle-filled-gray: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Cpath d='M20,20 L40,20 C40,10 45,5 50,5 C55,5 60,10 60,20 L80,20 L80,40 C90,40 95,45 95,50 C95,55 90,60 80,60 L80,80 L60,80 C60,90 55,95 50,95 C45,95 40,90 40,80 L20,80 L20,60 C10,60 5,55 5,50 C5,45 10,40 20,40 Z' fill='%23E2E8F0' stroke='none'/%3E%3C/svg%3E");
 
-    /* 線條拼圖紋理 SVG (線條顏色為冷灰 #CBD5E1，透明度極低) */
-    --puzzle-pattern-url: url("data:image/svg+xml,%3Csvg width='40' height='40' viewBox='0 0 40 40' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 20 L14 20 C14 16 18 16 18 20 L18 20 L22 20 C22 16 26 16 26 20 L40 20 M20 0 L20 14 C24 14 24 18 20 18 L20 22 C24 22 24 26 20 26 L20 40' stroke='%23cbd5e1' stroke-width='0.5' fill='none' opacity='0.15'/%3E%3C/svg%3E");
+    /* 線條拼圖紋理 SVG：清楚的交錯卡榫，保持低對比以免干擾內容 */
+    --puzzle-pattern-url: url("data:image/svg+xml,%3Csvg width='100' height='100' viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M0 50 H34 C34 42 40 37 47 37 C54 37 58 42 58 50 H100 M50 0 V34 C42 34 37 40 37 47 C37 54 42 58 50 58 V100' stroke='%2394a3b8' stroke-width='1.2' fill='none' opacity='0.42' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E");
     /* --- 🎨 Color Palette (配色系統) --- */
     --bg-root: #F6F8FA;      
     --bg-surface: #FFFFFF;   

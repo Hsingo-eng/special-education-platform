@@ -293,7 +293,7 @@ app.post("/api/messages", verifyToken, async (req, res) => {
 });
 
 // ==========================================
-// 🟢 留言板 AI 重點摘要 API（Header 正確版）
+// 🟢 留言板 AI 重點摘要 API（精簡官方 SDK 版）
 // ==========================================
 app.get('/api/summary', verifyToken, async (req, res) => {
     try {
@@ -320,39 +320,14 @@ app.get('/api/summary', verifyToken, async (req, res) => {
             return res.json({ summary: "目前留言板內容為空，無法生成摘要。" });
         }
 
+        // 🌟 使用 Google 官方 SDK 直接生成內容，捨棄容易出錯的 fetch 網址寫法
         const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${modelName}:generateContent`, {
-            method: 'POST',
-            headers: {
-                'Content-Type': 'application/json',
-                'x-goog-api-key': apiKey
-            },
-            body: JSON.stringify({
-                contents: [{ parts: [{ text: prompt }] }],
-                generationConfig: {
-                    temperature: 0.2,
-                    maxOutputTokens: 300
-                }
-            })
-        });
+        const result = await model.generateContent(prompt);
+        const responseText = result.response.text();
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            console.error("❌ Google API 回傳錯誤細節:", JSON.stringify(data));
-            return res.status(500).json({
-                error: `Google API 錯誤 (${response.status}): ${data.error?.message || '驗證失敗'}`
-            });
-        }
-
-        const resultText = data.candidates
-            ?.map(candidate => candidate.content?.parts?.map(part => part.text).join('') || '')
-            .join('\n')
-            .trim() || "無法解析摘要內容";
-
-        res.json({ summary: resultText });
+        res.json({ summary: responseText });
         console.log("✅ AI 摘要成功生成！");
 
     } catch (error) {
@@ -408,24 +383,39 @@ app.post("/api/home_logs/reply", verifyToken, async (req, res) => {
         
         if (logIndex === -1) return res.status(404).json({ message: "找不到該貼文" });
 
+        // 解析舊有回覆
         const replies = allLogs[logIndex].replies ? JSON.parse(allLogs[logIndex].replies) : [];
         
         // 標示回覆者的專業身分
-        const roleLabel = getRoleLabel(req.user.role);
+        let roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
         replies.push({
             id: `rep-${Date.now()}`,
-            author: `${cleanHomeAuthorName(req.user.name, roleLabel) || req.user.username} | ${roleLabel}`,
+            author: `${req.user.name} | ${roleLabel}`,
             text: replyText,
             timestamp: new Date().toISOString()
         });
 
-        // ⚠️ 這裡需要更新整行資料。若您的 Google Sheet 操作模組尚未實作 updateRow，
-        // 建議透過 Google Apps Script 或 sheets.spreadsheets.values.update 來覆寫該儲存格。
-        // 這裡提供資料打包示範，請依據您的資料庫連線方式更新 `replies` 欄位。
-        await updateSheetCell("home_logs", logIndex + 2, "F", JSON.stringify(replies)); 
+        const updatedRepliesString = JSON.stringify(replies);
+
+        // 🌟 使用真實的 Google Sheets API 覆寫特定儲存格
+        // 確保您的試算表操作物件為 sheets，ID 變數為 SPREADSHEET_ID
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SPREADSHEET_ID,
+            range: `home_logs!F${logIndex + 2}`, // F欄為replies，logIndex + 2為對應的列數
+            valueInputOption: "USER_ENTERED",
+            resource: {
+                values: [[updatedRepliesString]]
+            }
+        });
+
+        // 廣播通知前端更新畫面
+        if (typeof io !== 'undefined') {
+            io.emit("home_log_update", { message: `${req.user.name} 回覆了居家表現貼文` });
+        }
 
         res.json({ message: "回覆成功" });
     } catch (e) { 
+        console.error("居家表現回覆失敗:", e); // 將錯誤印在 Railway 後台方便追蹤
         res.status(500).json({ message: e.message }); 
     }
 });
