@@ -550,13 +550,24 @@ app.post("/api/iep_goals", verifyToken, checkRole(['teacher']), async (req, res)
             date: new Date().toISOString().split('T')[0],
             goal_title: req.body.title,
             creator: req.user.name,
-            strategies: JSON.stringify([]) // 初始化空陣列
+            strategies: JSON.stringify([]), // 初始化空陣列
+            status: "未開始"
         };
         await appendRow("iep_goals", newGoal);
         if (typeof io !== 'undefined') io.emit("iep_update"); // 觸發畫面更新
         res.json({ message: "新增目標成功" });
     } catch (e) { 
         res.status(500).json({ message: e.message }); 
+    }
+});
+// 6. 更新 IEP 目標狀態 (個管師專屬權限)
+app.put("/api/iep_goals/:id/status", verifyToken, checkRole(['teacher']), async (req, res) => {
+    try {
+        await updateRow("iep_goals", req.params.id, { status: req.body.status });
+        if (typeof io !== 'undefined') io.emit("iep_update");
+        res.json({ message: "狀態更新成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
     }
 });
 

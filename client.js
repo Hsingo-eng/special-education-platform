@@ -800,7 +800,7 @@ async function loadIepFiles() {
                         <i class="fas fa-file-pdf fa-2x text-danger me-3"></i>
                         <h6 class="mb-0 fw-bold text-dark text-truncate" title="${f.filename}">${f.filename}</h6>
                     </div>
-                    <small class="text-muted d-block mb-1">上傳者: ${f.uploaded_by}</small>
+                    <small class="text-muted d-block mb-1">上傳者: ${formatIepUploader(f)}</small>
                     <small class="text-muted d-block mb-3">日期: ${f.upload_date}</small>
                     <a href="${f.file_link}" target="_blank" class="btn btn-outline-danger btn-sm w-100 rounded-pill mb-2">
                         <i class="fas fa-download"></i> 下載檢閱
@@ -814,6 +814,22 @@ async function loadIepFiles() {
             </div>
         `).join("");
     } catch (err) { console.error(err); }
+}
+
+function formatIepUploader(file) {
+    const roleLabel = normalizeRoleLabel(file.role || '');
+    const rawUploader = String(file.uploaded_by || file.uploader || '').trim();
+    const parts = rawUploader.split(/[|｜]/).map(part => part.trim()).filter(Boolean);
+    const rawRole = parts.length > 1 ? parts.pop() : '';
+    const role = normalizeRoleLabel(rawRole || roleLabel);
+    const rolePattern = role === '教師' ? '(?:教師|老師)' : role;
+    const roleOnlyNames = new Set(['教師', '老師', '治療師', '家長']);
+    const name = parts.join(' ')
+        .replace(new RegExp(`\\s*[（(]?\\s*${rolePattern}\\s*[)）]?\\s*$`), '')
+        .trim();
+
+    if (!name || roleOnlyNames.has(name)) return role;
+    return `${name} | ${role}`;
 }
 
 // ==========================================
@@ -1497,7 +1513,15 @@ async function submitIepGoal() {
     }
 }
 
-a// 重新載入目標與策略 (加入刪除按鈕與權限判斷)
+// 重新載入目標與策略 (加入刪除按鈕與權限判斷)
+// 狀態標籤色彩小幫手
+function getGoalStatusStyle(status) {
+    if (status === '已達成') return { bg: '#D1FAE5', text: '#059669', border: '#A7F3D0' };
+    if (status === '練習中') return { bg: '#FEF3C7', text: '#D97706', border: '#FDE68A' };
+    return { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' }; // 未開始
+}
+
+// 重新載入目標與策略 (加入狀態追蹤)
 async function loadIepGoals() {
     const list = document.getElementById('iep-goal-list');
     if (!list) return;
@@ -1513,17 +1537,33 @@ async function loadIepGoals() {
         }
 
         list.innerHTML = json.data.map(goal => {
-            // 判斷是否為教師，決定要不要顯示大目標的刪除按鈕
             const canDeleteGoal = currentUser && currentUser.role === 'teacher';
             const goalDeleteBtn = canDeleteGoal ? 
                 `<button class="btn btn-outline-danger btn-sm rounded-pill py-0 px-2 ms-3" onclick="deleteIepGoal('${goal.id}')" title="刪除此目標"><i class="fas fa-trash-alt small"></i></button>` : '';
 
-            // 渲染作法與策略列表
+            // 🟢 渲染動態狀態標籤或選單
+            const currentStatus = goal.status || '未開始';
+            const sStyle = getGoalStatusStyle(currentStatus);
+            let statusHtml = '';
+            
+            if (currentUser && currentUser.role === 'teacher') {
+                statusHtml = `
+                    <select class="form-select form-select-sm ms-md-3 mt-2 mt-md-0 fw-bold rounded-pill shadow-sm" 
+                            style="width: 105px; background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; cursor: pointer;"
+                            onchange="updateIepGoalStatus('${goal.id}', this.value)">
+                        <option value="未開始" ${currentStatus === '未開始' ? 'selected' : ''}>未開始</option>
+                        <option value="練習中" ${currentStatus === '練習中' ? 'selected' : ''}>練習中</option>
+                        <option value="已達成" ${currentStatus === '已達成' ? 'selected' : ''}>已達成</option>
+                    </select>
+                `;
+            } else {
+                statusHtml = `<span class="badge rounded-pill ms-md-3 mt-2 mt-md-0 px-3 py-2 shadow-sm" style="background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; font-size: 0.85rem;">${currentStatus}</span>`;
+            }
+
             const strategiesHtml = goal.strategies.map(st => {
                 const authorVis = getRoleVisuals(st.author).avatar;
                 const authorRoleClass = st.author.includes('治療師') ? 'text-success' : 'text-primary';
                 
-                // 判斷是否為本人或教師，決定要不要顯示建議的刪除按鈕
                 const authorName = st.author.split(' | ')[0];
                 const canDeleteSt = currentUser && (currentUser.role === 'teacher' || currentUser.name === authorName || currentUser.username === authorName);
                 const stDeleteBtn = canDeleteSt ? 
@@ -1545,10 +1585,13 @@ async function loadIepGoals() {
 
             return `
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
-                <div class="card-header bg-white border-bottom px-4 py-3 d-flex align-items-center">
-                    <i class="fas fa-star text-warning me-2"></i>
-                    <h5 class="fw-bold text-dark mb-0">${goal.goal_title}</h5>
-                    <div class="ms-auto d-flex align-items-center">
+                <div class="card-header bg-white border-bottom px-4 py-3 d-flex flex-column flex-md-row align-items-md-center">
+                    <div class="d-flex align-items-center">
+                        <i class="fas fa-star text-warning me-2"></i>
+                        <h5 class="fw-bold text-dark mb-0">${goal.goal_title}</h5>
+                    </div>
+                    ${statusHtml}
+                    <div class="ms-md-auto d-flex align-items-center mt-2 mt-md-0">
                         <span class="text-muted small">${goal.date}</span>
                         ${goalDeleteBtn}
                     </div>
@@ -1571,6 +1614,24 @@ async function loadIepGoals() {
     }
 }
 
+// 傳送更新狀態的 API
+window.updateIepGoalStatus = async function(goalId, newStatus) {
+    try {
+        const res = await fetch(`${API_URL}/api/iep_goals/${goalId}/status`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+            body: JSON.stringify({ status: newStatus })
+        });
+        
+        if (res.ok) {
+            loadIepGoals(); // 重新載入以更新顏色
+        } else {
+            throw new Error('狀態更新失敗');
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '更新失敗', text: '請檢查網路連線' });
+    }
+};
 // 刪除 IEP 大目標
 window.deleteIepGoal = async function(goalId) {
     const result = await Swal.fire({
