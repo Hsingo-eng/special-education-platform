@@ -531,21 +531,79 @@
                         </div>
                     </div>
 
-                            <!-- 3. 操作按鈕 (右側雙按鈕) -->
-                            <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
-                                <!-- 只有教師看得到這個編輯按鈕 -->
-                                <button class="btn rounded-pill px-3 fw-bold shadow-sm role-only text-nowrap text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A; font-size: 0.85rem;">
-                                    <i class="fas fa-edit"></i> 編輯資料
-                                </button>
-                                <!-- 所有人都能看這個檢視按鈕 -->
-                                <button class="btn rounded-pill px-3 fw-bold shadow-sm text-nowrap" onclick="openViewCaseModal()" style="color: #5A728A; border: 1px solid #5A728A; background-color: #ffffff; font-size: 0.85rem;">
-                                    <i class="fas fa-file-alt me-1"></i> 班級現況
-                                </button>
-                            </div>
-                        </div>
+                    <!-- 3. 操作按鈕 (右側雙按鈕：已套用莫蘭迪藍、不換行、縮小字體) -->
+                    <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
+                        <!-- 只有教師看得到這個編輯按鈕 -->
+                        <button class="btn rounded-pill px-3 fw-bold shadow-sm role-only text-nowrap text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A; font-size: 0.85rem;">
+                            <i class="fas fa-edit"></i> 編輯資料
+                        </button>
+                        <!-- 所有人都能看這個檢視按鈕 -->
+                        <button class="btn rounded-pill px-3 fw-bold shadow-sm text-nowrap" onclick="openViewCaseModal()" style="color: #5A728A; border: 1px solid #5A728A; background-color: #ffffff; font-size: 0.85rem;">
+                            <i class="fas fa-file-alt me-1"></i> 班級現況
+                        </button>
                     </div>
-                </div>
 
+                </div>
+            </div>
+        </div>
+
+        <!-- 六大功能拼圖卡片 (被誤刪的部分已補回) -->
+        <div class="row g-4 puzzle-container mb-4">
+            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('records')">
+                <div class="modern-feature-card theme-blue">
+                    <div class="card-puzzle-watermark"></div>
+                    <div class="card-icon-box"><i class="fas fa-file-medical"></i></div>
+                    <h3 class="card-title">治療紀錄</h3>
+                    <p class="card-desc">掌握專業建議與醫療進度</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('iep')">
+                <div class="modern-feature-card theme-green">
+                    <div class="card-puzzle-watermark"></div>
+                    <div class="card-icon-box"><i class="fas fa-folder-open"></i></div>
+                    <h3 class="card-title">IEP 資料與策略</h3>
+                    <p class="card-desc">查閱個別化教育計畫與作法</p>
+                </div>
+            </div>
+            
+            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('messages')">
+                <div class="modern-feature-card theme-purple">
+                    <div class="card-puzzle-watermark"></div>
+                    <div class="card-icon-box"><i class="fas fa-comments"></i></div>
+                    <h3 class="card-title">留言板</h3>
+                    <p class="card-desc">團隊即時訊息交流與重點摘要</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('calendar')">
+                <div class="modern-feature-card theme-orange">
+                    <div class="card-puzzle-watermark"></div>
+                    <div class="card-icon-box"><i class="fas fa-calendar-alt"></i></div>
+                    <h3 class="card-title">行事曆</h3>
+                    <p class="card-desc">統整會議、治療時間與排程</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('home-log')">
+                <div class="modern-feature-card theme-red">
+                    <div class="card-puzzle-watermark"></div>
+                    <div class="card-icon-box"><i class="fas fa-home"></i></div>
+                    <h3 class="card-title">居家表現</h3>
+                    <p class="card-desc">家長上傳日常紀錄與專業回饋</p>
+                </div>
+            </div>
+
+            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('questions')">
+                <div class="modern-feature-card theme-cyan">
+                    <div class="card-puzzle-watermark"></div>
+                    <div class="card-icon-box"><i class="fas fa-question-circle"></i></div>
+                    <h3 class="card-title">提問回覆</h3>
+                    <p class="card-desc">跨專業針對性諮詢與對話追蹤</p>
+                </div>
+            </div>
+        </div>
+    </div>
     <div id="content-area">
         <div class="platform-card content-stage-card">
             
