@@ -487,120 +487,144 @@
         </div>
     </div>
 
-   <!-- ========================================== -->
+    <!-- ========================================== -->
     <!-- 🏠 Dashboard 首頁 (預設顯示) -->
     <!-- ========================================== -->
-    <div id="dashboard-section" class="animate-fade position-relative">
-        
-        <!-- 個案卡片 (維持莫蘭迪藍雙按鈕與正確排版) -->
-        <div class="current-case-card bg-white p-1 rounded-4 shadow-sm border-start border-4 border-primary position-relative overflow-hidden mb-5 mt-3">
-            <div class="bg-puzzle"></div>
-            <div class="card-body p-4">
-                <div class="row align-items-center w-100 m-0">
-                    
-                    <!-- 1. 個案基本資料 (左側) -->
-                    <div class="col-12 col-md-5 d-flex align-items-center mb-4 mb-md-0 p-0">
-                        <div class="case-avatar-box me-3 flex-shrink-0">
-                            <i class="fas fa-child text-primary"></i>
-                        </div>
-                        <div>
-                            <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
-                            <div class="d-flex align-items-end mb-1">
-                                <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
-                                <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
-                            </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
-                                <span id="display-case-birthday">--/--/--</span> 
-                                <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
-                            </div>
-                        </div>
-                    </div>
+    <style>
+        /* 🟢 新增：讓透明拼圖在背景緩慢漂浮移動的動畫 */
+        @keyframes floatingPuzzle {
+            0% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.05; }
+            50% { transform: translateY(-12px) rotate(8deg) scale(1.1); opacity: 0.1; }
+            100% { transform: translateY(0px) rotate(0deg) scale(1); opacity: 0.05; }
+        }
+        .watermark-animated {
+            animation: floatingPuzzle 5s ease-in-out infinite;
+            transform-origin: bottom right;
+        }
+        /* 恢復卡片本身的滑鼠懸停彈跳感 */
+        .puzzle-piece {
+            transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+            cursor: pointer;
+        }
+        .puzzle-piece:hover {
+            transform: translateY(-8px) !important;
+        }
+    </style>
 
-                    <!-- 2. 近期更新動態 (中間) -->
-                    <div class="col-12 col-md-4 px-md-4 py-1 border-start-md border-light mb-4 mb-md-0">
-                        <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
-                        <div class="d-flex flex-column gap-2 small">
-                            <div class="d-flex align-items-center text-dark">
-                                <span class="status-dot bg-primary me-2"></span> 治療紀錄 
-                                <span class="text-muted ms-auto ps-3">09/03</span>
-                            </div>
-                            <div class="d-flex align-items-center text-dark">
-                                <span class="status-dot bg-danger me-2"></span> 居家表現 
-                                <span class="text-muted ms-auto ps-3">08/28</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    <!-- 3. 操作按鈕 (右側雙按鈕) -->
-                    <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
-                        <!-- 只有教師看得到這個編輯按鈕 -->
-                        <button class="btn rounded-pill px-3 fw-bold shadow-sm role-only text-nowrap text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A; font-size: 0.85rem;">
-                            <i class="fas fa-edit"></i> 編輯資料
-                        </button>
-                        <!-- 所有人都能看這個檢視按鈕 -->
-                        <button class="btn rounded-pill px-3 fw-bold shadow-sm text-nowrap" onclick="openViewCaseModal()" style="color: #5A728A; border: 1px solid #5A728A; background-color: #ffffff; font-size: 0.85rem;">
-                            <i class="fas fa-file-alt me-1"></i> 班級現況
-                        </button>
-                    </div>
-
-                </div>
-            </div>
-        </div>
-
-        <!-- 🟢 現代化白底卡片：背景帶有滑鼠懸停會浮現的「透明拼圖」 -->
-        <div class="row g-4 mb-4">
-            <div class="col-6 col-md-4" onclick="showSection('records')">
-                <div class="modern-feature-card theme-blue">
-                    <div class="card-puzzle-watermark"></div>
-                    <div class="card-icon-box"><i class="fas fa-file-medical"></i></div>
-                    <h3 class="card-title">治療紀錄</h3>
-                    <p class="card-desc d-none d-md-block">掌握專業建議與醫療進度</p>
-                </div>
-            </div>
+    <div id="dashboard-section" class="animate-fade">
+        <!-- 🟢 加上 container 與 max-w-900 來限制左右邊界，防止按鈕過度放大 -->
+        <div class="container max-w-900 mx-auto px-3 mt-4 mb-5">
             
-            <div class="col-6 col-md-4" onclick="showSection('iep')">
-                <div class="modern-feature-card theme-green">
-                    <div class="card-puzzle-watermark"></div>
-                    <div class="card-icon-box"><i class="fas fa-folder-open"></i></div>
-                    <h3 class="card-title">IEP 資料與策略</h3>
-                    <p class="card-desc d-none d-md-block">查閱個別化教育計畫與作法</p>
-                </div>
-            </div>
-            
-            <div class="col-6 col-md-4" onclick="showSection('messages')">
-                <div class="modern-feature-card theme-purple">
-                    <div class="card-puzzle-watermark"></div>
-                    <div class="card-icon-box"><i class="fas fa-comments"></i></div>
-                    <h3 class="card-title">留言板</h3>
-                    <p class="card-desc d-none d-md-block">團隊即時訊息交流與重點摘要</p>
+            <!-- 個案卡片 (維持莫蘭迪藍雙按鈕與正確排版) -->
+            <div class="current-case-card bg-white p-1 rounded-4 shadow-sm border-start border-4 border-primary position-relative overflow-hidden mb-5">
+                <div class="bg-puzzle"></div>
+                <div class="card-body p-4">
+                    <div class="row align-items-center w-100 m-0">
+                        
+                        <!-- 1. 個案基本資料 (左側) -->
+                        <div class="col-12 col-md-5 d-flex align-items-center mb-4 mb-md-0 p-0">
+                            <div class="case-avatar-box me-3 flex-shrink-0">
+                                <i class="fas fa-child text-primary"></i>
+                            </div>
+                            <div>
+                                <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
+                                <div class="d-flex align-items-end mb-1">
+                                    <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
+                                    <span id="display-case-birthday">--/--/--</span> 
+                                    <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 2. 近期更新動態 (中間) -->
+                        <div class="col-12 col-md-4 px-md-4 py-1 border-start-md border-light mb-4 mb-md-0">
+                            <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
+                            <div class="d-flex flex-column gap-2 small">
+                                <div class="d-flex align-items-center text-dark">
+                                    <span class="status-dot bg-primary me-2"></span> 治療紀錄 
+                                    <span class="text-muted ms-auto ps-3">09/03</span>
+                                </div>
+                                <div class="d-flex align-items-center text-dark">
+                                    <span class="status-dot bg-danger me-2"></span> 居家表現 
+                                    <span class="text-muted ms-auto ps-3">08/28</span>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 3. 操作按鈕 (右側雙按鈕) -->
+                        <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
+                            <!-- 教師專屬編輯按鈕 -->
+                            <button class="btn rounded-pill px-3 fw-bold shadow-sm role-only text-nowrap text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A; font-size: 0.85rem;">
+                                <i class="fas fa-edit"></i> 編輯資料
+                            </button>
+                            <!-- 所有人都能看的檢視按鈕 -->
+                            <button class="btn rounded-pill px-3 fw-bold shadow-sm text-nowrap" onclick="openViewCaseModal()" style="color: #5A728A; border: 1px solid #5A728A; background-color: #ffffff; font-size: 0.85rem;">
+                                <i class="fas fa-file-alt me-1"></i> 班級現況
+                            </button>
+                        </div>
+
+                    </div>
                 </div>
             </div>
 
-            <div class="col-6 col-md-4" onclick="showSection('calendar')">
-                <div class="modern-feature-card theme-orange">
-                    <div class="card-puzzle-watermark"></div>
-                    <div class="card-icon-box"><i class="fas fa-calendar-alt"></i></div>
-                    <h3 class="card-title">行事曆</h3>
-                    <p class="card-desc d-none d-md-block">統整會議、治療時間與排程</p>
+            <!-- 🟢 現代化白底卡片：背景帶有會漂浮移動的「透明拼圖」 -->
+            <div class="row g-4 pb-4">
+                <div class="col-6 col-md-4 puzzle-piece" onclick="showSection('records')">
+                    <div class="modern-feature-card theme-blue">
+                        <div class="card-puzzle-watermark watermark-animated"></div>
+                        <div class="card-icon-box"><i class="fas fa-file-medical"></i></div>
+                        <h3 class="card-title">治療紀錄</h3>
+                        <p class="card-desc d-none d-md-block">掌握專業建議與醫療進度</p>
+                    </div>
                 </div>
-            </div>
-
-            <div class="col-6 col-md-4" onclick="showSection('home-log')">
-                <div class="modern-feature-card theme-red">
-                    <div class="card-puzzle-watermark"></div>
-                    <div class="card-icon-box"><i class="fas fa-home"></i></div>
-                    <h3 class="card-title">居家表現</h3>
-                    <p class="card-desc d-none d-md-block">家長上傳日常紀錄與專業回饋</p>
+                
+                <div class="col-6 col-md-4 puzzle-piece" onclick="showSection('iep')">
+                    <div class="modern-feature-card theme-green">
+                        <div class="card-puzzle-watermark watermark-animated"></div>
+                        <div class="card-icon-box"><i class="fas fa-folder-open"></i></div>
+                        <h3 class="card-title">IEP 資料與策略</h3>
+                        <p class="card-desc d-none d-md-block">查閱個別化教育計畫與作法</p>
+                    </div>
                 </div>
-            </div>
+                
+                <div class="col-6 col-md-4 puzzle-piece" onclick="showSection('messages')">
+                    <div class="modern-feature-card theme-purple">
+                        <div class="card-puzzle-watermark watermark-animated"></div>
+                        <div class="card-icon-box"><i class="fas fa-comments"></i></div>
+                        <h3 class="card-title">留言板</h3>
+                        <p class="card-desc d-none d-md-block">團隊即時訊息交流與重點摘要</p>
+                    </div>
+                </div>
 
-            <div class="col-6 col-md-4" onclick="showSection('questions')">
-                <div class="modern-feature-card theme-cyan">
-                    <div class="card-puzzle-watermark"></div>
-                    <div class="card-icon-box"><i class="fas fa-question-circle"></i></div>
-                    <h3 class="card-title">提問回覆</h3>
-                    <p class="card-desc d-none d-md-block">跨專業針對性諮詢與對話追蹤</p>
+                <div class="col-6 col-md-4 puzzle-piece" onclick="showSection('calendar')">
+                    <div class="modern-feature-card theme-orange">
+                        <div class="card-puzzle-watermark watermark-animated"></div>
+                        <div class="card-icon-box"><i class="fas fa-calendar-alt"></i></div>
+                        <h3 class="card-title">行事曆</h3>
+                        <p class="card-desc d-none d-md-block">統整會議、治療時間與排程</p>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 puzzle-piece" onclick="showSection('home-log')">
+                    <div class="modern-feature-card theme-red">
+                        <div class="card-puzzle-watermark watermark-animated"></div>
+                        <div class="card-icon-box"><i class="fas fa-home"></i></div>
+                        <h3 class="card-title">居家表現</h3>
+                        <p class="card-desc d-none d-md-block">家長上傳日常紀錄與專業回饋</p>
+                    </div>
+                </div>
+
+                <div class="col-6 col-md-4 puzzle-piece" onclick="showSection('questions')">
+                    <div class="modern-feature-card theme-cyan">
+                        <div class="card-puzzle-watermark watermark-animated"></div>
+                        <div class="card-icon-box"><i class="fas fa-question-circle"></i></div>
+                        <h3 class="card-title">提問回覆</h3>
+                        <p class="card-desc d-none d-md-block">跨專業針對性諮詢與對話追蹤</p>
+                    </div>
                 </div>
             </div>
         </div>
