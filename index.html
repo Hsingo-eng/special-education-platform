@@ -534,15 +534,14 @@
                             <!-- 3. 操作按鈕 (右側雙按鈕) -->
                             <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
                                 <!-- 只有教師看得到這個編輯按鈕 -->
-                                <button class="btn btn-primary rounded-pill px-3 fw-bold shadow-sm role-only" data-allow="teacher" onclick="openEditCaseModal()">
+                                <button class="btn rounded-pill px-3 fw-bold shadow-sm role-only text-nowrap text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A; font-size: 0.85rem;">
                                     <i class="fas fa-edit"></i> 編輯資料
                                 </button>
                                 <!-- 所有人都能看這個檢視按鈕 -->
-                                <button class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="openViewCaseModal()">
+                                <button class="btn rounded-pill px-3 fw-bold shadow-sm text-nowrap" onclick="openViewCaseModal()" style="color: #5A728A; border: 1px solid #5A728A; background-color: #ffffff; font-size: 0.85rem;">
                                     <i class="fas fa-file-alt me-1"></i> 班級現況
                                 </button>
                             </div>
-
                         </div>
                     </div>
                 </div>
@@ -1040,8 +1039,8 @@
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
                 <div class="modal-header bg-white border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold text-dark">
-                        <i class="fas fa-user-edit text-primary me-2"></i>編輯個案與班級現況
+                    <h5 class="modal-title fw-bold text-dark" style="color: #5A728A !important;">
+                        <i class="fas fa-user-edit me-2" style="color: #5A728A;"></i>編輯個案與班級現況
                     </h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
                 </div>
@@ -1062,7 +1061,7 @@
                             </div>
                         </div>
 
-                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">▍班級表現觀察紀錄 (階段性更新即可)</h6>
+                        <h6 class="fw-bold border-bottom pb-2 mb-3" style="color: #5A728A;">▍班級表現觀察紀錄 (階段性更新即可)</h6>
                         
                         <div class="mb-3">
                             <label class="form-label fw-bold text-secondary small">理解能力</label>
@@ -1088,7 +1087,8 @@
                 </div>
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitCaseEdit()">儲存修改</button>
+                    <!-- 儲存按鈕也套用莫蘭迪藍 -->
+                    <button type="button" class="btn rounded-pill px-4 fw-bold text-white" onclick="submitCaseEdit()" style="background-color: #5A728A; border: none;">儲存修改</button>
                 </div>
             </div>
         </div>
