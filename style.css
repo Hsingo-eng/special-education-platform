@@ -1054,7 +1054,7 @@ hr::before {
 
 .bg-puzzle {
     position: absolute;
-    opacity: 0.05; /* 極度透明，不會干擾文字閱讀 */
+    opacity: 0.1; /* 極度透明，不會干擾文字閱讀 */
 }
 
 /* 右上角放大，帶有一點旋轉角度 */
@@ -1218,3 +1218,13 @@ hr::before {
 .theme-cyan .card-icon-box { background: #ECFEFF; color: #06B6D4; }
 .theme-cyan:hover { border-color: #67E8F9; }
 .theme-cyan .card-puzzle-watermark { filter: invert(56%) sepia(82%) hue-rotate(145deg); }
+
+/* ========================================== */
+/* 全域設定：調淡所有輸入框的提示文字 (Placeholder)  */
+/* ========================================== */
+input::placeholder,
+textarea::placeholder {
+    color: #adb5bd !important; /* 柔和的淡灰色 */
+    opacity: 1 !important; /* 確保不同瀏覽器顯示一致 */
+    font-weight: 400 !important; /* 避免預設文字過粗 */
+}

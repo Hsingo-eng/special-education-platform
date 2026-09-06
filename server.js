@@ -596,6 +596,45 @@ app.post("/api/iep_goals/strategy", verifyToken, async (req, res) => {
         res.status(500).json({ message: e.message }); 
     }
 });
+// 4. 刪除 IEP 大目標 (限教師)
+app.delete("/api/iep_goals/:id", verifyToken, checkRole(['teacher']), async (req, res) => {
+    try {
+        await deleteRow("iep_goals", req.params.id);
+        if (typeof io !== 'undefined') io.emit("iep_update");
+        res.json({ message: "刪除目標成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// 5. 刪除 IEP 具體作法 (教師可刪全部，其他人只能刪除自己的)
+app.delete("/api/iep_goals/:goalId/strategy/:strategyId", verifyToken, async (req, res) => {
+    try {
+        const { goalId, strategyId } = req.params;
+        const allGoals = await getSheetData("iep_goals");
+        const gIndex = allGoals.findIndex(g => g.id === goalId);
+        
+        if (gIndex === -1) return res.status(404).json({ message: "找不到該目標" });
+
+        let strategies = allGoals[gIndex].strategies ? JSON.parse(allGoals[gIndex].strategies) : [];
+        
+        // 過濾掉要刪除的策略 (保留不相等的)
+        strategies = strategies.filter(s => s.id !== strategyId);
+
+        // 更新回 Google Sheet
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SHEET_ID, 
+            range: `iep_goals!E${gIndex + 2}`, 
+            valueInputOption: "USER_ENTERED",
+            resource: { values: [[JSON.stringify(strategies)]] }
+        });
+
+        if (typeof io !== 'undefined') io.emit("iep_update");
+        res.json({ message: "刪除作法成功" });
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
+});
 
 // --- 提問回覆 API ---
 app.get("/api/questions", verifyToken, async (req, res) => {

@@ -1497,6 +1497,7 @@ async function submitIepGoal() {
     }
 }
 
+a// 重新載入目標與策略 (加入刪除按鈕與權限判斷)
 async function loadIepGoals() {
     const list = document.getElementById('iep-goal-list');
     if (!list) return;
@@ -1512,15 +1513,30 @@ async function loadIepGoals() {
         }
 
         list.innerHTML = json.data.map(goal => {
+            // 判斷是否為教師，決定要不要顯示大目標的刪除按鈕
+            const canDeleteGoal = currentUser && currentUser.role === 'teacher';
+            const goalDeleteBtn = canDeleteGoal ? 
+                `<button class="btn btn-outline-danger btn-sm rounded-pill py-0 px-2 ms-3" onclick="deleteIepGoal('${goal.id}')" title="刪除此目標"><i class="fas fa-trash-alt small"></i></button>` : '';
+
             // 渲染作法與策略列表
             const strategiesHtml = goal.strategies.map(st => {
                 const authorVis = getRoleVisuals(st.author).avatar;
                 const authorRoleClass = st.author.includes('治療師') ? 'text-success' : 'text-primary';
+                
+                // 判斷是否為本人或教師，決定要不要顯示建議的刪除按鈕
+                const authorName = st.author.split(' | ')[0];
+                const canDeleteSt = currentUser && (currentUser.role === 'teacher' || currentUser.name === authorName || currentUser.username === authorName);
+                const stDeleteBtn = canDeleteSt ? 
+                    `<button class="btn btn-link text-danger p-0 border-0 ms-2 text-decoration-none" onclick="deleteIepStrategy('${goal.id}', '${st.id}')" title="刪除此建議"><i class="fas fa-times"></i></button>` : '';
+
                 return `
                 <div class="bg-light p-3 rounded-3 mb-2 ms-3 border-start border-3 border-success shadow-sm">
                     <div class="d-flex justify-content-between align-items-center mb-2">
                         <span class="fw-bold small ${authorRoleClass}">${authorVis} ${st.author}</span>
-                        <span class="text-muted" style="font-size: 0.75rem;">${new Date(st.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted" style="font-size: 0.75rem;">${new Date(st.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                            ${stDeleteBtn}
+                        </div>
                     </div>
                     <p class="mb-0 text-dark" style="line-height: 1.5; font-size: 0.95rem;">${st.text}</p>
                 </div>
@@ -1532,7 +1548,10 @@ async function loadIepGoals() {
                 <div class="card-header bg-white border-bottom px-4 py-3 d-flex align-items-center">
                     <i class="fas fa-star text-warning me-2"></i>
                     <h5 class="fw-bold text-dark mb-0">${goal.goal_title}</h5>
-                    <span class="ms-auto text-muted small">${goal.date}</span>
+                    <div class="ms-auto d-flex align-items-center">
+                        <span class="text-muted small">${goal.date}</span>
+                        ${goalDeleteBtn}
+                    </div>
                 </div>
                 <div class="card-body px-4 py-3 bg-white">
                     <div class="mb-3">
@@ -1551,6 +1570,63 @@ async function loadIepGoals() {
         list.innerHTML = '<div class="text-center text-danger py-3">載入失敗</div>';
     }
 }
+
+// 刪除 IEP 大目標
+window.deleteIepGoal = async function(goalId) {
+    const result = await Swal.fire({
+        title: '確定要刪除此目標嗎？',
+        text: "刪除後，下方所有的團隊具體作法也會一併消失喔！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`${API_URL}/api/iep_goals/${goalId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: '已刪除', text: '目標已成功移除', timer: 1500, showConfirmButton: false });
+                loadIepGoals();
+            } else throw new Error('刪除失敗');
+        } catch (err) {
+            Swal.fire('錯誤', err.message, 'error');
+        }
+    }
+};
+
+// 刪除 IEP 具體作法/建議
+window.deleteIepStrategy = async function(goalId, strategyId) {
+    const result = await Swal.fire({
+        title: '確定要刪除這則建議嗎？',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await fetch(`${API_URL}/api/iep_goals/${goalId}/strategy/${strategyId}`, {
+                method: 'DELETE',
+                headers: { 'Authorization': `Bearer ${token}` }
+            });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: '已刪除', text: '建議已成功移除', timer: 1500, showConfirmButton: false });
+                loadIepGoals();
+            } else throw new Error('刪除失敗');
+        } catch (err) {
+            Swal.fire('錯誤', err.message, 'error');
+        }
+    }
+};
 
 async function submitIepStrategy(goalId) {
     const inputEl = document.getElementById(`strategy-input-${goalId}`);
