@@ -553,14 +553,12 @@
                                 </div>
                             </div>
                         </div>
-
-                        <!-- 3. 操作按鈕 (右側 - 佔據 3 格) -->
+                        <!-- 3. 操作按鈕 (改為所有人皆可查看) -->
                         <div class="col-12 col-md-3 text-md-end text-center p-0">
-                            <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm case-action-btn role-only" data-allow="teacher" onclick="openEditCaseModal()">
-                                <i class="fas fa-edit me-1"></i> 編輯資料
+                            <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openViewCaseModal()">
+                                <i class="fas fa-file-alt me-1"></i> 班級現況與資料
                             </button>
                         </div>
-
                     </div>
                 </div>
             </div>
@@ -912,7 +910,7 @@
                         <!-- 2. 調整：本次治療目標與課後狀況 (訓練改為教學) -->
                         <div class="platform-card mb-3 p-3 border-start border-3 border-warning">
                             <h6 class="fw-bold text-dark mb-2">▍本次治療目標與課後狀況</h6>
-                            <p class="small text-secondary mb-2">請說明今日教學重點及幼兒達成狀況</p>
+                            <p class="small text-secondary mb-2">本次教學重點，希望達成的目標</p>
                             <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日教學重點為聽懂兩項連續指令..."></textarea>
                         </div>
 
@@ -1055,6 +1053,122 @@
                         <div class="mb-3">
                             <label class="form-label fw-bold text-secondary small">出生年月日</label>
                             <input type="date" class="form-control" id="input-case-birthday" style="border-radius: 8px;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitCaseEdit()">儲存修改</button>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- 👁️ 檢視：個案與班級現況視窗 (所有人可見) -->
+    <div class="modal fade" id="viewCaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-primary text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-id-card me-2"></i>個案與班級現況檔案
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <!-- 基本資料 -->
+                    <div class="d-flex align-items-center mb-4 p-3 bg-white rounded-3 shadow-sm border-start border-4 border-primary">
+                        <div class="me-3"><i class="fas fa-child fa-3x text-primary"></i></div>
+                        <div>
+                            <h4 class="fw-bold mb-1" id="view-name">--</h4>
+                            <div class="text-secondary small">
+                                <span id="view-grade" class="badge bg-light text-dark border me-2">--</span>
+                                <i class="fas fa-birthday-cake me-1"></i><span id="view-birthday">--</span> <span id="view-age" class="fw-bold text-primary"></span>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-school me-2"></i>班級表現觀察紀錄</h6>
+                    
+                    <!-- 四大評估區塊 -->
+                    <div class="card border-0 shadow-sm mb-3">
+                        <div class="card-body">
+                            <div class="mb-3">
+                                <div class="fw-bold text-info mb-1">理解能力</div>
+                                <div id="view-understanding" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="fw-bold text-success mb-1">表達能力</div>
+                                <div id="view-expression" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                            </div>
+                            <div class="mb-3">
+                                <div class="fw-bold text-warning mb-1">同儕與師生溝通</div>
+                                <div id="view-communication" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                            </div>
+                            <div class="mb-0">
+                                <div class="fw-bold text-danger mb-1">作息參與度</div>
+                                <div id="view-participation" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <div class="modal-footer border-top-0 bg-white">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">關閉</button>
+                    <!-- 只有老師能看到編輯按鈕 -->
+                    <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-bold role-only" data-allow="teacher" onclick="openEditCaseModal()">
+                        <i class="fas fa-edit me-1"></i> 編輯更新資料
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ✏️ 編輯：個案與班級現況視窗 (限教師) -->
+    <div class="modal fade" id="editCaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="fas fa-user-edit text-primary me-2"></i>編輯個案與班級現況
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editCaseForm">
+                        <div class="row g-3 mb-4">
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-secondary small">個案姓名</label>
+                                <input type="text" class="form-control bg-light border-0" id="input-case-name">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-secondary small">班級 / 年級</label>
+                                <input type="text" class="form-control bg-light border-0" id="input-case-grade">
+                            </div>
+                            <div class="col-md-4">
+                                <label class="form-label fw-bold text-secondary small">出生年月日</label>
+                                <input type="date" class="form-control bg-light border-0" id="input-case-birthday">
+                            </div>
+                        </div>
+
+                        <h6 class="fw-bold text-primary border-bottom pb-2 mb-3">▍班級表現觀察紀錄 (階段性更新即可)</h6>
+                        
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">理解能力</label>
+                            <p class="text-muted" style="font-size: 0.75rem; margin-top:-8px;">例如：聽簡單/複雜指令完成、需圖卡手勢等視覺提示、需全協助</p>
+                            <textarea class="form-control border-0 bg-light" id="input-understanding" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">表達能力</label>
+                            <p class="text-muted" style="font-size: 0.75rem; margin-top:-8px;">例如：哭、手勢、聲音、詞彙、片語、簡單句、複雜句</p>
+                            <textarea class="form-control border-0 bg-light" id="input-expression" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">同儕與師生溝通</label>
+                            <p class="text-muted" style="font-size: 0.75rem; margin-top:-8px;">例如：遇到衝突時的表現、跟老師互動狀況</p>
+                            <textarea class="form-control border-0 bg-light" id="input-communication" rows="2"></textarea>
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">作息參與度</label>
+                            <p class="text-muted" style="font-size: 0.75rem; margin-top:-8px;">例如：什麼課程聽不懂、會不會模仿同學等</p>
+                            <textarea class="form-control border-0 bg-light" id="input-participation" rows="2"></textarea>
                         </div>
                     </form>
                 </div>
