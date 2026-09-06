@@ -75,9 +75,20 @@ const formatHomeAuthor = (author = '') => {
 // ==========================================
 const NOTIF_STORAGE_KEY = 'app_notifications';
 
+function getNotificationStorageKey() {
+    return `${NOTIF_STORAGE_KEY}_${currentUser?.username || 'guest'}`;
+}
+
 function getStoredNotifications() {
-    const stored = localStorage.getItem(NOTIF_STORAGE_KEY);
-    return stored ? JSON.parse(stored) : [];
+    const stored = localStorage.getItem(getNotificationStorageKey());
+    if (!stored) return [];
+    try {
+        const parsed = JSON.parse(stored);
+        return Array.isArray(parsed) ? parsed : [];
+    } catch (error) {
+        localStorage.removeItem(getNotificationStorageKey());
+        return [];
+    }
 }
 
 function renderNotificationList() {
@@ -146,13 +157,16 @@ function addNotification(type, text) {
     };
     notifications.unshift(newNotif);
     if (notifications.length > 20) notifications.pop();
-    localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
+    localStorage.setItem(getNotificationStorageKey(), JSON.stringify(notifications));
     renderNotificationList();
 }
 
 function toggleNotificationMenu() {
     const menu = document.getElementById('notification-menu');
-    if (menu) menu.classList.toggle('show');
+    if (menu) {
+        renderNotificationList();
+        menu.classList.toggle('show');
+    }
 }
 
 function markAsRead(id) {
@@ -160,13 +174,13 @@ function markAsRead(id) {
     const target = notifications.find(n => n.id === id);
     if (target) {
         target.read = true;
-        localStorage.setItem(NOTIF_STORAGE_KEY, JSON.stringify(notifications));
+        localStorage.setItem(getNotificationStorageKey(), JSON.stringify(notifications));
         renderNotificationList();
     }
 }
 
 function clearAllNotifications() {
-    localStorage.removeItem(NOTIF_STORAGE_KEY);
+    localStorage.removeItem(getNotificationStorageKey());
     renderNotificationList();
 }
 
@@ -182,29 +196,54 @@ document.addEventListener('click', function (e) {
 // 🔗 2. Socket.io 初始化與精準通知
 // ==========================================
 
+const notificationRoleMatches = (targetRoles, role) => {
+    const roleMap = {
+        teacher: ['teacher', '教師', '老師'],
+        therapist: ['therapist', '治療師'],
+        parents: ['parents', 'parent', '家長']
+    };
+    const acceptedLabels = roleMap[role] || [role];
+    return String(targetRoles || '')
+        .split(/[,，、\s]+/)
+        .some(target => acceptedLabels.includes(target));
+};
+
+const isOtherUserEvent = (event) => Boolean(
+    currentUser && event && event.username && event.username !== currentUser.username
+);
+
 if (typeof io !== 'undefined') {
     socket = io(API_URL);
 
     socket.on("calendar_update", (evt) => {
-        addNotification('calendar', '新增新排程/刪除排程');
+        if (isOtherUserEvent(evt)) {
+            const actionText = evt.action === 'delete' ? '刪除了行事曆排程' : evt.action === 'update' ? '更新了行事曆排程' : '新增了行事曆排程';
+            addNotification('calendar', `${evt.user || '使用者'}${actionText}`);
+        }
         if (calendar) calendar.refetchEvents();
     });
 
-    socket.on("iep_update", () => {
-        addNotification('iep', '新IEP檔案已上傳');
+    socket.on("iep_update", (evt) => {
+        if (isOtherUserEvent(evt)) {
+            const actionText = evt.action === 'delete' ? '刪除了 IEP 檔案' : '新增了 IEP 檔案';
+            addNotification('iep', `${evt.user || '使用者'}${actionText}`);
+        }
         const section = document.getElementById('section-iep');
         if (section && !section.classList.contains('d-none')) loadIepFiles();
     });
 
-    socket.on("record_update", () => {
-        addNotification('record', '新治療紀錄已上傳');
+    socket.on("record_update", (evt) => {
+        if (isOtherUserEvent(evt)) {
+            const actionText = evt.action === 'reply' ? '回覆了治療紀錄' : '新增了治療紀錄';
+            addNotification('record', `${evt.user || '使用者'}${actionText}`);
+        }
         const rSection = document.getElementById('section-records');
         if (rSection && !rSection.classList.contains('d-none')) loadRecords();
     });
 
     socket.on("message_update", (msg) => {
-        if (currentUser && msg && msg.username !== currentUser.username) {
-            addNotification('message', '留言板有新訊息');
+        if (isOtherUserEvent(msg)) {
+            addNotification('message', `${msg.user_name || '使用者'}在留言板新增了訊息`);
         }
         const chatBox = document.getElementById('chat-box');
         if (chatBox && !document.getElementById('section-messages').classList.contains('d-none')) {
@@ -213,8 +252,12 @@ if (typeof io !== 'undefined') {
     });
 
     socket.on("question_update", (q) => {
-        if (currentUser && q && q.target_role && q.target_role.includes(currentUser.role)) {
-            addNotification('question', '提問回覆有一則提問提及了您');
+        const shouldNotify = isOtherUserEvent(q) && (
+            (q.action === 'ask' && notificationRoleMatches(q.target_role, currentUser.role)) ||
+            (q.action === 'reply' && (q.asker_username === currentUser.username || q.asker_name === currentUser.name))
+        );
+        if (shouldNotify) {
+            addNotification('question', q.action === 'reply' ? `${q.replier_name || '使用者'}回覆了您的提問` : `${q.asker_name || '使用者'}向您提出了問題`);
         }
         const qSection = document.getElementById('section-questions');
         if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
@@ -222,7 +265,10 @@ if (typeof io !== 'undefined') {
 
     // 👇 新增居家表現的推播接收器
     socket.on("home_log_update", (data) => {
-        addNotification('home_log', data.message || '居家表現有新貼文或回覆');
+        if (isOtherUserEvent(data)) {
+            const actionText = data.action === 'add' ? '新增了居家表現紀錄' : '回覆了居家表現貼文';
+            addNotification('home_log', `${data.user || '使用者'}${actionText}`);
+        }
         const hlSection = document.getElementById('section-home-log');
         if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
     });
@@ -275,6 +321,7 @@ async function verifyToken() {
         });
         if (res.ok) {
             currentUser = await res.json();
+            renderNotificationList();
             updateUI(currentUser);
             showSection("dashboard");
 

@@ -214,7 +214,7 @@ app.post("/api/calendar", verifyToken, checkRole(['teacher', 'therapist']), asyn
             end: { dateTime: end ? new Date(end).toISOString() : new Date(new Date(start).getTime() + 60*60*1000).toISOString(), timeZone: 'Asia/Taipei' },
         };
         const response = await calendar.events.insert({ calendarId: CALENDAR_ID, resource: event });
-        io.emit('calendar_update', { action: 'add' });
+        io.emit('calendar_update', { action: 'add', username: req.user.username, user: req.user.name });
         res.json({ message: "新增成功", data: response.data });
     } catch (error) { res.status(500).json({ message: "新增失敗" }); }
 });
@@ -228,7 +228,7 @@ app.put("/api/calendar/:id", verifyToken, checkRole(['teacher', 'therapist']), a
             end: { dateTime: end ? new Date(end).toISOString() : new Date(new Date(start).getTime() + 60*60*1000).toISOString(), timeZone: 'Asia/Taipei' },
         };
         const response = await calendar.events.update({ calendarId: CALENDAR_ID, eventId: id, resource: event });
-        io.emit('calendar_update', { action: 'update' });
+        io.emit('calendar_update', { action: 'update', username: req.user.username, user: req.user.name });
         res.json({ message: "更新成功", data: response.data });
     } catch (error) { res.status(500).json({ message: "更新失敗" }); }
 });
@@ -237,7 +237,7 @@ app.delete("/api/calendar/:id", verifyToken, checkRole(['teacher', 'therapist'])
     try {
         const { id } = req.params;
         await calendar.events.delete({ calendarId: CALENDAR_ID, eventId: id });
-        io.emit('calendar_update', { action: 'delete' });
+        io.emit('calendar_update', { action: 'delete', username: req.user.username, user: req.user.name });
         res.json({ message: "刪除成功" });
     } catch (error) { 
         // ✨ 加入 console.error，將 Google 的真實報錯印在 Railway 的 Logs 裡面
@@ -290,7 +290,7 @@ app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res)
             created_at: new Date().toISOString()
         };
         await appendRow("records", newRecord);
-        io.emit("record_update", { action: 'add', user: req.user.name });
+        io.emit("record_update", { action: 'add', username: req.user.username, user: req.user.name });
         res.json({ message: "新增成功", data: newRecord });
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
@@ -299,7 +299,7 @@ app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res
     try {
         const { id } = req.params; const { reply } = req.body;
         await updateRow("records", id, { teacher_reply: reply });
-        io.emit("record_update", { action: 'reply', user: req.user.name });
+        io.emit("record_update", { action: 'reply', username: req.user.username, user: req.user.name });
         res.json({ message: "回覆成功" });
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
@@ -400,6 +400,11 @@ app.post("/api/home_logs", verifyToken, checkRole(['parents']), async (req, res)
             replies: JSON.stringify([]) // 初始化空的回覆陣列
         };
         await appendRow("home_logs", newLog);
+        io.emit("home_log_update", {
+            action: 'add',
+            username: req.user.username,
+            user: req.user.name
+        });
         res.json({ message: "發佈成功" });
     } catch (e) { 
         res.status(500).json({ message: e.message }); 
@@ -441,7 +446,12 @@ app.post("/api/home_logs/reply", verifyToken, checkRole(['teacher', 'therapist']
 
         // 廣播通知前端更新畫面
         if (typeof io !== 'undefined') {
-            io.emit("home_log_update", { message: `${req.user.name} 回覆了居家表現貼文` });
+            io.emit("home_log_update", {
+                action: 'reply',
+                username: req.user.username,
+                user: req.user.name,
+                message: `${req.user.name} 回覆了居家表現貼文`
+            });
         }
 
         res.json({ message: "回覆成功" });
@@ -481,7 +491,12 @@ app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'),
         };
 
         await appendRow("iep_files", newRecord);
-        io.emit("iep_update", newRecord);
+        io.emit("iep_update", {
+            action: 'add',
+            username: req.user.username,
+            user: req.user.name,
+            filename: newRecord.filename
+        });
         res.json({ message: "上傳成功", data: newRecord });
     } catch (error) {
         console.error("上傳失敗:", error);
@@ -503,7 +518,7 @@ app.delete("/api/iep/:id", verifyToken, checkRole(['teacher']), async (req, res)
         
         // 2. 把 Google Sheet 裡的紀錄刪除
         await deleteRow("iep_files", id);
-        io.emit("iep_update", { action: 'delete', id });
+        io.emit("iep_update", { action: 'delete', id, username: req.user.username, user: req.user.name });
         res.json({ message: "刪除成功" });
     } catch (error) {
         console.error("刪除失敗:", error);
@@ -520,11 +535,19 @@ app.post("/api/questions", verifyToken, async (req, res) => {
     try {
         const newQuestion = {
             id: `q-${Date.now()}`, date: new Date().toISOString().split('T')[0], asker_name: cleanQuestionPersonName(req.user.name, req.user.role),
-            asker_role: req.user.role, target_role: req.body.target_role, question: req.body.question,
+            asker_username: req.user.username, asker_role: req.user.role, target_role: req.body.target_role, question: req.body.question,
             replier_name: "", reply: "", status: "待回覆"
         };
         await appendRow("questions", newQuestion);
-        io.emit("question_update", { action: 'ask', asker_name: req.user.name, target_role: req.body.target_role, question: req.body.question });
+        io.emit("question_update", {
+            action: 'ask',
+            username: req.user.username,
+            asker_username: req.user.username,
+            asker_name: req.user.name,
+            asker_role: req.user.role,
+            target_role: req.body.target_role,
+            question: req.body.question
+        });
         res.json({ message: "提問成功", data: newQuestion });
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
@@ -532,8 +555,18 @@ app.post("/api/questions", verifyToken, async (req, res) => {
 app.put("/api/questions/:id", verifyToken, async (req, res) => {
     try {
         const { id } = req.params; const { reply } = req.body;
+        const questions = await getSheetData("questions");
+        const question = questions.find(item => item.id === id);
+        if (!question) return res.status(404).json({ message: "找不到該筆提問" });
         await updateRow("questions", id, { reply: reply, replier_name: cleanQuestionPersonName(req.user.name, req.user.role), status: "已回覆" });
-        io.emit("question_update", { action: 'reply', replier_name: req.user.name });
+        io.emit("question_update", {
+            action: 'reply',
+            username: req.user.username,
+            replier_name: req.user.name,
+            asker_username: question.asker_username,
+            asker_role: question.asker_role,
+            asker_name: question.asker_name
+        });
         res.json({ message: "回覆成功" });
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
