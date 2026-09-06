@@ -164,7 +164,7 @@ const cleanQuestionPersonName = (name, role) => {
 };
 
 // --- API 路由 ---
-app.get("/", (req, res) => res.send("特教平台後端伺服器運作中！🚀"));
+app.get("/", (req, res) => res.send("學前特教專業人員溝通平台後端伺服器運作中！🚀"));
 
 app.post("/api/auth/login", async (req, res) => {
     const { username, password } = req.body;

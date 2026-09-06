@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>特教溝通平台 | Communication Platform</title>
+    <title>學前特教專業人員溝通平台</title>
     
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
@@ -408,8 +408,8 @@
                 <i class="fas fa-shapes"></i>
             </div>
             <div class="header-brand">
-                <span class="header-brand-main">特教溝通平台</span>
-                <span class="header-brand-sub">Communication Platform</span>
+                <span class="header-brand-main">學前特教專業人員溝通平台</span>
+                <span class="header-brand-sub">學前特教專業人員溝通平台</span>
             </div>
         </div>
 
@@ -450,8 +450,8 @@
     <div id="login-section" class="container">
        <div class="hero">
             <div class="hero-content">
-                <span class="section-label">Communication Platform</span>
-                <h1 class="display-text">特教專業團隊 <br><span class="circle-sketch">溝通平台</span></h1>
+                <span class="section-label">學前特教專業人員溝通平台</span>
+                <h1 class="display-text">學前特教專業人員<br><span class="circle-sketch">溝通平台</span></h1>
                 <p class="body-text highlight-border mb-5">打造專業團隊更便利的溝通橋樑</p>
 
                 <div class="card border-0 shadow-sm p-4" style="max-width: 400px; background: rgba(255,255,255,0.95);">
@@ -492,7 +492,7 @@
         
         <!-- 1. Hero & 大型抽象拼圖 (無人物，中央留白象徵整合) -->
         <div class="dashboard-hero text-center mb-5">
-            <h2 class="fw-bold mb-2" style="color: #1E293B; letter-spacing: 1px;">特殊教育專業團隊溝通平台</h2>
+            <h2 class="fw-bold mb-2" style="color: #1E293B; letter-spacing: 1px;">學前特教專業人員溝通平台</h2>
             <!-- 背景動畫拼圖裝飾 (Fixed Background) -->
         <div class="bg-puzzle-decoration">
             <!-- 右上角大型拼圖 (藍綠色系) -->
@@ -518,47 +518,50 @@
                 <!-- 卡片邊緣的拼圖意象裝飾線 -->
                 <div class="case-puzzle-edge"></div>
                 
-                <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
-                    
-                    <!-- 1. 個案基本資料 (左側) -->
-                    <div class="d-flex align-items-center flex-shrink-0">
-                        <div class="case-avatar-box me-3">
-                            <i class="fas fa-child text-primary"></i>
-                        </div>
-                        <div>
-                            <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
-                            <div class="d-flex align-items-end mb-1">
-                                <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
-                                <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
+                <div class="card-body p-4">
+                    <div class="row align-items-center w-100 m-0">
+                        
+                        <!-- 1. 個案基本資料 (左側 - 佔據 5 格) -->
+                        <div class="col-12 col-md-5 d-flex align-items-center mb-4 mb-md-0 p-0">
+                            <div class="case-avatar-box me-3 flex-shrink-0">
+                                <i class="fas fa-child text-primary"></i>
                             </div>
-                            <div class="text-muted small mt-1">
-                                <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
-                                <span id="display-case-birthday">--/--/--</span> 
-                                <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
+                            <div>
+                                <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
+                                <div class="d-flex align-items-end mb-1">
+                                    <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
+                                    <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
+                                </div>
+                                <div class="text-muted small mt-1">
+                                    <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
+                                    <span id="display-case-birthday">--/--/--</span> 
+                                    <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 2. 近期更新動態 (中間) -->
-                    <div class="recent-updates px-md-4 py-1 border-start-md border-light flex-grow-1">
-                        <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
-                        <div class="d-flex flex-column gap-2 small" style="max-width: 250px;">
-                            <div class="d-flex align-items-center text-dark">
-                                <span class="status-dot bg-primary me-2"></span> 治療紀錄 
-                                <span class="text-muted ms-auto ps-3">09/03</span>
-                            </div>
-                            <div class="d-flex align-items-center text-dark">
-                                <span class="status-dot bg-danger me-2"></span> 居家表現 
-                                <span class="text-muted ms-auto ps-3">08/28</span>
+                        <!-- 2. 近期更新動態 (中間 - 佔據 4 格) -->
+                        <div class="col-12 col-md-4 px-md-4 py-1 border-start-md border-light mb-4 mb-md-0">
+                            <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
+                            <div class="d-flex flex-column gap-2 small">
+                                <div class="d-flex align-items-center text-dark">
+                                    <span class="status-dot bg-primary me-2"></span> 治療紀錄 
+                                    <span class="text-muted ms-auto ps-3">09/03</span>
+                                </div>
+                                <div class="d-flex align-items-center text-dark">
+                                    <span class="status-dot bg-danger me-2"></span> 居家表現 
+                                    <span class="text-muted ms-auto ps-3">08/28</span>
+                                </div>
                             </div>
                         </div>
-                    </div>
 
-                    <!-- 3. 操作按鈕 (右側) -->
-                    <div class="text-md-end text-center flex-shrink-0">
-                        <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm case-action-btn role-only" data-allow="teacher" onclick="openEditCaseModal()">
-                            <i class="fas fa-edit me-1"></i> 編輯個案資料
-                        </button>
+                        <!-- 3. 操作按鈕 (右側 - 佔據 3 格) -->
+                        <div class="col-12 col-md-3 text-md-end text-center p-0">
+                            <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm case-action-btn role-only" data-allow="teacher" onclick="openEditCaseModal()">
+                                <i class="fas fa-edit me-1"></i> 編輯資料
+                            </button>
+                        </div>
+
                     </div>
                 </div>
             </div>

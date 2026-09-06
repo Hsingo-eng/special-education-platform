@@ -71,7 +71,7 @@ const formatHomeAuthor = (author = '') => {
 };
 
 // ==========================================
-// 🔔 1. 通知系統邏輯
+// 🔔 1. 通知系統邏輯 (修復亮燈與即時推播彈窗)
 // ==========================================
 const NOTIF_STORAGE_KEY = 'app_notifications';
 
@@ -96,50 +96,55 @@ function renderNotificationList() {
     const btn = document.getElementById('btn-notification');
     if (!list || !btn) return;
 
+    // 確保按鈕有相對定位，紅點才不會跑版
+    btn.style.position = 'relative';
+
     const notifications = getStoredNotifications();
     const hasUnread = notifications.some(n => !n.read);
 
+    // 🟢 強制亮燈：直接寫入 Bootstrap 的絕對定位小紅點，無視外部 CSS 是否遺失
     if (hasUnread) {
-        btn.classList.add('has-notification');
+        btn.innerHTML = `<i class="far fa-bell"></i><span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="width: 10px; height: 10px; z-index: 10;"></span>`;
     } else {
-        btn.classList.remove('has-notification');
+        btn.innerHTML = `<i class="far fa-bell"></i>`;
     }
 
     if (notifications.length === 0) {
         list.innerHTML = `
-            <div class="notif-empty">
+            <div class="notif-empty text-center py-4">
                 <i class="far fa-bell-slash fa-2x mb-2" style="color:#cbd5e1;"></i>
-                <p class="mb-0 small">目前沒有新通知</p>
+                <p class="mb-0 small text-muted">目前沒有新通知</p>
             </div>`;
         return;
     }
 
     let html = '';
     notifications.forEach(n => {
-        let iconClass = 'message';
         let iconName = 'fas fa-bell';
+        let iconBg = '#3b82f6';
 
-        if (n.type === 'calendar') { iconClass = 'calendar'; iconName = 'fas fa-calendar-alt'; }
-        else if (n.type === 'record') { iconClass = 'record'; iconName = 'fas fa-file-medical'; }
-        else if (n.type === 'iep') { iconClass = 'iep'; iconName = 'fas fa-folder-open'; }
-        else if (n.type === 'message') { iconClass = 'message'; iconName = 'fas fa-comments'; }
-        else if (n.type === 'question') { iconClass = 'question'; iconName = 'fas fa-question-circle'; }
-        // 👇 新增居家表現的通知圖示設定
-        else if (n.type === 'home_log') { iconClass = 'record'; iconName = 'fas fa-home'; }
+        // 根據通知類型給予對應色彩與圖示
+        if (n.type === 'calendar') { iconName = 'fas fa-calendar-alt'; iconBg = '#f59e0b'; }
+        else if (n.type === 'record') { iconName = 'fas fa-file-medical'; iconBg = '#3b82f6'; }
+        else if (n.type === 'iep') { iconName = 'fas fa-bullseye'; iconBg = '#10b981'; }
+        else if (n.type === 'message') { iconName = 'fas fa-comments'; iconBg = '#8b5cf6'; }
+        else if (n.type === 'question') { iconName = 'fas fa-question-circle'; iconBg = '#06b6d4'; }
+        else if (n.type === 'home_log') { iconName = 'fas fa-home'; iconBg = '#ef4444'; }
 
         const date = new Date(n.time);
         const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
+        // 直接寫入內聯樣式確保列表排版不會因為外部影響而亂掉
         html += `
-            <li class="notif-item" onclick="markAsRead(${n.id})">
-                <div class="notif-icon-box ${iconClass}">
+            <li class="notif-item p-3 border-bottom d-flex align-items-center" onclick="markAsRead(${n.id})" style="cursor: pointer; background-color: ${n.read ? '#ffffff' : '#f8fafc'}; transition: background-color 0.2s;">
+                <div class="d-flex align-items-center justify-content-center text-white me-3 flex-shrink-0" style="width: 36px; height: 36px; border-radius: 50%; background-color: ${iconBg};">
                     <i class="${iconName}"></i>
                 </div>
-                <div class="notif-content">
-                    <div class="notif-text">${n.text}</div>
-                    <div class="notif-time">${timeStr}</div>
+                <div class="flex-grow-1 pe-2">
+                    <div class="fw-bold text-dark" style="font-size: 0.9rem;">${n.text}</div>
+                    <div class="text-muted" style="font-size: 0.75rem; margin-top: 2px;">${timeStr}</div>
                 </div>
-                ${!n.read ? '<span style="width:8px;height:8px;background:#EF4444;border-radius:50%;margin-top:6px;"></span>' : ''}
+                ${!n.read ? '<span class="bg-danger rounded-circle flex-shrink-0" style="width:8px; height:8px;"></span>' : ''}
             </li>
         `;
     });
@@ -159,6 +164,22 @@ function addNotification(type, text) {
     if (notifications.length > 20) notifications.pop();
     localStorage.setItem(getNotificationStorageKey(), JSON.stringify(notifications));
     renderNotificationList();
+
+    // 🟢 救星功能：在畫面右上角直接彈出「即時推播提示 (Toast)」
+    if (typeof Swal !== 'undefined') {
+        Swal.fire({
+            toast: true,
+            position: 'top-end',
+            icon: 'info',
+            title: text,
+            showConfirmButton: false,
+            timer: 3000,
+            timerProgressBar: true,
+            background: '#ffffff',
+            iconColor: '#3b82f6',
+            customClass: { title: 'fs-6 text-dark' }
+        });
+    }
 }
 
 function toggleNotificationMenu() {
@@ -187,27 +208,26 @@ function clearAllNotifications() {
 document.addEventListener('click', function (e) {
     const menu = document.getElementById('notification-menu');
     const btn = document.getElementById('btn-notification');
-    if (menu && menu.classList.contains('show') && !menu.contains(e.target) && !btn.contains(e.target)) {
+    if (menu && menu.classList.contains('show') && !menu.contains(e.target) && (!btn || !btn.contains(e.target))) {
         menu.classList.remove('show');
     }
 });
 
 // ==========================================
-// 🔗 2. Socket.io 初始化與精準通知
+// 🔗 2. Socket.io 初始化與精準通知 (強化版)
 // ==========================================
 
 if (typeof io !== 'undefined') {
-    socket = io(API_URL);
+    // 🟢 強化連線：強制開啟 websocket 與 polling 雙通道，避免被 Railway 阻擋
+    socket = io(API_URL, { transports: ['websocket', 'polling'] });
 
-    // 1. 行事曆
     socket.on("calendar_update", (evt) => {
         addNotification('calendar', '行事曆有排程新增或異動');
         if (calendar) calendar.refetchEvents();
     });
 
-    // 2. IEP 與 目標策略 (已連線新功能)
     socket.on("iep_update", () => {
-        addNotification('iep', 'IEP 資料或執行目標有新異動');
+        addNotification('iep', 'IEP 執行目標與策略有新進度');
         const section = document.getElementById('section-iep');
         if (section && !section.classList.contains('d-none')) {
             if (typeof loadIepFiles === 'function') loadIepFiles();
@@ -215,38 +235,34 @@ if (typeof io !== 'undefined') {
         }
     });
 
-    // 3. 治療紀錄
     socket.on("record_update", () => {
         addNotification('record', '治療紀錄有新上傳或回覆');
         const rSection = document.getElementById('section-records');
         if (rSection && !rSection.classList.contains('d-none')) loadRecords();
     });
 
-    // 4. 留言板 (已設定：自己發的訊息不會通知自己)
     socket.on("message_update", (msg) => {
+        // 自己傳的留言不通知自己
         if (currentUser && msg && msg.username === currentUser.username) return; 
-        addNotification('message', '留言板有新訊息');
+        addNotification('message', '團隊留言板有新訊息');
         const chatBox = document.getElementById('chat-box');
         if (chatBox && !document.getElementById('section-messages').classList.contains('d-none')) {
             loadMessages();
         }
     });
 
-    // 5. 提問回覆
     socket.on("question_update", (q) => {
         addNotification('question', '提問回覆區有新動態');
         const qSection = document.getElementById('section-questions');
         if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 
-    // 6. 居家表現
     socket.on("home_log_update", (data) => {
         addNotification('home_log', data.message || '居家表現有新貼文或回覆');
         const hlSection = document.getElementById('section-home-log');
         if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
     });
 
-    // 7. 個案基本資料 (已連線新功能)
     socket.on("case_info_update", () => {
         addNotification('iep', '目前服務個案基本資料已更新');
         if (typeof loadCaseInfo === 'function') loadCaseInfo();
