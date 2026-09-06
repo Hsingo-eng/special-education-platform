@@ -660,17 +660,38 @@
                     <div class="d-flex align-items-center mb-3 mb-md-0">
                         <div class="header-icon-box"><i class="fas fa-folder-open"></i></div>
                         <div class="header-content">
-                            <h4 class="header-title">IEP 資料</h4>
-                            <p class="header-desc">查閱與管理個別化教育計畫檔案</p>
+                            <h4 class="header-title">IEP 資料與策略</h4>
+                            <p class="header-desc">查閱個別化教育計畫與治療師具體作法</p>
                         </div>
                     </div>
                     <div>
                         <button class="btn btn-danger btn-sm role-only shadow-sm rounded-pill px-3 fw-bold" data-allow="teacher" onclick="openIepUpload()">
-                            <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
+                            <i class="fas fa-cloud-upload-alt"></i> 上傳 IEP 檔案
                         </button>
                     </div>
                 </div>
-                <div id="iep-list" class="row g-4"></div>
+
+                <!-- 🌟 1. 新增：IEP 目標與具體作法區塊 -->
+                <div class="mb-5">
+                    <div class="d-flex justify-content-between align-items-center mb-3 px-2">
+                        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-bullseye text-success me-2"></i>IEP 執行目標與策略</h5>
+                        <!-- 只有老師可以新增大目標 -->
+                        <button class="btn btn-outline-success btn-sm rounded-pill fw-bold role-only shadow-sm bg-white" data-allow="teacher" onclick="openIepGoalModal()">
+                            <i class="fas fa-plus"></i> 新增目標
+                        </button>
+                    </div>
+                    <div id="iep-goal-list" class="d-flex flex-column gap-3">
+                        <!-- JS 動態載入目標與策略卡片 -->
+                    </div>
+                </div>
+
+                <hr class="text-muted opacity-25 mb-4">
+
+                <!-- 🌟 2. 原本的 IEP 檔案庫 (縮至下方作為留存參考) -->
+                <div class="mb-3 px-2">
+                    <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-pdf text-danger me-2"></i>IEP 檔案庫</h5>
+                    <div id="iep-list" class="row g-4"></div>
+                </div>
             </div>
 
             <div id="section-messages" class="d-none animate-fade">
@@ -963,5 +984,30 @@
     <script src="https://cdn.socket.io/4.7.2/socket.io.min.js"></script>
     
     <script src="client.js?v=question_name_fix_20260902"></script>
+    <!-- 新增 IEP 目標視窗 -->
+    <div class="modal fade" id="iepGoalModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="fas fa-bullseye text-success me-2"></i>新增 IEP 執行目標
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="iepGoalForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">目標名稱 / 描述</label>
+                            <input type="text" class="form-control" id="goal-title-input" placeholder="例如：提升子音構音清晰度..." style="border-radius: 8px; border: 1px solid #e2e8f0;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-success text-white rounded-pill px-4 fw-bold" onclick="submitIepGoal()">建立目標</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </body>
 </html>

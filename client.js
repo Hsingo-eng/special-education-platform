@@ -399,7 +399,7 @@ const SECTION_LOADERS = {
     messages: () => safeCall(loadMessages),
     questions: () => safeCall(loadQuestions),
     records: () => safeCall(loadRecords),
-    iep: () => safeCall(loadIepFiles),
+    iep: () => { safeCall(loadIepFiles); safeCall(loadIepGoals); },
     'home-log': () => safeCall(loadHomeLogs),
 };
 
@@ -1469,14 +1469,107 @@ async function submitLogReply(logId) {
         inputEl.disabled = false;
     }
 }
+// ==========================================
+// 🎯 IEP 執行目標與策略邏輯
+// ==========================================
 
-// ⚠️ 請找到原本用來切換頁面的 showSection(sectionId) 函數
-// 並在裡面加入判斷式，確保進入居家表現時會載入貼文
-/*
-function showSection(sectionId) {
-    // ... 原本的切換邏輯 ...
-    if (sectionId === 'home-log') {
-        loadHomeLogs();
+function openIepGoalModal() {
+    document.getElementById('iepGoalForm').reset();
+    new bootstrap.Modal(document.getElementById('iepGoalModal')).show();
+}
+
+async function submitIepGoal() {
+    const title = document.getElementById('goal-title-input').value.trim();
+    if (!title) return Swal.fire('提示', '請填寫目標名稱', 'warning');
+
+    try {
+        const res = await apiRequest(`${API_URL}/api/iep_goals`, {
+            method: 'POST',
+            body: JSON.stringify({ title })
+        });
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('iepGoalModal')).hide();
+            Swal.fire({ icon: 'success', title: '新增成功', timer: 1500, showConfirmButton: false });
+            loadIepGoals();
+        } else throw new Error('新增失敗');
+    } catch (e) {
+        Swal.fire('錯誤', '無法新增目標', 'error');
     }
 }
-*/
+
+async function loadIepGoals() {
+    const list = document.getElementById('iep-goal-list');
+    if (!list) return;
+    list.innerHTML = '<div class="text-center text-secondary py-3"><i class="fas fa-spinner fa-spin"></i> 載入中...</div>';
+
+    try {
+        const res = await apiRequest(`${API_URL}/api/iep_goals`);
+        const json = await res.json();
+        
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = `<div class="text-center text-muted py-4 bg-white rounded-4 border"><p class="mb-0">尚未建立 IEP 執行目標，請由教師新增。</p></div>`;
+            return;
+        }
+
+        list.innerHTML = json.data.map(goal => {
+            // 渲染作法與策略列表
+            const strategiesHtml = goal.strategies.map(st => {
+                const authorVis = getRoleVisuals(st.author).avatar;
+                const authorRoleClass = st.author.includes('治療師') ? 'text-success' : 'text-primary';
+                return `
+                <div class="bg-light p-3 rounded-3 mb-2 ms-3 border-start border-3 border-success shadow-sm">
+                    <div class="d-flex justify-content-between align-items-center mb-2">
+                        <span class="fw-bold small ${authorRoleClass}">${authorVis} ${st.author}</span>
+                        <span class="text-muted" style="font-size: 0.75rem;">${new Date(st.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p class="mb-0 text-dark" style="line-height: 1.5; font-size: 0.95rem;">${st.text}</p>
+                </div>
+                `;
+            }).join('');
+
+            return `
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+                <div class="card-header bg-white border-bottom px-4 py-3 d-flex align-items-center">
+                    <i class="fas fa-star text-warning me-2"></i>
+                    <h5 class="fw-bold text-dark mb-0">${goal.goal_title}</h5>
+                    <span class="ms-auto text-muted small">${goal.date}</span>
+                </div>
+                <div class="card-body px-4 py-3 bg-white">
+                    <div class="mb-3">
+                        ${strategiesHtml ? strategiesHtml : '<p class="text-muted small ms-3 mb-0">尚無具體作法，等待團隊新增建議...</p>'}
+                    </div>
+                    
+                    <div class="input-group input-group-sm mt-3 ms-3" style="width: calc(100% - 1rem);">
+                        <input type="text" id="strategy-input-${goal.id}" class="form-control rounded-pill-start bg-light border-0 px-3 py-2" placeholder="撰寫具體引導作法或居家建議...">
+                        <button class="btn btn-success rounded-pill-end px-3 fw-bold" onclick="submitIepStrategy('${goal.id}')">新增建議</button>
+                    </div>
+                </div>
+            </div>
+            `;
+        }).join('');
+    } catch (e) {
+        list.innerHTML = '<div class="text-center text-danger py-3">載入失敗</div>';
+    }
+}
+
+async function submitIepStrategy(goalId) {
+    const inputEl = document.getElementById(`strategy-input-${goalId}`);
+    const strategyText = inputEl.value.trim();
+    if (!strategyText) return;
+
+    try {
+        inputEl.disabled = true;
+        const res = await apiRequest(`${API_URL}/api/iep_goals/strategy`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ goalId, strategyText })
+        });
+        
+        if (res.ok) {
+            loadIepGoals(); // 重新載入顯示最新作法
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '新增失敗' });
+        inputEl.disabled = false;
+    }
+}

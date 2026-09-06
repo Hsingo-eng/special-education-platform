@@ -465,7 +465,6 @@ app.post("/api/home_logs/reply", verifyToken, checkRole(['teacher', 'therapist']
 app.get("/api/iep", verifyToken, async (req, res) => {
     const data = await getSheetData("iep_files"); res.json({ data });
 });
-
 app.post("/api/iep", verifyToken, checkRole(['teacher']), upload.single('file'), async (req, res) => {
     try {
         const file = req.file;
@@ -523,6 +522,78 @@ app.delete("/api/iep/:id", verifyToken, checkRole(['teacher']), async (req, res)
     } catch (error) {
         console.error("刪除失敗:", error);
         res.status(500).json({ message: "刪除失敗" });
+    }
+});
+// ==========================================
+// 🎯 IEP 執行目標與策略 API
+// ==========================================
+
+// 1. 取得所有 IEP 目標與策略
+app.get("/api/iep_goals", verifyToken, async (req, res) => {
+    try {
+        const data = await getSheetData("iep_goals");
+        const parsedData = data.map(g => ({
+            ...g,
+            strategies: g.strategies ? JSON.parse(g.strategies) : []
+        })).reverse(); // 最新目標排前面
+        res.json({ data: parsedData });
+    } catch (e) {
+        res.status(500).json({ message: "讀取失敗: " + e.message });
+    }
+});
+
+// 2. 新增 IEP 目標 (限教師)
+app.post("/api/iep_goals", verifyToken, checkRole(['teacher']), async (req, res) => {
+    try {
+        const newGoal = {
+            id: `ig-${Date.now()}`,
+            date: new Date().toISOString().split('T')[0],
+            goal_title: req.body.title,
+            creator: req.user.name,
+            strategies: JSON.stringify([]) // 初始化空陣列
+        };
+        await appendRow("iep_goals", newGoal);
+        if (typeof io !== 'undefined') io.emit("iep_update"); // 觸發畫面更新
+        res.json({ message: "新增目標成功" });
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
+});
+
+// 3. 治療師/教師 針對目標新增「具體作法與策略」
+app.post("/api/iep_goals/strategy", verifyToken, async (req, res) => {
+    try {
+        const { goalId, strategyText } = req.body;
+        const allGoals = await getSheetData("iep_goals");
+        const gIndex = allGoals.findIndex(g => g.id === goalId);
+        
+        if (gIndex === -1) return res.status(404).json({ message: "找不到該目標" });
+
+        const strategies = allGoals[gIndex].strategies ? JSON.parse(allGoals[gIndex].strategies) : [];
+        let roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
+        
+        strategies.push({
+            id: `st-${Date.now()}`,
+            author: `${req.user.name} | ${roleLabel}`,
+            text: strategyText,
+            timestamp: new Date().toISOString()
+        });
+
+        const updatedStrategiesString = JSON.stringify(strategies);
+
+        // 更新至 Google Sheet 的 E 欄 (strategies 欄位)
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SHEET_ID, 
+            range: `iep_goals!E${gIndex + 2}`, 
+            valueInputOption: "USER_ENTERED",
+            resource: { values: [[updatedStrategiesString]] }
+        });
+
+        if (typeof io !== 'undefined') io.emit("iep_update");
+        res.json({ message: "新增作法成功" });
+    } catch (e) { 
+        console.error("新增策略失敗:", e);
+        res.status(500).json({ message: e.message }); 
     }
 });
 
