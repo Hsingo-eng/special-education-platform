@@ -198,13 +198,13 @@ app.get("/api/case_info", verifyToken, async (req, res) => {
 // 更新個案資料 (限教師)
 app.put("/api/case_info", verifyToken, checkRole(['teacher']), async (req, res) => {
     try {
-        const { name, grade, birthday } = req.body;
-        // 直接覆寫 case_info 的第二列 (A2:C2)
+        const { name, grade, birthday, understanding, expression, communication, participation } = req.body;
+        // 覆寫 case_info 的 A2 到 G2 欄位
         await sheets.spreadsheets.values.update({
             spreadsheetId: SHEET_ID, 
-            range: `case_info!A2:C2`, 
+            range: `case_info!A2:G2`, 
             valueInputOption: "USER_ENTERED",
-            resource: { values: [[name, grade, birthday]] }
+            resource: { values: [[name, grade, birthday, understanding, expression, communication, participation]] }
         });
         
         if (typeof io !== 'undefined') io.emit("case_info_update");
@@ -286,48 +286,49 @@ app.get("/api/records", verifyToken, async (req, res) => {
     const data = await getSheetData("records"); res.json({ data });
 });
 
+// 新增治療紀錄
 app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res) => {
     try {
         const {
-            date,
-            session_Type,
-            duration,
-            comp_content,
-            comp_perf,
-            exp_content,
-            exp_perf,
-            art_content,
-            art_perf,
-            comm_content,
-            comm_perf,
-            participation,
-            strategies,
-            remarks
+            date, session_Type, duration,
+            comp_content, comp_perf, exp_content, exp_perf,
+            art_content, art_perf, comm_content, comm_perf,
+            participation, participation_oth, 
+            strategies, strategies_other, remarks,
+            assessment, goals_status, class_integration, replies
         } = req.body;
+
+        // ⚠️ 這裡的順序必須嚴格對應試算表的 A 到 U 欄
         const newRecord = {
-            id: `rec-${Date.now()}`,
-            date: date || new Date().toISOString().split('T')[0],
-            session_Type: session_Type || "",
-            duration: duration || "",
-            comp_content: comp_content || "",
-            comp_perf: comp_perf || "",
-            exp_content: exp_content || "",
-            exp_perf: exp_perf || "",
-            art_content: art_content || "",
-            art_perf: art_perf || "",
-            comm_content: comm_content || "",
-            comm_perf: comm_perf || "",
-            participation: participation || "",
-            strategies: strategies || "",
-            remarks: remarks || "",
-            therapist_name: req.user.name,
-            teacher_reply: "",
-            created_at: new Date().toISOString()
+            id: `rec-${Date.now()}`,                      // A: id
+            date: date || new Date().toISOString().split('T')[0], // B: date
+            session_Type: session_Type || "",             // C: session_Type
+            duration: duration || "",                     // D: duration
+            comp_content: comp_content || "",             // E: comp_content
+            comp_perf: comp_perf || "",                   // F: comp_perf
+            exp_content: exp_content || "",               // G: exp_content
+            exp_perf: exp_perf || "",                     // H: exp_perf
+            art_content: art_content || "",               // I: art_content
+            art_perf: art_perf || "",                     // J: art_perf
+            comm_content: comm_content || "",             // K: comm_content
+            comm_perf: comm_perf || "",                   // L: comm_perf
+            participation: participation || "",           // M: participation
+            participation_oth: participation_oth || "",   // N: participation_oth
+            strategies: strategies || "",                 // O: strategies
+            strategies_other: strategies_other || "",     // P: strategies_other
+            remarks: remarks || "",                       // Q: remarks
+            assessment: assessment || "",                 // R: assessment
+            goals_status: goals_status || "",             // S: goals_status
+            class_integration: class_integration || "",   // T: class_integration
+            replies: replies || "[]"                      // U: replies (預設為空陣列字串)
         };
+
         await appendRow("records", newRecord);
         io.emit("record_update", { action: 'add', username: req.user.username, user: req.user.name });
         res.json({ message: "新增成功", data: newRecord });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
 });
 // 治療紀錄留言回覆
 app.post("/api/records/reply", verifyToken, async (req, res) => {
