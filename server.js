@@ -329,6 +329,41 @@ app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res)
         res.json({ message: "新增成功", data: newRecord });
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
+// 治療紀錄留言回覆
+app.post("/api/records/reply", verifyToken, async (req, res) => {
+    try {
+        const { recordId, replyText } = req.body;
+        const allRecords = await getSheetData("records");
+        const rIndex = allRecords.findIndex(r => r.id === recordId);
+        
+        if (rIndex === -1) return res.status(404).json({ message: "找不到該紀錄" });
+
+        const replies = allRecords[rIndex].replies ? JSON.parse(allRecords[rIndex].replies) : [];
+        let roleLabel = req.user.role === 'teacher' ? '教師' : (req.user.role === 'therapist' ? '治療師' : '家長');
+        
+        replies.push({
+            id: `rr-${Date.now()}`,
+            author: `${req.user.name} | ${roleLabel}`,
+            text: replyText,
+            timestamp: new Date().toISOString()
+        });
+
+        // 假設 replies 建立在 Google Sheet records 表格的第 R 欄 (依您實際欄位順序調整，若 R 欄是第 18 欄，則填寫 R)
+        // 建議您確認您的 replies 標題是在第幾欄，這裡假設為 R 欄：
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SHEET_ID, 
+            range: `records!U${rIndex + 2}`, // ⚠️ 請確認 R 欄是否為您的 replies 欄位
+            valueInputOption: "USER_ENTERED",
+            resource: { values: [[JSON.stringify(replies)]] }
+        });
+
+        if (typeof io !== 'undefined') io.emit("record_update");
+        res.json({ message: "回覆成功" });
+    } catch (e) { 
+        console.error("紀錄回覆失敗:", e);
+        res.status(500).json({ message: e.message }); 
+    }
+});
 
 app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res) => {
     try {

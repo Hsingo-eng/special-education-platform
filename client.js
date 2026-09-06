@@ -765,6 +765,22 @@ async function loadRecords() {
             if (r.comm_content) learningContent.push(`溝通互動`);
             let learningStr = learningContent.length > 0 ? learningContent.join(' / ') : '無';
 
+            // 解析回覆陣列
+            const repliesArray = r.replies ? JSON.parse(r.replies) : [];
+            const repliesHtml = repliesArray.map(reply => {
+                const replyDisplay = formatHomeAuthor(reply.author);
+                const replyAvatar = getRoleVisuals(replyDisplay).avatar;
+                return `
+                <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold small text-dark">${replyAvatar} ${replyDisplay}</span>
+                        <span class="text-muted" style="font-size: 0.75rem;">${new Date(reply.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p class="mb-0 small text-secondary" style="white-space: pre-wrap;">${reply.text}</p>
+                </div>
+                `;
+            }).join('');
+
             return `
             <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
                 <div class="card-header d-flex justify-content-between align-items-center py-3" style="background-color: #3b82f6; border-bottom: none;">
@@ -788,32 +804,74 @@ async function loadRecords() {
                         </div>
                     </div>
 
-                    <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border-left: 5px solid #3b82f6;">
-                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">學習內容</div>
+                    <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border-left: 5px solid #cbd5e1;">
+                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">本堂訓練領域</div>
                         <div class="text-dark fw-bold fs-6" style="line-height: 1.6;">${learningStr}</div>
                     </div>
 
+                    <!-- 🟢 新增的三大區塊 -->
                     <div class="mb-3">
-                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">
-                            <i class="fas fa-lightbulb text-warning me-1"></i>延伸策略
-                        </div>
-                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0;">
-                            ${r.strategies || '無'}
+                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-search text-info me-1"></i>階段性能力評估摘要</div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
+                            ${r.assessment || r.remarks || '未填寫'}
+                        </p>
+                    </div>
+
+                    <div class="mb-3">
+                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-bullseye text-warning me-1"></i>本次治療目標與課後狀況</div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
+                            ${r.goals_status || '未填寫'}
                         </p>
                     </div>
                     
                     <div class="mb-0">
-                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">
-                            <i class="fas fa-comment-dots text-secondary me-1"></i>補充事項
-                        </div>
-                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0;">
-                            ${r.remarks || '無'}
+                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-school text-success me-1"></i>融入班級作息之具體建議</div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
+                            ${r.class_integration || r.strategies || '未填寫'}
                         </p>
                     </div>
+
+                    <hr class="text-muted opacity-25 mt-4 mb-3">
+                    
+                    <!-- 🟢 留言回覆區 -->
+                    <div class="record-replies-container mb-3">
+                        ${repliesHtml}
+                    </div>
+                    
+                    <div class="input-group input-group-sm mt-3">
+                        <input type="text" id="record-reply-input-${r.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="老師或家長可在此提問或回饋實施狀況...">
+                        <button class="btn btn-primary rounded-pill-end px-3 fw-bold" onclick="submitRecordReply('${r.id}')">留言</button>
+                    </div>
+
                 </div>
             </div>
             `}).join("");
     } catch (err) { console.error("Load records failed:", err); }
+}
+
+// 傳送紀錄留言
+async function submitRecordReply(recordId) {
+    const inputEl = document.getElementById(`record-reply-input-${recordId}`);
+    const replyText = inputEl.value.trim();
+    if (!replyText) return;
+
+    try {
+        inputEl.disabled = true;
+        const res = await apiRequest(`${API_URL}/api/records/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ recordId, replyText })
+        });
+        
+        if (res.ok) {
+            loadRecords(); // 重新載入以顯示最新回覆
+        } else {
+            throw new Error('回覆失敗');
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '留言失敗', text: '請檢查網路連線' });
+        inputEl.disabled = false;
+    }
 }
 
 async function loadMessages() {
@@ -1243,7 +1301,6 @@ async function submitTherapyRecord() {
         date: date,
         session_Type: document.querySelector('input[name="form-type"]:checked')?.value || '',
         duration: document.getElementById('form-duration')?.value || '',
-
         comp_content: document.getElementById('input-comp-content')?.value || '',
         comp_perf: document.getElementById('select-comp-perf')?.value || '',
         exp_content: document.getElementById('input-exp-content')?.value || '',
@@ -1252,10 +1309,14 @@ async function submitTherapyRecord() {
         art_perf: document.getElementById('select-art-perf')?.value || '',
         comm_content: document.getElementById('input-comm-content')?.value || '',
         comm_perf: document.getElementById('select-comm-perf')?.value || '',
-
         participation: partChecked.join('、'),
+        
         strategies: document.getElementById('input-strategies')?.value || '',
-        remarks: document.getElementById('input-remarks')?.value || ''
+        remarks: document.getElementById('input-remarks')?.value || '',
+        assessment: document.getElementById('input-assessment')?.value || '',
+        goals_status: document.getElementById('input-goals-status')?.value || '',
+        class_integration: document.getElementById('input-class-integration')?.value || '',
+        replies: JSON.stringify([]) 
     };
 
     try {

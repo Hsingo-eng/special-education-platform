@@ -895,15 +895,25 @@
                                 </div>
                             </div>
                         </div>
-
-                        <div class="platform-card mb-3 p-3">
-                            <h6 class="fw-bold text-primary mb-2">▍班級延伸策略或建議事項</h6>
-                            <textarea class="form-control" id="input-strategies" rows="3" placeholder="請填寫班級延伸策略或建議事項"></textarea>
+                        <!-- 新增：階段性能力評估摘要 -->
+                        <div class="platform-card mb-3 p-3 border-start border-3 border-info">
+                            <h6 class="fw-bold text-dark mb-2">▍階段性能力評估摘要</h6>
+                            <p class="small text-secondary mb-2">請簡述幼兒目前的能力基準 (例如：需何種程度之提示、目前慣用語彙階段等)</p>
+                            <textarea class="form-control bg-light border-0" id="input-assessment" rows="2" placeholder="請簡述評估當時的能力表現..."></textarea>
                         </div>
 
-                        <div class="platform-card p-3">
-                            <h6 class="fw-bold text-primary mb-2">▍補充事項</h6>
-                            <textarea class="form-control" id="input-remarks" rows="2" placeholder="若無可留空"></textarea>
+                        <!-- 調整：本次治療目標與課後狀況 -->
+                        <div class="platform-card mb-3 p-3 border-start border-3 border-warning">
+                            <h6 class="fw-bold text-dark mb-2">▍本次治療目標與課後狀況</h6>
+                            <p class="small text-secondary mb-2">請說明今日訓練重點及幼兒達成狀況</p>
+                            <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日目標為聽懂兩項連續指令..."></textarea>
+                        </div>
+
+                        <!-- 調整：融入班級作息之具體建議 -->
+                        <div class="platform-card p-3 border-start border-3 border-success">
+                            <h6 class="fw-bold text-dark mb-2">▍融入班級作息之具體建議</h6>
+                            <p class="small text-secondary mb-2">請提供教師在日常作息(點心、角落、戶外)中可協助幼兒的具體作法</p>
+                            <textarea class="form-control bg-light border-0" id="input-class-integration" rows="3" placeholder="例如：在點心時間，老師可以嘗試..."></textarea>
                         </div>
                     </form>
                 </div>
