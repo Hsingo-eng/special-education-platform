@@ -495,19 +495,20 @@
         .page-bg-puzzles {
             position: fixed;
             top: 0; left: 0; width: 100vw; height: 100vh;
-            z-index: -10; /* 確保在所有內容的最下層 */
-            pointer-events: none; /* 點擊穿透，絕不干擾按鈕操作 */
+            z-index: 0; /* 關鍵修正：設為 0，確保浮在底色之上，並被卡片蓋住 */
+            pointer-events: none; /* 點擊穿透，不會干擾按鈕操作 */
             overflow: hidden;
         }
         .bg-puzzle-icon {
             position: absolute;
-            color: #94a3b8; /* 柔和的莫蘭迪灰藍色 */
-            opacity: 0.05; /* 極高透明度，呈現高級浮水印質感 */
+            color: #5A728A; /* 套用統一質感的莫蘭迪藍 */
+            opacity: 0.08; /* 稍微調高透明度讓它清晰可見 */
         }
+        
         /* 設定三塊大拼圖的初始位置與動畫時間 */
-        .anim-float-1 { animation: float1 25s infinite ease-in-out alternate; top: -5%; left: 5%; font-size: 25vw; }
-        .anim-float-2 { animation: float2 30s infinite ease-in-out alternate-reverse; bottom: -10%; right: -5%; font-size: 30vw; }
-        .anim-float-3 { animation: float3 35s infinite ease-in-out alternate; top: 30%; left: 50%; font-size: 15vw; }
+        .anim-float-1 { animation: float1 20s infinite ease-in-out alternate; top: 5%; left: 5%; font-size: 25vw; }
+        .anim-float-2 { animation: float2 25s infinite ease-in-out alternate-reverse; bottom: 5%; right: 5%; font-size: 30vw; }
+        .anim-float-3 { animation: float3 28s infinite ease-in-out alternate; top: 40%; left: 50%; font-size: 15vw; }
 
         @keyframes float1 {
             0% { transform: translate(0, 0) rotate(0deg); }
@@ -522,7 +523,7 @@
             100% { transform: translate(-30px, 40px) rotate(20deg); }
         }
 
-        /* 🟢 卡片懸停動效 (取代會讓排版壞掉的 puzzle-piece) */
+        /* 卡片懸停動效 */
         .hover-card-anim {
             transition: transform 0.3s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
             cursor: pointer;
@@ -533,14 +534,14 @@
         }
     </style>
 
-    <!-- 全網頁漂浮拼圖背景圖層 -->
+    <!-- 🟢 全網頁漂浮拼圖背景圖層 -->
     <div class="page-bg-puzzles">
         <i class="fas fa-puzzle-piece bg-puzzle-icon anim-float-1"></i>
         <i class="fas fa-puzzle-piece bg-puzzle-icon anim-float-2"></i>
         <i class="fas fa-puzzle-piece bg-puzzle-icon anim-float-3"></i>
     </div>
 
-    <div id="dashboard-section" class="animate-fade">
+    <div id="dashboard-section" class="animate-fade position-relative" style="z-index: 1;"></div>
         <div class="container max-w-900 mx-auto px-3 mt-4 mb-5">
             
             <!-- 個案卡片 (維持莫蘭迪藍雙按鈕與完美排版) -->
