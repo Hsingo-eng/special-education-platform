@@ -407,9 +407,8 @@
             <div class="header-logo-icon">
                 <i class="fas fa-shapes"></i>
             </div>
-            <div class="header-brand">
-                <span class="header-brand-main">學前特教專業人員溝通平台</span>
-                <span class="header-brand-sub">學前特教專業人員溝通平台</span>
+            <div class="header-brand d-flex align-items-center h-100">
+                <span class="header-brand-main mb-0" style="font-size: 1.25rem; font-weight: 700; letter-spacing: 1px; color: #1E293B;">學前特教專業人員溝通平台</span>
             </div>
         </div>
 
@@ -663,26 +662,21 @@
             </div>
 
             <div id="section-iep" class="d-none animate-fade">
+                <!-- 頂部頁面標題 (已移除上傳按鈕) -->
                 <div class="page-header-card theme-green d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                    <div class="d-flex align-items-center">
                         <div class="header-icon-box"><i class="fas fa-folder-open"></i></div>
                         <div class="header-content">
                             <h4 class="header-title">IEP 資料與策略</h4>
                             <p class="header-desc">查閱個別化教育計畫與治療師具體作法</p>
                         </div>
                     </div>
-                    <div>
-                        <button class="btn btn-danger btn-sm role-only shadow-sm rounded-pill px-3 fw-bold" data-allow="teacher" onclick="openIepUpload()">
-                            <i class="fas fa-cloud-upload-alt"></i> 上傳 IEP 檔案
-                        </button>
-                    </div>
                 </div>
 
-                <!-- 🌟 1. 新增：IEP 目標與具體作法區塊 -->
-                <div class="mb-5">
+                <!-- IEP 目標與具體作法區塊 -->
+                <div class="mb-5 mt-4">
                     <div class="d-flex justify-content-between align-items-center mb-3 px-2">
                         <h5 class="fw-bold text-dark mb-0"><i class="fas fa-bullseye text-success me-2"></i>IEP 執行目標與策略</h5>
-                        <!-- 只有老師可以新增大目標 -->
                         <button class="btn btn-outline-success btn-sm rounded-pill fw-bold role-only shadow-sm bg-white" data-allow="teacher" onclick="openIepGoalModal()">
                             <i class="fas fa-plus"></i> 新增目標
                         </button>
@@ -694,9 +688,14 @@
 
                 <hr class="text-muted opacity-25 mb-4">
 
-                <!-- 🌟 2. 原本的 IEP 檔案庫 (縮至下方作為留存參考) -->
+                <!-- IEP 檔案庫 (上傳按鈕已移至此處) -->
                 <div class="mb-3 px-2">
-                    <h5 class="fw-bold text-dark mb-3"><i class="fas fa-file-pdf text-danger me-2"></i>IEP 檔案庫</h5>
+                    <div class="d-flex justify-content-between align-items-center mb-3">
+                        <h5 class="fw-bold text-dark mb-0"><i class="fas fa-file-pdf text-danger me-2"></i>IEP 檔案庫</h5>
+                        <button class="btn btn-danger btn-sm role-only shadow-sm rounded-pill px-3 fw-bold" data-allow="teacher" onclick="openIepUpload()">
+                            <i class="fas fa-cloud-upload-alt"></i> 上傳 IEP 檔案
+                        </button>
+                    </div>
                     <div id="iep-list" class="row g-4"></div>
                 </div>
             </div>
