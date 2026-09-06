@@ -487,155 +487,65 @@
         </div>
     </div>
 
-    <div id="dashboard-section" class="container mt-4 mb-5 px-3 animate-fade">
-        
-        <!-- 1. Hero & 大型抽象拼圖 (無人物，中央留白象徵整合) -->
-        <div class="dashboard-hero text-center mb-5">
-            <!-- 背景動畫拼圖裝飾 (Fixed Background) -->
-        <div class="bg-puzzle-decoration">
-            <!-- 右上角大型拼圖 (藍綠色系) -->
-            <svg class="bg-puzzle p-top-right" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M90,20 L30,20 C24.5,20 20,24.5 20,30 L20,90 L35,90 A10,10 0 0,1 55,90 L90,90 L90,55 A10,10 0 0,0 90,35 Z" stroke="#3B82F6" class="bg-piece p1"/>
-                    <path d="M110,20 L170,20 C175.5,20 180,24.5 180,30 L180,90 L165,90 A10,10 0 0,0 145,90 L110,90 L110,55 A10,10 0 0,1 110,35 Z" stroke="#10B981" class="bg-piece p2"/>
-                </g>
-            </svg>
-            <!-- 左下角中型拼圖 (紫橘色系) -->
-            <svg class="bg-puzzle p-bottom-left" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
-                <g fill="none" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round">
-                    <path d="M20,110 L20,170 C20,175.5 24.5,180 30,180 L90,180 L90,165 A10,10 0 0,1 90,145 L90,110 L55,110 A10,10 0 0,0 35,110 Z" stroke="#F59E0B" class="bg-piece p3"/>
-                    <path d="M180,110 L180,170 C180,175.5 175.5,180 170,180 L110,180 L110,165 A10,10 0 0,0 110,145 L110,110 L145,110 A10,10 0 0,1 165,110 Z" stroke="#8B5CF6" class="bg-piece p4"/>
-                </g>
-            </svg>
-        </div>
-        </div>
-
-        <!-- 2. 目前服務個案 (Dashboard 核心資訊) -->
-        <div class="current-case-wrapper mb-5 max-w-900 mx-auto">
-            <div class="current-case-card position-relative shadow-sm">
-                <!-- 卡片邊緣的拼圖意象裝飾線 -->
-                <div class="case-puzzle-edge"></div>
-                
-                <div class="card-body p-4">
-                    <div class="row align-items-center w-100 m-0">
-                        
-                        <!-- 1. 個案基本資料 (左側 - 佔據 5 格) -->
-                        <div class="col-12 col-md-5 d-flex align-items-center mb-4 mb-md-0 p-0">
-                            <div class="case-avatar-box me-3 flex-shrink-0">
-                                <i class="fas fa-child text-primary"></i>
+    <!-- ========================================== -->
+    <!-- 🏠 Dashboard 首頁 (預設顯示) -->
+    <!-- ========================================== -->
+    <div id="dashboard-section" class="animate-fade">
+        <!-- 個案卡片 -->
+        <div class="current-case-card bg-white p-1 rounded-4 shadow-sm border-start border-4 border-primary position-relative overflow-hidden mb-5 mt-3">
+            <div class="bg-puzzle"></div>
+            <div class="card-body p-4">
+                <div class="row align-items-center w-100 m-0">
+                    
+                    <!-- 1. 個案基本資料 (左側) -->
+                    <div class="col-12 col-md-5 d-flex align-items-center mb-4 mb-md-0 p-0">
+                        <div class="case-avatar-box me-3 flex-shrink-0">
+                            <i class="fas fa-child text-primary"></i>
+                        </div>
+                        <div>
+                            <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
+                            <div class="d-flex align-items-end mb-1">
+                                <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
+                                <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
                             </div>
-                            <div>
-                                <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
-                                <div class="d-flex align-items-end mb-1">
-                                    <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
-                                    <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
-                                </div>
-                                <div class="text-muted small mt-1">
-                                    <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
-                                    <span id="display-case-birthday">--/--/--</span> 
-                                    <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
-                                </div>
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
+                                <span id="display-case-birthday">--/--/--</span> 
+                                <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
                             </div>
                         </div>
+                    </div>
 
-                        <!-- 2. 近期更新動態 (中間 - 佔據 4 格) -->
-                        <div class="col-12 col-md-4 px-md-4 py-1 border-start-md border-light mb-4 mb-md-0">
-                            <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
-                            <div class="d-flex flex-column gap-2 small">
-                                <div class="d-flex align-items-center text-dark">
-                                    <span class="status-dot bg-primary me-2"></span> 治療紀錄 
-                                    <span class="text-muted ms-auto ps-3">09/03</span>
-                                </div>
-                                <div class="d-flex align-items-center text-dark">
-                                    <span class="status-dot bg-danger me-2"></span> 居家表現 
-                                    <span class="text-muted ms-auto ps-3">08/28</span>
-                                </div>
+                    <!-- 2. 近期更新動態 (中間) -->
+                    <div class="col-12 col-md-4 px-md-4 py-1 border-start-md border-light mb-4 mb-md-0">
+                        <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
+                        <div class="d-flex flex-column gap-2 small">
+                            <div class="d-flex align-items-center text-dark">
+                                <span class="status-dot bg-primary me-2"></span> 治療紀錄 
+                                <span class="text-muted ms-auto ps-3">09/03</span>
+                            </div>
+                            <div class="d-flex align-items-center text-dark">
+                                <span class="status-dot bg-danger me-2"></span> 居家表現 
+                                <span class="text-muted ms-auto ps-3">08/28</span>
                             </div>
                         </div>
-                        <!-- 3. 操作按鈕 (右側) -->
-                        <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
-                            <!-- 只有教師看得到這個編輯按鈕 -->
-                            <button class="btn btn-primary rounded-pill px-3 fw-bold shadow-sm role-only" data-allow="teacher" onclick="openEditCaseModal()">
-                                <i class="fas fa-edit"></i> 編輯資料
-                            </button>
-                            <!-- 所有人都能看這個檢視按鈕 -->
-                            <button class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="openViewCaseModal()">
-                                <i class="fas fa-file-alt me-1"></i> 班級現況
-                            </button>
+                    </div>
+
+                            <!-- 3. 操作按鈕 (右側雙按鈕) -->
+                            <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
+                                <!-- 只有教師看得到這個編輯按鈕 -->
+                                <button class="btn btn-primary rounded-pill px-3 fw-bold shadow-sm role-only" data-allow="teacher" onclick="openEditCaseModal()">
+                                    <i class="fas fa-edit"></i> 編輯資料
+                                </button>
+                                <!-- 所有人都能看這個檢視按鈕 -->
+                                <button class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="openViewCaseModal()">
+                                    <i class="fas fa-file-alt me-1"></i> 班級現況
+                                </button>
+                            </div>
+
                         </div>
                     </div>
                 </div>
-            </div>
-        </div>
-
-        <!-- 3. 六大專業功能模組 (保留原有色系，淡色化設計) -->
-        <div class="system-modules-section max-w-900 mx-auto">
-            <h6 class="fw-bold text-secondary mb-4 ps-2 border-start border-3 border-primary" style="letter-spacing: 1px;">
-                團隊溝通與專業資訊
-            </h6>
-            <div class="row g-4">
-                <!-- 治療紀錄 -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="modern-feature-card theme-blue" onclick="showSection('records')">
-                        <div class="card-puzzle-watermark"></div>
-                        <div class="card-icon-box"><i class="fas fa-file-medical"></i></div>
-                        <h5 class="card-title">治療紀錄</h5>
-                        <p class="card-desc">掌握專業建議，追蹤早療進度</p>
-                    </div>
-                </div>
-                
-                <!-- IEP 資料 -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="modern-feature-card theme-green" onclick="showSection('iep')">
-                        <div class="card-puzzle-watermark"></div>
-                        <div class="card-icon-box"><i class="fas fa-folder-open"></i></div>
-                        <h5 class="card-title">IEP 資料</h5>
-                        <p class="card-desc">查閱與管理個別化教育計畫</p>
-                    </div>
-                </div>
-
-                <!-- 留言板 -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="modern-feature-card theme-purple" onclick="showSection('messages')">
-                        <div class="card-puzzle-watermark"></div>
-                        <div class="card-icon-box"><i class="fas fa-comments"></i></div>
-                        <h5 class="card-title">留言板</h5>
-                        <p class="card-desc">團隊即時交流與 AI 重點摘要</p>
-                    </div>
-                </div>
-
-                <!-- 行事曆 -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="modern-feature-card theme-orange" onclick="showSection('calendar')">
-                        <div class="card-puzzle-watermark"></div>
-                        <div class="card-icon-box"><i class="fas fa-calendar-alt"></i></div>
-                        <h5 class="card-title">行事曆</h5>
-                        <p class="card-desc">統整會議、治療與重要排程</p>
-                    </div>
-                </div>
-
-                <!-- 居家表現 -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="modern-feature-card theme-red" onclick="showSection('home-log')">
-                        <div class="card-puzzle-watermark"></div>
-                        <div class="card-icon-box"><i class="fas fa-home"></i></div>
-                        <h5 class="card-title">居家表現</h5>
-                        <p class="card-desc">家長日常紀錄與專業即時回饋</p>
-                    </div>
-                </div>
-
-                <!-- 提問回覆 -->
-                <div class="col-lg-4 col-md-6 col-12">
-                    <div class="modern-feature-card theme-cyan" onclick="showSection('questions')">
-                        <div class="card-puzzle-watermark"></div>
-                        <div class="card-icon-box"><i class="fas fa-question-circle"></i></div>
-                        <h5 class="card-title">提問回覆</h5>
-                        <p class="card-desc">跨專業針對性諮詢與對話追蹤</p>
-                    </div>
-                </div>
-            </div>
-        </div>
-    </div>
 
     <div id="content-area">
         <div class="platform-card content-stage-card">
@@ -1096,19 +1006,19 @@
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-body">
                             <div class="mb-3">
-                                <div class="fw-bold text-info mb-1">理解能力</div>
+                                <div class="fw-bold mb-1" style="color: #5A728A;">理解能力</div>
                                 <div id="view-understanding" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
                             </div>
                             <div class="mb-3">
-                                <div class="fw-bold text-success mb-1">表達能力</div>
+                                <div class="fw-bold mb-1" style="color: #5A728A;">表達能力</div>
                                 <div id="view-expression" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
                             </div>
                             <div class="mb-3">
-                                <div class="fw-bold text-warning mb-1">同儕與師生溝通</div>
+                                <div class="fw-bold mb-1" style="color: #5A728A;">同儕與師生溝通</div>
                                 <div id="view-communication" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
                             </div>
                             <div class="mb-0">
-                                <div class="fw-bold text-danger mb-1">作息參與度</div>
+                                <div class="fw-bold mb-1" style="color: #5A728A;">作息參與度</div>
                                 <div id="view-participation" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
                             </div>
                         </div>
