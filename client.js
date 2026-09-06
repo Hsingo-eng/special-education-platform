@@ -462,57 +462,102 @@ function calculateAge(birthdayString) {
     return age;
 }
 
-// 載入個案資料並顯示在主畫面
+// 載入個案資料並顯示在主畫面與檢視視窗
 async function loadCaseInfo() {
     try {
         const res = await apiRequest(`${API_URL}/api/case_info`);
         const json = await res.json();
         const caseData = json.data;
 
+        // 1. 更新首頁 Dashborad 卡片
         document.getElementById('display-case-name').innerText = caseData.name || "未設定";
         document.getElementById('display-case-grade').innerText = caseData.grade || "-";
         
+        let ageStr = "";
         if (caseData.birthday) {
             document.getElementById('display-case-birthday').innerText = caseData.birthday.replace(/-/g, '/');
-            const age = calculateAge(caseData.birthday);
-            document.getElementById('display-case-age').innerText = `(${age}歲)`;
+            ageStr = `(${calculateAge(caseData.birthday)}歲)`;
+            document.getElementById('display-case-age').innerText = ageStr;
         } else {
             document.getElementById('display-case-birthday').innerText = "--/--/--";
             document.getElementById('display-case-age').innerText = "";
         }
 
-        // 將資料預填入編輯表單
+        // 2. 填入「檢視視窗 (View Modal)」
+        document.getElementById('view-name').innerText = caseData.name || "未設定";
+        document.getElementById('view-grade').innerText = caseData.grade || "-";
+        document.getElementById('view-birthday').innerText = caseData.birthday ? caseData.birthday.replace(/-/g, '/') : "--/--/--";
+        document.getElementById('view-age').innerText = ageStr;
+        
+        document.getElementById('view-understanding').innerText = caseData.understanding || "尚未填寫";
+        document.getElementById('view-expression').innerText = caseData.expression || "尚未填寫";
+        document.getElementById('view-communication').innerText = caseData.communication || "尚未填寫";
+        document.getElementById('view-participation').innerText = caseData.participation || "尚未填寫";
+
+        // 3. 填入「編輯視窗 (Edit Modal)」表單
         document.getElementById('input-case-name').value = caseData.name || "";
         document.getElementById('input-case-grade').value = caseData.grade || "";
         document.getElementById('input-case-birthday').value = caseData.birthday || "";
+        document.getElementById('input-understanding').value = caseData.understanding || "";
+        document.getElementById('input-expression').value = caseData.expression || "";
+        document.getElementById('input-communication').value = caseData.communication || "";
+        document.getElementById('input-participation').value = caseData.participation || "";
         
     } catch (err) {
         console.error("載入個案資料失敗", err);
     }
 }
 
-// 打開編輯視窗
-function openEditCaseModal() {
-    new bootstrap.Modal(document.getElementById('editCaseModal')).show();
-}
+// 打開檢視視窗 (所有人)
+window.openViewCaseModal = function() {
+    const modalEl = document.getElementById('viewCaseModal');
+    const modal = bootstrap.Modal.getOrCreateInstance(modalEl);
+    modal.show();
+};
+
+// 打開編輯視窗 (限教師)
+window.openEditCaseModal = function() {
+    // 1. 如果檢視視窗正開著，先把它關掉
+    const viewModalEl = document.getElementById('viewCaseModal');
+    if (viewModalEl && viewModalEl.classList.contains('show')) {
+        bootstrap.Modal.getInstance(viewModalEl).hide();
+    }
+    
+    // 2. 延遲 300 毫秒等舊視窗關閉動畫結束後，再開啟編輯視窗 (避免畫面卡死)
+    setTimeout(() => {
+        const editModalEl = document.getElementById('editCaseModal');
+        const editModal = bootstrap.Modal.getOrCreateInstance(editModalEl);
+        editModal.show();
+    }, 300);
+};
 
 // 送出編輯資料
-async function submitCaseEdit() {
-    const name = document.getElementById('input-case-name').value.trim();
-    const grade = document.getElementById('input-case-grade').value.trim();
-    const birthday = document.getElementById('input-case-birthday').value;
+window.submitCaseEdit = async function() {
+    const payload = {
+        name: document.getElementById('input-case-name').value.trim(),
+        grade: document.getElementById('input-case-grade').value.trim(),
+        birthday: document.getElementById('input-case-birthday').value,
+        understanding: document.getElementById('input-understanding').value.trim(),
+        expression: document.getElementById('input-expression').value.trim(),
+        communication: document.getElementById('input-communication').value.trim(),
+        participation: document.getElementById('input-participation').value.trim()
+    };
 
-    if (!name) return Swal.fire('提示', '請至少填寫個案姓名', 'warning');
+    if (!payload.name) return Swal.fire('提示', '請至少填寫個案姓名', 'warning');
 
     try {
         const res = await apiRequest(`${API_URL}/api/case_info`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, grade, birthday })
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('editCaseModal')).hide();
+            // 成功後安全關閉編輯視窗
+            const editModalEl = document.getElementById('editCaseModal');
+            const editModal = bootstrap.Modal.getInstance(editModalEl);
+            if (editModal) editModal.hide();
+
             Swal.fire({ icon: 'success', title: '更新成功', timer: 1500, showConfirmButton: false });
             loadCaseInfo(); // 重新載入畫面資料
         } else {
@@ -521,7 +566,7 @@ async function submitCaseEdit() {
     } catch (err) {
         Swal.fire({ icon: 'error', title: '更新失敗', text: '請確認網路連線或權限' });
     }
-}
+};
 
 // ==========================================
 // 💡 提問與回覆：角色視覺對照輔助函數
