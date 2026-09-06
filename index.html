@@ -496,7 +496,6 @@
             <div class="bg-puzzle"></div>
             <div class="card-body p-4">
                 <div class="row align-items-center w-100 m-0">
-                    
                     <!-- 1. 個案基本資料 (左側) -->
                     <div class="col-12 col-md-5 d-flex align-items-center mb-4 mb-md-0 p-0">
                         <div class="case-avatar-box me-3 flex-shrink-0">
@@ -531,7 +530,7 @@
                         </div>
                     </div>
 
-                    <!-- 3. 操作按鈕 (右側雙按鈕：已套用莫蘭迪藍、不換行、縮小字體) -->
+                    <!-- 3. 操作按鈕 (右側雙按鈕) -->
                     <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
                         <!-- 只有教師看得到這個編輯按鈕 -->
                         <button class="btn rounded-pill px-3 fw-bold shadow-sm role-only text-nowrap text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A; font-size: 0.85rem;">
@@ -547,9 +546,9 @@
             </div>
         </div>
 
-        <!-- 六大功能拼圖卡片 (被誤刪的部分已補回) -->
-        <div class="row g-4 puzzle-container mb-4">
-            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('records')">
+        <!-- 🟢 六大功能卡片 (已徹底移除舊有衝突 CSS，使用原生網格排版) -->
+        <div class="row g-4 mb-4">
+            <div class="col-md-4 col-sm-6" onclick="showSection('records')">
                 <div class="modern-feature-card theme-blue">
                     <div class="card-puzzle-watermark"></div>
                     <div class="card-icon-box"><i class="fas fa-file-medical"></i></div>
@@ -558,7 +557,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('iep')">
+            <div class="col-md-4 col-sm-6" onclick="showSection('iep')">
                 <div class="modern-feature-card theme-green">
                     <div class="card-puzzle-watermark"></div>
                     <div class="card-icon-box"><i class="fas fa-folder-open"></i></div>
@@ -567,7 +566,7 @@
                 </div>
             </div>
             
-            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('messages')">
+            <div class="col-md-4 col-sm-6" onclick="showSection('messages')">
                 <div class="modern-feature-card theme-purple">
                     <div class="card-puzzle-watermark"></div>
                     <div class="card-icon-box"><i class="fas fa-comments"></i></div>
@@ -576,7 +575,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('calendar')">
+            <div class="col-md-4 col-sm-6" onclick="showSection('calendar')">
                 <div class="modern-feature-card theme-orange">
                     <div class="card-puzzle-watermark"></div>
                     <div class="card-icon-box"><i class="fas fa-calendar-alt"></i></div>
@@ -585,7 +584,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('home-log')">
+            <div class="col-md-4 col-sm-6" onclick="showSection('home-log')">
                 <div class="modern-feature-card theme-red">
                     <div class="card-puzzle-watermark"></div>
                     <div class="card-icon-box"><i class="fas fa-home"></i></div>
@@ -594,7 +593,7 @@
                 </div>
             </div>
 
-            <div class="col-md-4 col-sm-6 puzzle-piece" onclick="showSection('questions')">
+            <div class="col-md-4 col-sm-6" onclick="showSection('questions')">
                 <div class="modern-feature-card theme-cyan">
                     <div class="card-puzzle-watermark"></div>
                     <div class="card-icon-box"><i class="fas fa-question-circle"></i></div>
