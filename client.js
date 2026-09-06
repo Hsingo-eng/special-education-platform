@@ -196,81 +196,60 @@ document.addEventListener('click', function (e) {
 // 🔗 2. Socket.io 初始化與精準通知
 // ==========================================
 
-const notificationRoleMatches = (targetRoles, role) => {
-    const roleMap = {
-        teacher: ['teacher', '教師', '老師'],
-        therapist: ['therapist', '治療師'],
-        parents: ['parents', 'parent', '家長']
-    };
-    const acceptedLabels = roleMap[role] || [role];
-    return String(targetRoles || '')
-        .split(/[,，、\s]+/)
-        .some(target => acceptedLabels.includes(target));
-};
-
-const isOtherUserEvent = (event) => Boolean(
-    currentUser && event && event.username && event.username !== currentUser.username
-);
-
 if (typeof io !== 'undefined') {
     socket = io(API_URL);
 
+    // 1. 行事曆
     socket.on("calendar_update", (evt) => {
-        if (isOtherUserEvent(evt)) {
-            const actionText = evt.action === 'delete' ? '刪除了行事曆排程' : evt.action === 'update' ? '更新了行事曆排程' : '新增了行事曆排程';
-            addNotification('calendar', `${evt.user || '使用者'}${actionText}`);
-        }
+        addNotification('calendar', '行事曆有排程新增或異動');
         if (calendar) calendar.refetchEvents();
     });
 
-    socket.on("iep_update", (evt) => {
-        if (isOtherUserEvent(evt)) {
-            const actionText = evt.action === 'delete' ? '刪除了 IEP 檔案' : '新增了 IEP 檔案';
-            addNotification('iep', `${evt.user || '使用者'}${actionText}`);
-        }
+    // 2. IEP 與 目標策略 (已連線新功能)
+    socket.on("iep_update", () => {
+        addNotification('iep', 'IEP 資料或執行目標有新異動');
         const section = document.getElementById('section-iep');
-        if (section && !section.classList.contains('d-none')) loadIepFiles();
+        if (section && !section.classList.contains('d-none')) {
+            if (typeof loadIepFiles === 'function') loadIepFiles();
+            if (typeof loadIepGoals === 'function') loadIepGoals();
+        }
     });
 
-    socket.on("record_update", (evt) => {
-        if (isOtherUserEvent(evt)) {
-            const actionText = evt.action === 'reply' ? '回覆了治療紀錄' : '新增了治療紀錄';
-            addNotification('record', `${evt.user || '使用者'}${actionText}`);
-        }
+    // 3. 治療紀錄
+    socket.on("record_update", () => {
+        addNotification('record', '治療紀錄有新上傳或回覆');
         const rSection = document.getElementById('section-records');
         if (rSection && !rSection.classList.contains('d-none')) loadRecords();
     });
 
+    // 4. 留言板 (已設定：自己發的訊息不會通知自己)
     socket.on("message_update", (msg) => {
-        if (isOtherUserEvent(msg)) {
-            addNotification('message', `${msg.user_name || '使用者'}在留言板新增了訊息`);
-        }
+        if (currentUser && msg && msg.username === currentUser.username) return; 
+        addNotification('message', '留言板有新訊息');
         const chatBox = document.getElementById('chat-box');
         if (chatBox && !document.getElementById('section-messages').classList.contains('d-none')) {
             loadMessages();
         }
     });
 
+    // 5. 提問回覆
     socket.on("question_update", (q) => {
-        const shouldNotify = isOtherUserEvent(q) && (
-            (q.action === 'ask' && notificationRoleMatches(q.target_role, currentUser.role)) ||
-            (q.action === 'reply' && (q.asker_username === currentUser.username || q.asker_name === currentUser.name))
-        );
-        if (shouldNotify) {
-            addNotification('question', q.action === 'reply' ? `${q.replier_name || '使用者'}回覆了您的提問` : `${q.asker_name || '使用者'}向您提出了問題`);
-        }
+        addNotification('question', '提問回覆區有新動態');
         const qSection = document.getElementById('section-questions');
         if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
     });
 
-    // 👇 新增居家表現的推播接收器
+    // 6. 居家表現
     socket.on("home_log_update", (data) => {
-        if (isOtherUserEvent(data)) {
-            const actionText = data.action === 'add' ? '新增了居家表現紀錄' : '回覆了居家表現貼文';
-            addNotification('home_log', `${data.user || '使用者'}${actionText}`);
-        }
+        addNotification('home_log', data.message || '居家表現有新貼文或回覆');
         const hlSection = document.getElementById('section-home-log');
         if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
+    });
+
+    // 7. 個案基本資料 (已連線新功能)
+    socket.on("case_info_update", () => {
+        addNotification('iep', '目前服務個案基本資料已更新');
+        if (typeof loadCaseInfo === 'function') loadCaseInfo();
     });
 }
 
@@ -324,9 +303,9 @@ async function verifyToken() {
             renderNotificationList();
             updateUI(currentUser);
             showSection("dashboard");
-
             initCalendar();
             loadMessages();
+            loadCaseInfo();
         } else {
             logout();
         }
@@ -526,13 +505,6 @@ async function submitCaseEdit() {
     } catch (err) {
         Swal.fire({ icon: 'error', title: '更新失敗', text: '請確認網路連線或權限' });
     }
-}
-
-// 若有使用 Socket.io，可加入監聽讓所有人畫面即時更新
-if (typeof io !== 'undefined' && socket) {
-    socket.on("case_info_update", () => {
-        loadCaseInfo();
-    });
 }
 
 // ==========================================

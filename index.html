@@ -518,11 +518,12 @@
                 <!-- 卡片邊緣的拼圖意象裝飾線 -->
                 <div class="case-puzzle-edge"></div>
                 
-                <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                    <!-- 個案基本資料 -->
-                    <div class="d-flex align-items-center mb-4 mb-md-0">
+                <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center gap-4">
+                    
+                    <!-- 1. 個案基本資料 (左側) -->
+                    <div class="d-flex align-items-center flex-shrink-0">
                         <div class="case-avatar-box me-3">
-                            <i class="fas fa-child text-primary"></i> <!-- 換成符合幼兒的 icon -->
+                            <i class="fas fa-child text-primary"></i>
                         </div>
                         <div>
                             <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
@@ -530,7 +531,6 @@
                                 <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
                                 <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
                             </div>
-                            <!-- 新增：顯示生日與年齡，並移除最後更新 -->
                             <div class="text-muted small mt-1">
                                 <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
                                 <span id="display-case-birthday">--/--/--</span> 
@@ -539,13 +539,23 @@
                         </div>
                     </div>
 
-                    <!-- 近期更新動態 (保留您原有的程式碼) -->
-                    <div class="recent-updates px-md-4 py-2 border-start-md border-light">
-                         <!-- ... 保留原本的近期資訊更新結構 ... -->
+                    <!-- 2. 近期更新動態 (中間) -->
+                    <div class="recent-updates px-md-4 py-1 border-start-md border-light flex-grow-1">
+                        <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
+                        <div class="d-flex flex-column gap-2 small" style="max-width: 250px;">
+                            <div class="d-flex align-items-center text-dark">
+                                <span class="status-dot bg-primary me-2"></span> 治療紀錄 
+                                <span class="text-muted ms-auto ps-3">09/03</span>
+                            </div>
+                            <div class="d-flex align-items-center text-dark">
+                                <span class="status-dot bg-danger me-2"></span> 居家表現 
+                                <span class="text-muted ms-auto ps-3">08/28</span>
+                            </div>
+                        </div>
                     </div>
 
-                    <!-- 操作按鈕 (修改為編輯，並限制只有教師可見) -->
-                    <div class="mt-4 mt-md-0 text-md-end text-center">
+                    <!-- 3. 操作按鈕 (右側) -->
+                    <div class="text-md-end text-center flex-shrink-0">
                         <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm case-action-btn role-only" data-allow="teacher" onclick="openEditCaseModal()">
                             <i class="fas fa-edit me-1"></i> 編輯個案資料
                         </button>
