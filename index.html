@@ -14,7 +14,6 @@
     <script src='https://cdn.jsdelivr.net/npm/fullcalendar@6.1.10/index.global.min.js'></script>
     <link rel="icon" type="image/png" href="logo.png">
     <style>
-
         /* ========================================== */
         /* 🧩 首頁：專業整合拼圖面板 (Modern Dashboard) */
         /* ========================================== */
@@ -340,6 +339,66 @@
         .puzzle-svg-container:hover .piece-3-svg {
             transform: translate(0, 0) rotate(0deg);
         }
+        /* ========================================== */
+        /* 📑 功能頁面：統一 Page Header 現代卡片設計 */
+        /* ========================================== */
+        .page-header-card {
+            background: #ffffff;
+            border-radius: 12px;
+            padding: 16px 20px;
+            margin-bottom: 24px;
+            border: 1px solid #E2E8F0;
+            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.02);
+        }
+
+        .page-header-card .header-icon-box {
+            width: 42px;
+            height: 42px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.25rem;
+            margin-right: 16px;
+            flex-shrink: 0;
+        }
+
+        .page-header-card .header-content {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .page-header-card .header-title {
+            font-size: 1.15rem;
+            font-weight: 700;
+            color: #1E293B;
+            margin: 0 0 2px 0;
+            letter-spacing: 0.5px;
+        }
+
+        .page-header-card .header-desc {
+            font-size: 0.85rem;
+            color: #64748B;
+            margin: 0;
+            line-height: 1.4;
+        }
+
+        /* 沿用主題色彩系統 */
+        .theme-blue .header-icon-box   { background: #EFF6FF; color: #3B82F6; }
+        .theme-green .header-icon-box  { background: #F0FDF4; color: #10B981; }
+        .theme-purple .header-icon-box { background: #F5F3FF; color: #8B5CF6; }
+        .theme-orange .header-icon-box { background: #FFFBEB; color: #F59E0B; }
+        .theme-red .header-icon-box    { background: #FEF2F2; color: #EF4444; }
+        .theme-cyan .header-icon-box   { background: #ECFEFF; color: #06B6D4; }
+
+        /* 手機版適配 (自動把按鈕排到下方) */
+        @media (max-width: 768px) {
+            .page-header-card { padding: 14px 16px; margin-bottom: 20px; }
+            .page-header-card .header-icon-box { width: 38px; height: 38px; font-size: 1.1rem; margin-right: 12px; }
+            .page-header-card .header-title { font-size: 1.05rem; }
+            .page-header-card .header-desc { font-size: 0.8rem; }
+        }
     </style>
 </head>
 <body>
@@ -579,35 +638,55 @@
             </div>
 
             <div id="section-records" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-5">
-                    <h2 class="h2-title mb-0">治療紀錄列表</h2>
-                    <button class="btn btn-success btn-sm role-only" data-allow="therapist" onclick="openTherapyForm()">
-                        <i class="fas fa-plus"></i> 新增紀錄表單
-                    </button>
+                <div class="page-header-card theme-blue d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="header-icon-box"><i class="fas fa-file-medical"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">治療紀錄</h4>
+                            <p class="header-desc">掌握專業建議，追蹤早療與醫療進度</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-success btn-sm role-only shadow-sm rounded-pill px-3 fw-bold" data-allow="therapist" onclick="openTherapyForm()">
+                            <i class="fas fa-plus"></i> 新增紀錄
+                        </button>
+                    </div>
                 </div>
                 <div id="record-list" class="list-group list-group-flush"></div>
             </div>
 
             <div id="section-iep" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-5">
-                    <h2 class="h2-title mb-0">IEP 個案資料</h2>
-                    <button class="btn btn-danger btn-sm role-only" data-allow="teacher" onclick="openIepUpload()">
-                        <i class="fas fa-cloud-upload-alt"></i> 上傳
-                    </button>
+                <div class="page-header-card theme-green d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="header-icon-box"><i class="fas fa-folder-open"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">IEP 資料</h4>
+                            <p class="header-desc">查閱與管理個別化教育計畫檔案</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-danger btn-sm role-only shadow-sm rounded-pill px-3 fw-bold" data-allow="teacher" onclick="openIepUpload()">
+                            <i class="fas fa-cloud-upload-alt"></i> 上傳檔案
+                        </button>
+                    </div>
                 </div>
                 <div id="iep-list" class="row g-4"></div>
             </div>
 
             <div id="section-messages" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="h2-title mb-0">留言板</h2>
-                    <button class="btn btn-outline-primary btn-sm rounded-pill" onclick="getAiSummary()">
-                        <i class="fas fa-robot"></i> AI 重點摘要
-                    </button>
-                </div>
-                <div id="ai-summary-box" class="alert alert-info d-none mb-4 border-0" style="background: #EFF6FF;">
-                    <h6 class="text-primary fw-bold mb-2"><i class="fas fa-magic"></i> Gemini AI 摘要</h6>
-                    <p id="ai-summary-content" class="mb-0 small text-secondary"></p>
+                <div class="page-header-card theme-purple d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="header-icon-box"><i class="fas fa-comments"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">留言板</h4>
+                            <p class="header-desc">團隊即時訊息交流與 AI 重點摘要</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-outline-primary btn-sm rounded-pill shadow-sm px-3 fw-bold bg-white" onclick="getAiSummary()">
+                            <i class="fas fa-robot text-primary"></i> AI 重點摘要
+                        </button>
+                    </div>
                 </div>
                 <div class="chat-container mb-4" style="height: 500px;">
                     <div id="chat-box" class="chat-box p-3"></div>
@@ -621,39 +700,56 @@
             </div>
 
             <div id="section-questions" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <div>
-                        <h2 class="h2-title mb-1"><i class="fas fa-comments text-primary me-2"></i>提問與回覆</h2>
+                <div class="page-header-card theme-cyan d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="header-icon-box"><i class="fas fa-question-circle"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">提問回覆</h4>
+                            <p class="header-desc">跨專業針對性諮詢與對話追蹤</p>
+                        </div>
                     </div>
-                    <button class="btn btn-info text-white btn-sm rounded-pill fw-bold px-3 shadow-sm" onclick="openQuestionModal()">
-                        <i class="fas fa-plus-circle me-1"></i> 我要提問
-                    </button>
+                    <div>
+                        <button class="btn btn-info text-white btn-sm rounded-pill fw-bold px-3 shadow-sm" onclick="openQuestionModal()">
+                            <i class="fas fa-plus-circle me-1"></i> 我要提問
+                        </button>
+                    </div>
                 </div>
-                
-                <!-- 將原本的 row 替換為 flex-column 垂直列表 -->
                 <div id="questions-list" class="d-flex flex-column gap-4 pb-5"></div>
             </div>
 
             <div id="section-calendar" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-3">
-                    <h2 class="h2-title mb-0"><i class="fas fa-calendar-check text-primary me-2"></i>本月排程</h2>
-                    <input type="month" id="calendar-month-picker" class="form-control form-control-sm w-auto">
+                <div class="page-header-card theme-orange d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="header-icon-box"><i class="fas fa-calendar-alt"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">行事曆</h4>
+                            <p class="header-desc">統整會議、治療時間與重要排程</p>
+                        </div>
+                    </div>
+                    <div>
+                        <input type="month" id="calendar-month-picker" class="form-control form-control-sm w-auto rounded-pill shadow-sm px-3 text-secondary fw-bold">
+                    </div>
                 </div>
                 <div id="calendar"></div>
             </div>
 
             <div id="section-home-log" class="d-none animate-fade">
-                <div class="d-flex justify-content-between align-items-center mb-4">
-                    <h2 class="h2-title mb-0">居家表現紀錄</h2>
-                    <!-- 限制只有家長可以發佈新貼文 -->
-                    <button class="btn btn-primary btn-sm rounded-pill role-only" data-allow="parents" onclick="openHomeLogModal()">
-                        <i class="fas fa-plus"></i> 新增紀錄
-                    </button>
+                <div class="page-header-card theme-red d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    <div class="d-flex align-items-center mb-3 mb-md-0">
+                        <div class="header-icon-box"><i class="fas fa-home"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">居家表現</h4>
+                            <p class="header-desc">家長上傳日常紀錄，專業即時回饋</p>
+                        </div>
+                    </div>
+                    <div>
+                        <button class="btn btn-primary btn-sm rounded-pill role-only shadow-sm px-3 fw-bold" data-allow="parents" onclick="openHomeLogModal()">
+                            <i class="fas fa-plus"></i> 新增紀錄
+                        </button>
+                    </div>
                 </div>
                 
-                <!-- 貼文列表顯示區 -->
                 <div id="home-log-feed" class="d-flex flex-column gap-4">
-                    <!-- 這裡將透過 JS 動態載入貼文與多層回覆 -->
                 </div>
             </div>
         </div>
