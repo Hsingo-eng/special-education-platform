@@ -1034,3 +1034,187 @@ hr::before {
     from { opacity: 0; transform: translateY(-10px); }
     to { opacity: 1; transform: translateY(0); }
 }
+
+/* ========================================== */
+/* 🧩 首頁：專業拼圖儀表板 (Professional Puzzle Dashboard) */
+/* ========================================== */
+.max-w-900 { max-width: 1000px; }
+
+/* --- 1. 大型抽象拼圖視覺 --- */
+.bg-puzzle-decoration {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    pointer-events: none; /* 絕對不能擋住滑鼠點擊 */
+    z-index: -1;          /* 放置於所有內容的最底層 */
+    overflow: hidden;
+}
+
+.bg-puzzle {
+    position: absolute;
+    opacity: 0.05; /* 極度透明，不會干擾文字閱讀 */
+}
+
+/* 右上角放大，帶有一點旋轉角度 */
+.bg-puzzle.p-top-right {
+    top: -10%;
+    right: -5%;
+    width: 500px;
+    height: 500px;
+    transform: rotate(15deg);
+}
+
+/* 左下角稍微小一點，作為視覺平衡 */
+.bg-puzzle.p-bottom-left {
+    bottom: 5%;
+    left: -10%;
+    width: 350px;
+    height: 350px;
+    transform: rotate(-15deg);
+}
+
+/* 針對背景優化的緩慢漂浮動畫 */
+@keyframes bgPuzzleFloat {
+    0%, 100% { transform: translate(0, 0) rotate(0deg); }
+    50% { transform: translate(15px, 15px) rotate(2deg); }
+}
+
+/* 將動畫時間拉長至 8-12 秒，營造出寧靜的高級感 */
+.bg-puzzle .p1 { animation: bgPuzzleFloat 10s ease-in-out infinite; }
+.bg-puzzle .p2 { animation: bgPuzzleFloat 12s ease-in-out infinite 1s reverse; }
+.bg-puzzle .p3 { animation: bgPuzzleFloat 9s ease-in-out infinite 2s; }
+.bg-puzzle .p4 { animation: bgPuzzleFloat 11s ease-in-out infinite 0.5s reverse; }
+
+/* --- 2. 目前服務個案卡片 --- */
+.current-case-card {
+    background: #ffffff;
+    border-radius: 16px;
+    border: 1px solid #E2E8F0;
+    overflow: hidden;
+    transition: box-shadow 0.3s ease;
+}
+.current-case-card:hover {
+    box-shadow: 0 8px 24px rgba(0,0,0,0.06) !important;
+}
+
+/* 邊緣的抽象拼圖接點設計 (左側裝飾條) */
+.case-puzzle-edge {
+    position: absolute;
+    left: 0;
+    top: 0;
+    bottom: 0;
+    width: 6px;
+    background-color: #3B82F6;
+}
+.case-puzzle-edge::after {
+    content: '';
+    position: absolute;
+    left: 6px;
+    top: 50%;
+    transform: translateY(-50%);
+    width: 10px;
+    height: 24px;
+    background-color: #3B82F6;
+    border-radius: 0 10px 10px 0;
+}
+
+.case-avatar-box {
+    width: 54px;
+    height: 54px;
+    background-color: #EFF6FF;
+    border-radius: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.5rem;
+}
+.status-dot {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    display: inline-block;
+}
+.case-action-btn:hover { background-color: #F8FAFC; color: #2563EB; }
+
+@media (min-width: 768px) {
+    .border-start-md { border-left: 1px solid #E2E8F0; }
+}
+
+/* --- 3. 現代化功能卡片 --- */
+.modern-feature-card {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 24px 20px;
+    border: 1px solid #E2E8F0;
+    cursor: pointer;
+    position: relative;
+    overflow: hidden;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.modern-feature-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 12px 24px rgba(0, 0, 0, 0.05);
+}
+
+.card-icon-box {
+    width: 46px;
+    height: 46px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    margin-bottom: 16px;
+    transition: transform 0.3s ease;
+}
+.modern-feature-card:hover .card-icon-box { transform: scale(1.1); }
+
+.card-title { font-weight: 700; color: #1E293B; font-size: 1.1rem; margin-bottom: 6px; }
+.card-desc { color: #64748B; font-size: 0.88rem; margin-bottom: 0; line-height: 1.5; }
+
+/* 抽象幾何拼圖浮水印 (極淡) */
+.card-puzzle-watermark {
+    position: absolute;
+    bottom: -10px;
+    right: -10px;
+    width: 90px;
+    height: 90px;
+    opacity: 0.03;
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 100 100' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M20,0 L80,0 A20,20 0 0,1 100,20 L100,35 A15,15 0 0,0 100,65 L100,80 A20,20 0 0,1 80,100 L65,100 A15,15 0 0,0 35,100 L20,100 A20,20 0 0,1 0,80 L0,20 A20,20 0 0,1 20,0 Z' fill='%23000000'/%3E%3C/svg%3E");
+    background-repeat: no-repeat;
+    background-size: contain;
+    transition: opacity 0.3s ease;
+    pointer-events: none;
+}
+.modern-feature-card:hover .card-puzzle-watermark { opacity: 0.08; }
+
+/* --- 主題色彩系統 --- */
+.theme-blue .card-icon-box { background: #EFF6FF; color: #3B82F6; }
+.theme-blue:hover { border-color: #93C5FD; }
+.theme-blue .card-puzzle-watermark { filter: invert(45%) sepia(98%) hue-rotate(205deg); }
+
+.theme-green .card-icon-box { background: #F0FDF4; color: #10B981; }
+.theme-green:hover { border-color: #86EFAC; }
+.theme-green .card-puzzle-watermark { filter: invert(56%) sepia(61%) hue-rotate(113deg); }
+
+.theme-purple .card-icon-box { background: #F5F3FF; color: #8B5CF6; }
+.theme-purple:hover { border-color: #C4B5FD; }
+.theme-purple .card-puzzle-watermark { filter: invert(47%) sepia(87%) hue-rotate(231deg); }
+
+.theme-orange .card-icon-box { background: #FFFBEB; color: #F59E0B; }
+.theme-orange:hover { border-color: #FCD34D; }
+.theme-orange .card-puzzle-watermark { filter: invert(66%) sepia(83%) hue-rotate(352deg); }
+
+.theme-red .card-icon-box { background: #FEF2F2; color: #EF4444; }
+.theme-red:hover { border-color: #FCA5A5; }
+.theme-red .card-puzzle-watermark { filter: invert(36%) sepia(94%) hue-rotate(338deg); }
+
+.theme-cyan .card-icon-box { background: #ECFEFF; color: #06B6D4; }
+.theme-cyan:hover { border-color: #67E8F9; }
+.theme-cyan .card-puzzle-watermark { filter: invert(56%) sepia(82%) hue-rotate(145deg); }

@@ -308,10 +308,17 @@ function updateUI(user) {
     if (header) header.classList.remove("d-none");
 
     document.querySelectorAll(".role-restricted").forEach(el => {
-        const deny = el.getAttribute("data-deny");
-        if (deny && deny.includes(user.role)) {
-            el.style.display = "none";
-        }
+        const deny = (el.getAttribute("data-deny") || "")
+            .split(/[,\s]+/)
+            .filter(Boolean);
+        el.style.display = deny.includes(user.role) ? "none" : "";
+    });
+
+    document.querySelectorAll(".role-only").forEach(el => {
+        const allowedRoles = (el.getAttribute("data-allow") || "")
+            .split(/[,\s]+/)
+            .filter(Boolean);
+        el.style.display = allowedRoles.includes(user.role) ? "" : "none";
     });
 }
 

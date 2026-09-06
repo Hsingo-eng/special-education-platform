@@ -253,9 +253,41 @@ app.get("/api/records", verifyToken, async (req, res) => {
 
 app.post("/api/records", verifyToken, checkRole(['therapist']), async (req, res) => {
     try {
+        const {
+            date,
+            session_Type,
+            duration,
+            comp_content,
+            comp_perf,
+            exp_content,
+            exp_perf,
+            art_content,
+            art_perf,
+            comm_content,
+            comm_perf,
+            participation,
+            strategies,
+            remarks
+        } = req.body;
         const newRecord = {
-            id: `rec-${Date.now()}`, date: new Date().toISOString().split('T')[0], therapist_name: req.user.name,
-            content: req.body.content, teacher_reply: "", created_at: new Date().toISOString()
+            id: `rec-${Date.now()}`,
+            date: date || new Date().toISOString().split('T')[0],
+            session_Type: session_Type || "",
+            duration: duration || "",
+            comp_content: comp_content || "",
+            comp_perf: comp_perf || "",
+            exp_content: exp_content || "",
+            exp_perf: exp_perf || "",
+            art_content: art_content || "",
+            art_perf: art_perf || "",
+            comm_content: comm_content || "",
+            comm_perf: comm_perf || "",
+            participation: participation || "",
+            strategies: strategies || "",
+            remarks: remarks || "",
+            therapist_name: req.user.name,
+            teacher_reply: "",
+            created_at: new Date().toISOString()
         };
         await appendRow("records", newRecord);
         io.emit("record_update", { action: 'add', user: req.user.name });
@@ -356,7 +388,7 @@ app.get("/api/home_logs", verifyToken, async (req, res) => {
 });
 
 // 2. 新增居家表現貼文 (家長端)
-app.post("/api/home_logs", verifyToken, async (req, res) => {
+app.post("/api/home_logs", verifyToken, checkRole(['parents']), async (req, res) => {
     try {
         const roleLabel = getRoleLabel(req.user.role);
         const newLog = {
@@ -375,7 +407,7 @@ app.post("/api/home_logs", verifyToken, async (req, res) => {
 });
 
 // 3. 新增回覆 (教師與治療師端)
-app.post("/api/home_logs/reply", verifyToken, async (req, res) => {
+app.post("/api/home_logs/reply", verifyToken, checkRole(['teacher', 'therapist']), async (req, res) => {
     try {
         const { logId, replyText } = req.body;
         const allLogs = await getSheetData("home_logs");
@@ -397,10 +429,9 @@ app.post("/api/home_logs/reply", verifyToken, async (req, res) => {
 
         const updatedRepliesString = JSON.stringify(replies);
 
-        // 🌟 使用真實的 Google Sheets API 覆寫特定儲存格
-        // 確保您的試算表操作物件為 sheets，ID 變數為 SPREADSHEET_ID
+        // 使用 Google Sheets API 覆寫特定儲存格。
         await sheets.spreadsheets.values.update({
-            spreadsheetId: SPREADSHEET_ID,
+            spreadsheetId: SHEET_ID,
             range: `home_logs!F${logIndex + 2}`, // F欄為replies，logIndex + 2為對應的列數
             valueInputOption: "USER_ENTERED",
             resource: {
