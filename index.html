@@ -491,7 +491,6 @@
         
         <!-- 1. Hero & 大型抽象拼圖 (無人物，中央留白象徵整合) -->
         <div class="dashboard-hero text-center mb-5">
-            <h2 class="fw-bold mb-2" style="color: #1E293B; letter-spacing: 1px;">學前特教專業人員溝通平台</h2>
             <!-- 背景動畫拼圖裝飾 (Fixed Background) -->
         <div class="bg-puzzle-decoration">
             <!-- 右上角大型拼圖 (藍綠色系) -->
@@ -553,10 +552,15 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 3. 操作按鈕 (改為所有人皆可查看) -->
-                        <div class="col-12 col-md-3 text-md-end text-center p-0">
-                            <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openViewCaseModal()">
-                                <i class="fas fa-file-alt me-1"></i> 班級現況與資料
+                        <!-- 3. 操作按鈕 (右側) -->
+                        <div class="col-12 col-md-3 text-md-end text-center p-0 mt-3 mt-md-0 d-flex justify-content-md-end justify-content-center gap-2">
+                            <!-- 只有教師看得到這個編輯按鈕 -->
+                            <button class="btn btn-primary rounded-pill px-3 fw-bold shadow-sm role-only" data-allow="teacher" onclick="openEditCaseModal()">
+                                <i class="fas fa-edit"></i> 編輯資料
+                            </button>
+                            <!-- 所有人都能看這個檢視按鈕 -->
+                            <button class="btn btn-outline-primary rounded-pill px-3 fw-bold shadow-sm" onclick="openViewCaseModal()">
+                                <i class="fas fa-file-alt me-1"></i> 班級現況
                             </button>
                         </div>
                     </div>
