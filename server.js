@@ -179,6 +179,41 @@ app.post("/api/auth/login", async (req, res) => {
 
 app.get("/api/auth/me", verifyToken, (req, res) => res.json(req.user));
 
+// ==========================================
+// 🧑‍🎓 個案資料 API
+// ==========================================
+
+// 讀取個案資料
+app.get("/api/case_info", verifyToken, async (req, res) => {
+    try {
+        const data = await getSheetData("case_info");
+        // 回傳第一筆(唯一一筆)資料，若無資料則回傳預設空值
+        const caseData = data.length > 0 ? data[0] : { name: "尚未設定", grade: "-", birthday: "" };
+        res.json({ data: caseData });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// 更新個案資料 (限教師)
+app.put("/api/case_info", verifyToken, checkRole(['teacher']), async (req, res) => {
+    try {
+        const { name, grade, birthday } = req.body;
+        // 直接覆寫 case_info 的第二列 (A2:C2)
+        await sheets.spreadsheets.values.update({
+            spreadsheetId: SHEET_ID, 
+            range: `case_info!A2:C2`, 
+            valueInputOption: "USER_ENTERED",
+            resource: { values: [[name, grade, birthday]] }
+        });
+        
+        if (typeof io !== 'undefined') io.emit("case_info_update");
+        res.json({ message: "個案資料更新成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
 // --- 📅 行事曆 API ---
 app.get("/api/calendar", verifyToken, async (req, res) => {
     try {

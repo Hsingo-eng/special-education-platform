@@ -451,6 +451,91 @@ function executeShowSection(sectionId) {
 }
 
 // ==========================================
+// 🧑‍🎓 個案資料邏輯
+// ==========================================
+
+// 計算年齡的輔助函數
+function calculateAge(birthdayString) {
+    if (!birthdayString) return "";
+    const today = new Date();
+    const birthDate = new Date(birthdayString);
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const m = today.getMonth() - birthDate.getMonth();
+    if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+    }
+    return age;
+}
+
+// 載入個案資料並顯示在主畫面
+async function loadCaseInfo() {
+    try {
+        const res = await apiRequest(`${API_URL}/api/case_info`);
+        const json = await res.json();
+        const caseData = json.data;
+
+        document.getElementById('display-case-name').innerText = caseData.name || "未設定";
+        document.getElementById('display-case-grade').innerText = caseData.grade || "-";
+        
+        if (caseData.birthday) {
+            document.getElementById('display-case-birthday').innerText = caseData.birthday.replace(/-/g, '/');
+            const age = calculateAge(caseData.birthday);
+            document.getElementById('display-case-age').innerText = `(${age}歲)`;
+        } else {
+            document.getElementById('display-case-birthday').innerText = "--/--/--";
+            document.getElementById('display-case-age').innerText = "";
+        }
+
+        // 將資料預填入編輯表單
+        document.getElementById('input-case-name').value = caseData.name || "";
+        document.getElementById('input-case-grade').value = caseData.grade || "";
+        document.getElementById('input-case-birthday').value = caseData.birthday || "";
+        
+    } catch (err) {
+        console.error("載入個案資料失敗", err);
+    }
+}
+
+// 打開編輯視窗
+function openEditCaseModal() {
+    new bootstrap.Modal(document.getElementById('editCaseModal')).show();
+}
+
+// 送出編輯資料
+async function submitCaseEdit() {
+    const name = document.getElementById('input-case-name').value.trim();
+    const grade = document.getElementById('input-case-grade').value.trim();
+    const birthday = document.getElementById('input-case-birthday').value;
+
+    if (!name) return Swal.fire('提示', '請至少填寫個案姓名', 'warning');
+
+    try {
+        const res = await apiRequest(`${API_URL}/api/case_info`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ name, grade, birthday })
+        });
+
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('editCaseModal')).hide();
+            Swal.fire({ icon: 'success', title: '更新成功', timer: 1500, showConfirmButton: false });
+            loadCaseInfo(); // 重新載入畫面資料
+        } else {
+            throw new Error('更新失敗');
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '更新失敗', text: '請確認網路連線或權限' });
+    }
+}
+
+// 若有使用 Socket.io，可加入監聽讓所有人畫面即時更新
+if (typeof io !== 'undefined' && socket) {
+    socket.on("case_info_update", () => {
+        loadCaseInfo();
+    });
+}
+
+// ==========================================
 // 💡 提問與回覆：角色視覺對照輔助函數
 // ==========================================
 function getRoleVisuals(roleString) {
@@ -1513,7 +1598,6 @@ async function submitIepGoal() {
     }
 }
 
-// 重新載入目標與策略 (加入刪除按鈕與權限判斷)
 // 狀態標籤色彩小幫手
 function getGoalStatusStyle(status) {
     if (status === '已達成') return { bg: '#D1FAE5', text: '#059669', border: '#A7F3D0' };
@@ -1521,7 +1605,7 @@ function getGoalStatusStyle(status) {
     return { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' }; // 未開始
 }
 
-// 重新載入目標與策略 (加入狀態追蹤)
+// 重新載入目標與策略 (加入狀態追蹤與修正排版)
 async function loadIepGoals() {
     const list = document.getElementById('iep-goal-list');
     if (!list) return;
@@ -1537,19 +1621,20 @@ async function loadIepGoals() {
         }
 
         list.innerHTML = json.data.map(goal => {
+            // 1. 刪除按鈕
             const canDeleteGoal = currentUser && currentUser.role === 'teacher';
             const goalDeleteBtn = canDeleteGoal ? 
                 `<button class="btn btn-outline-danger btn-sm rounded-pill py-0 px-2 ms-3" onclick="deleteIepGoal('${goal.id}')" title="刪除此目標"><i class="fas fa-trash-alt small"></i></button>` : '';
 
-            // 🟢 渲染動態狀態標籤或選單
+            // 2. 狀態標籤 (下拉選單或純標籤)
             const currentStatus = goal.status || '未開始';
             const sStyle = getGoalStatusStyle(currentStatus);
             let statusHtml = '';
             
             if (currentUser && currentUser.role === 'teacher') {
                 statusHtml = `
-                    <select class="form-select form-select-sm ms-md-3 mt-2 mt-md-0 fw-bold rounded-pill shadow-sm" 
-                            style="width: 105px; background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; cursor: pointer;"
+                    <select class="form-select form-select-sm ms-md-4 mt-3 mt-md-0 fw-bold rounded-pill shadow-sm" 
+                            style="width: 120px; background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; cursor: pointer;"
                             onchange="updateIepGoalStatus('${goal.id}', this.value)">
                         <option value="未開始" ${currentStatus === '未開始' ? 'selected' : ''}>未開始</option>
                         <option value="練習中" ${currentStatus === '練習中' ? 'selected' : ''}>練習中</option>
@@ -1557,9 +1642,10 @@ async function loadIepGoals() {
                     </select>
                 `;
             } else {
-                statusHtml = `<span class="badge rounded-pill ms-md-3 mt-2 mt-md-0 px-3 py-2 shadow-sm" style="background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; font-size: 0.85rem;">${currentStatus}</span>`;
+                statusHtml = `<span class="badge rounded-pill ms-md-4 mt-3 mt-md-0 px-3 py-2 shadow-sm" style="background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; font-size: 0.85rem;">${currentStatus}</span>`;
             }
 
+            // 3. 策略內容
             const strategiesHtml = goal.strategies.map(st => {
                 const authorVis = getRoleVisuals(st.author).avatar;
                 const authorRoleClass = st.author.includes('治療師') ? 'text-success' : 'text-primary';
@@ -1583,15 +1669,18 @@ async function loadIepGoals() {
                 `;
             }).join('');
 
+            // 4. 卡片排版整合
             return `
-            <div class="card border-0 shadow-sm rounded-4 overflow-hidden">
+            <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
                 <div class="card-header bg-white border-bottom px-4 py-3 d-flex flex-column flex-md-row align-items-md-center">
                     <div class="d-flex align-items-center">
                         <i class="fas fa-star text-warning me-2"></i>
                         <h5 class="fw-bold text-dark mb-0">${goal.goal_title}</h5>
                     </div>
+                    <!-- 狀態追蹤插入在這裡 -->
                     ${statusHtml}
-                    <div class="ms-md-auto d-flex align-items-center mt-2 mt-md-0">
+                    <!-- 日期與刪除按鈕靠右對齊 -->
+                    <div class="ms-md-auto d-flex align-items-center mt-3 mt-md-0">
                         <span class="text-muted small">${goal.date}</span>
                         ${goalDeleteBtn}
                     </div>

@@ -519,41 +519,35 @@
                 <div class="case-puzzle-edge"></div>
                 
                 <div class="card-body p-4 d-flex flex-column flex-md-row justify-content-between align-items-md-center">
-                    
                     <!-- 個案基本資料 -->
                     <div class="d-flex align-items-center mb-4 mb-md-0">
                         <div class="case-avatar-box me-3">
-                            <i class="fas fa-folder-open text-primary"></i>
+                            <i class="fas fa-child text-primary"></i> <!-- 換成符合幼兒的 icon -->
                         </div>
                         <div>
                             <div class="text-secondary small fw-bold mb-1"><i class="fas fa-puzzle-piece me-1"></i>目前服務個案</div>
                             <div class="d-flex align-items-end mb-1">
-                                <h4 class="fw-bold mb-0 me-2 text-dark">小○○</h4>
-                                <span class="badge bg-light text-secondary border rounded-pill px-2">大班</span>
+                                <h4 class="fw-bold mb-0 me-2 text-dark" id="display-case-name">載入中...</h4>
+                                <span class="badge bg-light text-secondary border rounded-pill px-2" id="display-case-grade">--</span>
                             </div>
-                            <div class="text-muted small mt-1">最後更新：2026/09/03</div>
+                            <!-- 新增：顯示生日與年齡，並移除最後更新 -->
+                            <div class="text-muted small mt-1">
+                                <i class="fas fa-birthday-cake me-1 text-secondary"></i> 
+                                <span id="display-case-birthday">--/--/--</span> 
+                                <span class="ms-1 fw-bold text-primary" id="display-case-age">(--歲)</span>
+                            </div>
                         </div>
                     </div>
 
-                    <!-- 近期更新動態 -->
+                    <!-- 近期更新動態 (保留您原有的程式碼) -->
                     <div class="recent-updates px-md-4 py-2 border-start-md border-light">
-                        <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
-                        <div class="d-flex flex-column gap-2 small">
-                            <div class="d-flex align-items-center text-dark">
-                                <span class="status-dot bg-primary me-2"></span> 治療紀錄 
-                                <span class="text-muted ms-auto ps-3">09/03</span>
-                            </div>
-                            <div class="d-flex align-items-center text-dark">
-                                <span class="status-dot bg-danger me-2"></span> 居家表現 
-                                <span class="text-muted ms-auto ps-3">08/28</span>
-                            </div>
-                        </div>
+                         <!-- ... 保留原本的近期資訊更新結構 ... -->
                     </div>
 
-                    <!-- 操作按鈕 -->
+                    <!-- 操作按鈕 (修改為編輯，並限制只有教師可見) -->
                     <div class="mt-4 mt-md-0 text-md-end text-center">
-                        <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm case-action-btn">
-                            查看個案資料 <i class="fas fa-arrow-right ms-1"></i>
+                        <button class="btn btn-outline-primary rounded-pill px-4 fw-bold shadow-sm case-action-btn role-only" data-allow="teacher" onclick="openEditCaseModal()">
+                            <i class="fas fa-edit me-1"></i> 編輯個案資料
                         </button>
                     </div>
                 </div>
@@ -1005,6 +999,39 @@
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-success text-white rounded-pill px-4 fw-bold" onclick="submitIepGoal()">建立目標</button>
+                </div>
+            </div>
+        </div>
+    </div>
+<!-- 編輯個案資料視窗 -->
+    <div class="modal fade" id="editCaseModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-white border-bottom-0 pb-0">
+                    <h5 class="modal-title fw-bold text-dark">
+                        <i class="fas fa-user-edit text-primary me-2"></i>編輯個案資料
+                    </h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4">
+                    <form id="editCaseForm">
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">個案姓名</label>
+                            <input type="text" class="form-control" id="input-case-name" style="border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">班級 / 年級</label>
+                            <input type="text" class="form-control" id="input-case-grade" style="border-radius: 8px;">
+                        </div>
+                        <div class="mb-3">
+                            <label class="form-label fw-bold text-secondary small">出生年月日</label>
+                            <input type="date" class="form-control" id="input-case-birthday" style="border-radius: 8px;">
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
+                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitCaseEdit()">儲存修改</button>
                 </div>
             </div>
         </div>
