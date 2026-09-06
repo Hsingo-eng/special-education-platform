@@ -895,25 +895,32 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 新增：階段性能力評估摘要 -->
+                        <!-- 1. 新增：階段性能力評估摘要 (改為開關隱藏式) -->
                         <div class="platform-card mb-3 p-3 border-start border-3 border-info">
-                            <h6 class="fw-bold text-dark mb-2">▍階段性能力評估摘要</h6>
-                            <p class="small text-secondary mb-2">請簡述幼兒目前的能力基準 (例如：需何種程度之提示、目前慣用語彙階段等)</p>
-                            <textarea class="form-control bg-light border-0" id="input-assessment" rows="2" placeholder="請簡述評估當時的能力表現..."></textarea>
+                            <div class="form-check form-switch mb-0">
+                                <input class="form-check-input" type="checkbox" id="check-assessment" onchange="document.getElementById('area-assessment').classList.toggle('d-none', !this.checked)" style="cursor: pointer;">
+                                <label class="form-check-label fw-bold text-dark" for="check-assessment" style="cursor: pointer;">
+                                    📝 填寫階段性能力評估 (非每次必填)
+                                </label>
+                            </div>
+                            <div id="area-assessment" class="d-none mt-3 border-top pt-3">
+                                <p class="small text-secondary mb-2">請簡述幼兒目前的能力基準 (例如：指令理解程度、主要表達方式、同儕互動等)，建議於治療初期或能力有明顯進展時填寫。</p>
+                                <textarea class="form-control bg-light border-0" id="input-assessment" rows="3" placeholder="請簡述評估當時的能力表現..."></textarea>
+                            </div>
                         </div>
 
-                        <!-- 調整：本次治療目標與課後狀況 -->
+                        <!-- 2. 調整：本次治療目標與課後狀況 (訓練改為教學) -->
                         <div class="platform-card mb-3 p-3 border-start border-3 border-warning">
                             <h6 class="fw-bold text-dark mb-2">▍本次治療目標與課後狀況</h6>
-                            <p class="small text-secondary mb-2">請說明今日訓練重點及幼兒達成狀況</p>
-                            <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日目標為聽懂兩項連續指令..."></textarea>
+                            <p class="small text-secondary mb-2">請說明今日教學重點及幼兒達成狀況</p>
+                            <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日教學重點為聽懂兩項連續指令..."></textarea>
                         </div>
 
-                        <!-- 調整：融入班級作息之具體建議 -->
+                        <!-- 3. 調整：融入班級作息之具體建議 (作息舉例修改) -->
                         <div class="platform-card p-3 border-start border-3 border-success">
                             <h6 class="fw-bold text-dark mb-2">▍融入班級作息之具體建議</h6>
-                            <p class="small text-secondary mb-2">請提供教師在日常作息(點心、角落、戶外)中可協助幼兒的具體作法</p>
-                            <textarea class="form-control bg-light border-0" id="input-class-integration" rows="3" placeholder="例如：在點心時間，老師可以嘗試..."></textarea>
+                            <p class="small text-secondary mb-2">請提供教師在日常作息 (點心、學習區、戶外大肌肉、團體活動) 中可協助幼兒的具體作法</p>
+                            <textarea class="form-control bg-light border-0" id="input-class-integration" rows="3" placeholder="例如：在學習區時間，老師可以嘗試..."></textarea>
                         </div>
                     </form>
                 </div>

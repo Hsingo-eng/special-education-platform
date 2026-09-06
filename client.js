@@ -805,22 +805,29 @@ async function loadRecords() {
                     </div>
 
                     <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border-left: 5px solid #cbd5e1;">
-                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">本堂訓練領域</div>
+                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">本堂教學領域</div>
                         <div class="text-dark fw-bold fs-6" style="line-height: 1.6;">${learningStr}</div>
                     </div>
 
-                    <!-- 🟢 新增的三大區塊 -->
-                    <div class="mb-3">
-                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-search text-info me-1"></i>階段性能力評估摘要</div>
-                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
-                            ${r.assessment || r.remarks || '未填寫'}
-                        </p>
+                    <!-- 🟢 條件判斷：有填寫「階段性評估」時，才顯示這個高亮專屬區塊 -->
+                    ${r.assessment ? `
+                    <div class="mb-4 p-3 rounded shadow-sm" style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 5px solid #0ea5e9;">
+                        <div class="text-info small fw-bold mb-2"><i class="fas fa-search me-1"></i>階段性能力評估摘要</div>
+                        <p class="text-dark mb-0" style="line-height: 1.6; white-space: pre-wrap;">${r.assessment}</p>
                     </div>
+                    ` : ''}
 
                     <div class="mb-3">
                         <div class="text-muted small fw-bold mb-1"><i class="fas fa-bullseye text-warning me-1"></i>本次治療目標與課後狀況</div>
                         <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
                             ${r.goals_status || '未填寫'}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-school text-success me-1"></i>融入班級作息之具體建議</div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
+                            ${r.class_integration || r.strategies || '未填寫'}
                         </p>
                     </div>
                     
