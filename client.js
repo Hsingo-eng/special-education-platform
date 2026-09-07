@@ -787,18 +787,26 @@ async function loadRecords() {
                     <div class="fw-bold text-white fs-6" style="letter-spacing: 1px;">
                         <i class="fas fa-file-medical me-2"></i>治療紀錄
                     </div>
+                    <!-- 日期顯示在這裡 -->
                     <span class="badge bg-white text-primary rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.85rem;">${r.date}</span>
                 </div>
                 
                 <div class="card-body p-4">
                     <div class="row mb-4">
-                        <div class="col-6 border-end">
+                        <!-- 形式 -->
+                        <div class="col-4 border-end">
                             <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">形式</div>
                             <span class="badge rounded-pill px-3 py-2" style="background-color: #f1f5f9; color: #475569; font-weight: 600; font-size: 0.9rem;">
                                 ${r.session_Type || '未填寫'}
                             </span>
                         </div>
-                        <div class="col-6 ps-4">
+                        <!-- 🟢 新增：時長 -->
+                        <div class="col-4 border-end ps-3">
+                            <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">時長</div>
+                            <div class="text-dark fw-bold" style="font-size: 1.05rem;">${r.duration ? r.duration + ' 分鐘' : '未填寫'}</div>
+                        </div>
+                        <!-- 參與度 -->
+                        <div class="col-4 ps-3">
                             <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">參與度</div>
                             <div class="text-dark fw-bold" style="font-size: 1.05rem;">${r.participation || '無'}</div>
                         </div>
@@ -809,7 +817,7 @@ async function loadRecords() {
                         <div class="text-dark fw-bold fs-6" style="line-height: 1.6;">${learningStr}</div>
                     </div>
 
-                    <!-- 🟢 條件判斷：有填寫「階段性評估」時，才顯示這個高亮專屬區塊 -->
+                    <!-- 條件判斷：有填寫「階段性評估」時，才顯示這個高亮專屬區塊 -->
                     ${r.assessment ? `
                     <div class="mb-4 p-3 rounded shadow-sm" style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 5px solid #0ea5e9;">
                         <div class="text-info small fw-bold mb-2"><i class="fas fa-search me-1"></i>階段性能力評估摘要</div>
@@ -824,13 +832,7 @@ async function loadRecords() {
                         </p>
                     </div>
                     
-                    <div class="mb-0">
-                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-school text-success me-1"></i>融入班級作息之具體建議</div>
-                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
-                            ${r.class_integration || r.strategies || '未填寫'}
-                        </p>
-                    </div>
-                    
+                    <!-- 🟢 已刪除重複的區塊，只留這一個 -->
                     <div class="mb-0">
                         <div class="text-muted small fw-bold mb-1"><i class="fas fa-school text-success me-1"></i>融入班級作息之具體建議</div>
                         <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
@@ -840,7 +842,7 @@ async function loadRecords() {
 
                     <hr class="text-muted opacity-25 mt-4 mb-3">
                     
-                    <!-- 🟢 留言回覆區 -->
+                    <!-- 留言回覆區 -->
                     <div class="record-replies-container mb-3">
                         ${repliesHtml}
                     </div>
