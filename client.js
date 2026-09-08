@@ -463,6 +463,7 @@ function calculateAge(birthdayString) {
 }
 
 // 載入個案資料並顯示在主畫面與彈窗
+// 載入個案資料並顯示在主畫面與彈窗
 async function loadCaseInfo() {
     try {
         const res = await apiRequest(`${API_URL}/api/case_info`);
@@ -489,7 +490,6 @@ async function loadCaseInfo() {
         setText('view-understanding', caseData.understanding || "尚未填寫");
         setText('view-expression', caseData.expression || "尚未填寫");
         setText('view-communication', caseData.communication || "尚未填寫");
-        setText('view-participation', caseData.participation || "尚未填寫");
 
         // 3. 編輯視窗防呆填入
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
@@ -499,7 +499,6 @@ async function loadCaseInfo() {
         setVal('input-understanding', caseData.understanding);
         setVal('input-expression', caseData.expression);
         setVal('input-communication', caseData.communication);
-        setVal('input-participation', caseData.participation);
         
     } catch (err) {
         console.error("載入個案資料失敗", err);
@@ -534,8 +533,7 @@ window.submitCaseEdit = async function() {
         birthday: document.getElementById('input-case-birthday')?.value || '',
         understanding: getVal('input-understanding'),
         expression: getVal('input-expression'),
-        communication: getVal('input-communication'),
-        participation: getVal('input-participation')
+        communication: getVal('input-communication')
     };
 
     if (!payload.name) return Swal.fire('提示', '請至少填寫個案姓名', 'warning');
@@ -562,7 +560,6 @@ window.submitCaseEdit = async function() {
         Swal.fire({ icon: 'error', title: '更新失敗', text: '請確認網路連線' });
     }
 };
-
 // ==========================================
 // 💡 提問與回覆：角色視覺對照輔助函數
 // ==========================================
