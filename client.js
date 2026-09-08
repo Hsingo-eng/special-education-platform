@@ -470,19 +470,18 @@ async function loadCaseInfo() {
         const caseData = json.data;
 
         // 1. 首頁卡片
-        if (hasElement('display-case-name')) document.getElementById('display-case-name').innerText = caseData.name || "未設定";
-        if (hasElement('display-case-grade')) document.getElementById('display-case-grade').innerText = caseData.grade || "-";
+        if (document.getElementById('display-case-name')) document.getElementById('display-case-name').innerText = caseData.name || "未設定";
+        if (document.getElementById('display-case-grade')) document.getElementById('display-case-grade').innerText = caseData.grade || "-";
         
         if (caseData.birthday) {
-            if (hasElement('display-case-birthday')) document.getElementById('display-case-birthday').innerText = caseData.birthday.replace(/-/g, '/');
-            const age = calculateAge(caseData.birthday);
-            if (hasElement('display-case-age')) document.getElementById('display-case-age').innerText = `(${age}歲)`;
+            if (document.getElementById('display-case-birthday')) document.getElementById('display-case-birthday').innerText = caseData.birthday.replace(/-/g, '/');
+            if (document.getElementById('display-case-age')) document.getElementById('display-case-age').innerText = `(${calculateAge(caseData.birthday)}歲)`;
         } else {
-            if (hasElement('display-case-birthday')) document.getElementById('display-case-birthday').innerText = "--/--/--";
-            if (hasElement('display-case-age')) document.getElementById('display-case-age').innerText = "";
+            if (document.getElementById('display-case-birthday')) document.getElementById('display-case-birthday').innerText = "--/--/--";
+            if (document.getElementById('display-case-age')) document.getElementById('display-case-age').innerText = "";
         }
 
-        // 2. 檢視視窗 (View Modal) 防呆填入
+        // 2. 檢視視窗防呆填入
         const setText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
         setText('view-name', caseData.name || "未設定");
         setText('view-grade', caseData.grade || "-");
@@ -492,7 +491,7 @@ async function loadCaseInfo() {
         setText('view-communication', caseData.communication || "尚未填寫");
         setText('view-participation', caseData.participation || "尚未填寫");
 
-        // 3. 編輯視窗 (Edit Modal) 防呆填入
+        // 3. 編輯視窗防呆填入
         const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
         setVal('input-case-name', caseData.name);
         setVal('input-case-grade', caseData.grade);
