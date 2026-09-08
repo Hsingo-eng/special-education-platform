@@ -366,13 +366,31 @@ app.post("/api/records/reply", verifyToken, async (req, res) => {
     }
 });
 
-app.put("/api/records/:id", verifyToken, checkRole(['teacher']), async (req, res) => {
+// 編輯治療紀錄
+app.put("/api/records/:id", verifyToken, checkRole(['therapist', 'teacher']), async (req, res) => {
     try {
-        const { id } = req.params; const { reply } = req.body;
-        await updateRow("records", id, { teacher_reply: reply });
-        io.emit("record_update", { action: 'reply', username: req.user.username, user: req.user.name });
-        res.json({ message: "回覆成功" });
-    } catch (e) { res.status(500).json({ message: e.message }); }
+        const id = req.params.id;
+        const updateData = req.body;
+        // 為了安全，確保編輯時不會不小心洗掉原有的留言紀錄
+        delete updateData.replies; 
+        
+        await updateRow("records", id, updateData);
+        if (typeof io !== 'undefined') io.emit("record_update");
+        res.json({ message: "更新成功" });
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
+});
+
+// 刪除治療紀錄
+app.delete("/api/records/:id", verifyToken, checkRole(['therapist', 'teacher']), async (req, res) => {
+    try {
+        await deleteRow("records", req.params.id);
+        if (typeof io !== 'undefined') io.emit("record_update");
+        res.json({ message: "刪除成功" });
+    } catch (e) { 
+        res.status(500).json({ message: e.message }); 
+    }
 });
 
 // ==========================================

@@ -1291,11 +1291,229 @@ function openQuestionModal() {
     });
 }
 
-function openTherapyForm() {
+// 全域變數：用來判斷現在是新增還是編輯
+window.currentEditRecordId = null;
+window.allRecordsData = [];
+
+// 1. 載入並渲染治療紀錄列表
+async function loadRecords() {
+    try {
+        const res = await apiRequest(`${API_URL}/api/records`);
+        const json = await res.json();
+        const list = document.getElementById("record-list");
+        if (!list) return;
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = '<div class="text-center text-muted py-5">暫無治療紀錄</div>';
+            return;
+        }
+
+        // 儲存至全域供編輯使用
+        window.allRecordsData = json.data;
+        const sortedRecords = json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        
+        list.innerHTML = sortedRecords.map(r => {
+            let learningContent = [];
+            if (r.comp_content) learningContent.push(`語言理解`);
+            if (r.exp_content) learningContent.push(`語言表達`);
+            if (r.art_content) learningContent.push(`構音練習`);
+            if (r.comm_content) learningContent.push(`溝通互動`);
+            let learningStr = learningContent.length > 0 ? learningContent.join(' / ') : '無';
+
+            // 安全解析回覆陣列
+            let repliesArray = [];
+            try {
+                if (r.replies && r.replies.trim() !== '') repliesArray = JSON.parse(r.replies);
+            } catch (error) { console.warn('解析留言失敗，已略過'); }
+
+            const repliesHtml = repliesArray.map(reply => {
+                const replyDisplay = formatHomeAuthor(reply.author);
+                const replyAvatar = getRoleVisuals(replyDisplay).avatar;
+                return `
+                <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
+                    <div class="d-flex justify-content-between align-items-center mb-1">
+                        <span class="fw-bold small text-dark">${replyAvatar} ${replyDisplay}</span>
+                        <span class="text-muted" style="font-size: 0.75rem;">${new Date(reply.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                    </div>
+                    <p class="mb-0 small text-secondary" style="white-space: pre-wrap;">${reply.text}</p>
+                </div>
+                `;
+            }).join('');
+
+            // 🟢 操作選單 (僅限治療師或老師可以編輯/刪除)
+            let actionMenu = '';
+            if (currentUser && (currentUser.role === 'therapist' || currentUser.role === 'teacher')) {
+                actionMenu = `
+                <div class="dropdown ms-2">
+                    <button class="btn btn-sm text-white" type="button" data-bs-toggle="dropdown" style="background: transparent; border: none; padding: 2px 8px;">
+                        <i class="fas fa-ellipsis-v"></i>
+                    </button>
+                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
+                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditRecordModal('${r.id}')"><i class="fas fa-edit text-primary me-2"></i>編輯紀錄</a></li>
+                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteRecord('${r.id}')"><i class="fas fa-trash-alt me-2"></i>刪除紀錄</a></li>
+                    </ul>
+                </div>
+                `;
+            }
+
+            return `
+            <div class="card border-0 shadow-sm mb-4" style="border-radius: 12px; overflow: hidden; background-color: #ffffff;">
+                <div class="card-header d-flex justify-content-between align-items-center py-3" style="background-color: #3b82f6; border-bottom: none;">
+                    <div class="fw-bold text-white fs-6" style="letter-spacing: 1px;">
+                        <i class="fas fa-file-medical me-2"></i>治療紀錄
+                    </div>
+                    <div class="d-flex align-items-center">
+                        <span class="badge bg-white text-primary rounded-pill px-3 py-1 shadow-sm" style="font-size: 0.85rem;">${r.date}</span>
+                        ${actionMenu}
+                    </div>
+                </div>
+                
+                <div class="card-body p-4">
+                    <div class="row mb-4">
+                        <div class="col-4 border-end">
+                            <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">形式</div>
+                            <span class="badge rounded-pill px-3 py-2" style="background-color: #f1f5f9; color: #475569; font-weight: 600; font-size: 0.9rem;">
+                                ${r.session_Type || '未填寫'}
+                            </span>
+                        </div>
+                        <div class="col-4 border-end ps-3">
+                            <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">時長</div>
+                            <div class="text-dark fw-bold" style="font-size: 1.05rem;">${r.duration ? r.duration + ' 分鐘' : '未填寫'}</div>
+                        </div>
+                        <div class="col-4 ps-3">
+                            <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">參與度</div>
+                            <div class="text-dark fw-bold" style="font-size: 1.05rem;">${r.participation || '無'}</div>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 p-3 rounded" style="background-color: #f8fafc; border-left: 5px solid #cbd5e1;">
+                        <div class="text-muted small fw-bold mb-1" style="letter-spacing: 1px;">本堂教學領域</div>
+                        <div class="text-dark fw-bold fs-6" style="line-height: 1.6;">${learningStr}</div>
+                    </div>
+
+                    ${r.assessment ? `
+                    <div class="mb-4 p-3 rounded shadow-sm" style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 5px solid #0ea5e9;">
+                        <div class="text-info small fw-bold mb-2"><i class="fas fa-search me-1"></i>階段性能力評估摘要</div>
+                        <p class="text-dark mb-0" style="line-height: 1.6; white-space: pre-wrap;">${r.assessment}</p>
+                    </div>
+                    ` : ''}
+
+                    <div class="mb-3">
+                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-bullseye text-warning me-1"></i>本次治療目標與課後狀況</div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
+                            ${r.goals_status || '未填寫'}
+                        </p>
+                    </div>
+                    
+                    <div class="mb-0">
+                        <div class="text-muted small fw-bold mb-1"><i class="fas fa-school text-success me-1"></i>融入班級作息之具體建議</div>
+                        <p class="text-dark mb-0 bg-white border rounded p-3" style="line-height: 1.6; border-color: #e2e8f0; white-space: pre-wrap;">
+                            ${r.class_integration || r.strategies || '未填寫'}
+                        </p>
+                    </div>
+
+                    <hr class="text-muted opacity-25 mt-4 mb-3">
+                    
+                    <div class="record-replies-container mb-3">
+                        ${repliesHtml}
+                    </div>
+                    
+                    <div class="input-group input-group-sm mt-3">
+                        <input type="text" id="record-reply-input-${r.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="老師或家長可在此提問或回饋實施狀況...">
+                        <button class="btn btn-primary rounded-pill-end px-3 fw-bold" onclick="submitRecordReply('${r.id}')">留言</button>
+                    </div>
+                </div>
+            </div>
+            `}).join("");
+    } catch (err) { console.error("Load records failed:", err); }
+}
+
+// 2. 打開「新增」表單
+window.openTherapyForm = function() {
+    window.currentEditRecordId = null;
+    document.getElementById('therapyForm').reset();
+    document.getElementById('recordModalTitle').innerHTML = '<i class="fas fa-clipboard-list me-2"></i>新增治療課紀錄';
+    document.querySelectorAll('[id^="area-"]').forEach(el => el.classList.add('d-none'));
+    const otherInput = document.getElementById('input-part-other');
+    if (otherInput) {
+        otherInput.disabled = true;
+        otherInput.value = '';
+    }
     new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
 }
 
-async function submitTherapyRecord() {
+// 3. 打開「編輯」表單並回填資料
+window.openEditRecordModal = function(id) {
+    window.currentEditRecordId = id;
+    const record = window.allRecordsData.find(r => r.id === id);
+    if (!record) return;
+
+    document.getElementById('therapyForm').reset();
+    document.getElementById('recordModalTitle').innerHTML = '<i class="fas fa-edit text-primary me-2"></i>編輯治療課紀錄';
+
+    // 回填基本資料
+    document.getElementById('form-date').value = record.date;
+    if (record.session_Type === '小組') document.getElementById('type-group').checked = true;
+    else document.getElementById('type-indiv').checked = true;
+    document.getElementById('form-duration').value = record.duration || '';
+
+    // 回填參與狀況
+    const parts = record.participation ? record.participation.split('、') : [];
+    ['part-active', 'part-interest', 'part-distracted', 'part-low'].forEach(pid => {
+        const el = document.getElementById(pid);
+        if (el) {
+            el.checked = parts.includes(el.value);
+            const idx = parts.indexOf(el.value);
+            if (idx > -1) parts.splice(idx, 1);
+        }
+    });
+    if (parts.length > 0) {
+        document.getElementById('check-part-other').checked = true;
+        document.getElementById('input-part-other').disabled = false;
+        document.getElementById('input-part-other').value = parts.join('、');
+    } else {
+        document.getElementById('check-part-other').checked = false;
+        document.getElementById('input-part-other').disabled = true;
+        document.getElementById('input-part-other').value = '';
+    }
+
+    // 回填各領域狀態函數
+    const populateArea = (prefix, content, perf) => {
+        if (content || perf) {
+            document.getElementById(`check-${prefix}`).checked = true;
+            document.getElementById(`area-${prefix}`).classList.remove('d-none');
+            document.getElementById(`input-${prefix}-content`).value = content || '';
+            document.getElementById(`select-${prefix}-perf`).value = perf || '';
+        } else {
+            document.getElementById(`check-${prefix}`).checked = false;
+            document.getElementById(`area-${prefix}`).classList.add('d-none');
+        }
+    };
+
+    populateArea('comp', record.comp_content, record.comp_perf);
+    populateArea('exp', record.exp_content, record.exp_perf);
+    populateArea('art', record.art_content, record.art_perf);
+    populateArea('comm', record.comm_content, record.comm_perf);
+
+    // 回填底部三大文字區塊
+    if (record.assessment) {
+        document.getElementById('check-assessment').checked = true;
+        document.getElementById('area-assessment').classList.remove('d-none');
+        document.getElementById('input-assessment').value = record.assessment;
+    } else {
+        document.getElementById('check-assessment').checked = false;
+        document.getElementById('area-assessment').classList.add('d-none');
+        document.getElementById('input-assessment').value = '';
+    }
+
+    document.getElementById('input-goals-status').value = record.goals_status || '';
+    document.getElementById('input-class-integration').value = record.class_integration || record.strategies || '';
+
+    new bootstrap.Modal(document.getElementById('therapyRecordModal')).show();
+}
+
+// 4. 儲存 (新增或更新) 治療紀錄
+window.submitTherapyRecord = async function() {
     const date = document.getElementById('form-date').value;
     if (!date) return Swal.fire('提示', '請至少填寫課程日期', 'warning');
 
@@ -1319,32 +1537,67 @@ async function submitTherapyRecord() {
         comm_content: document.getElementById('input-comm-content')?.value || '',
         comm_perf: document.getElementById('select-comm-perf')?.value || '',
         participation: partChecked.join('、'),
-        
-        strategies: document.getElementById('input-strategies')?.value || '',
-        remarks: document.getElementById('input-remarks')?.value || '',
         assessment: document.getElementById('input-assessment')?.value || '',
         goals_status: document.getElementById('input-goals-status')?.value || '',
-        class_integration: document.getElementById('input-class-integration')?.value || '',
-        replies: JSON.stringify([]) 
+        class_integration: document.getElementById('input-class-integration')?.value || ''
     };
 
     try {
-        const res = await fetch(`${API_URL}/api/records`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify(payload)
-        });
+        let res;
+        if (window.currentEditRecordId) {
+            // 編輯模式 (PUT)
+            res = await apiRequest(`${API_URL}/api/records/${window.currentEditRecordId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        } else {
+            // 新增模式 (POST)，需帶入預設空留言陣列
+            payload.replies = JSON.stringify([]);
+            res = await apiRequest(`${API_URL}/api/records`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+        }
+
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('therapyRecordModal')).hide();
-            Swal.fire('成功', '治療紀錄已新增', 'success');
+            Swal.fire('成功', window.currentEditRecordId ? '紀錄已更新！' : '治療紀錄已新增！', 'success');
             loadRecords();
-            document.getElementById('therapyForm').reset();
-            document.querySelectorAll('[id^="area-"]').forEach(el => el.classList.add('d-none'));
-            const partOtherInput = document.getElementById('input-part-other');
-            if (partOtherInput) partOtherInput.disabled = true;
-        } else throw new Error('錯誤');
-    } catch (e) { Swal.fire('錯誤', '儲存失敗，請檢查後端設定', 'error'); }
+        } else {
+            throw new Error('儲存失敗');
+        }
+    } catch (e) { Swal.fire('錯誤', '儲存失敗，請檢查網路設定', 'error'); }
 }
+
+// 5. 刪除治療紀錄
+window.deleteRecord = async function(id) {
+    const result = await Swal.fire({
+        title: '確定要刪除嗎？',
+        text: "刪除後這筆紀錄與下方的所有留言將無法復原喔！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除！',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await apiRequest(`${API_URL}/api/records/${id}`, {
+                method: 'DELETE'
+            });
+            if (res.ok) {
+                Swal.fire('已刪除', '紀錄已成功刪除', 'success');
+                loadRecords();
+            } else throw new Error('刪除失敗');
+        } catch (err) {
+            Swal.fire('錯誤', err.message, 'error');
+        }
+    }
+};
 
 function openIepUpload() {
     Swal.fire({

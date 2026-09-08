@@ -784,7 +784,7 @@
         <div class="modal-dialog modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 shadow">
                 <div class="modal-header bg-primary text-white">
-                    <h5 class="modal-title fw-bold"><i class="fas fa-clipboard-list me-2"></i>新增治療課紀錄</h5>
+                    <h5 class="modal-title fw-bold" id="recordModalTitle"><i class="fas fa-clipboard-list me-2"></i>新增治療課紀錄</h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
                 <div class="modal-body p-4" style="background-color: #F6F8FA;">
@@ -907,9 +907,9 @@
                             </div>
                         </div>
 
-                        <!-- 2. 調整：本次治療目標與課後狀況 (訓練改為教學) -->
+                        <!-- 2. 調整：本次治療目標與課堂表現 (訓練改為教學) -->
                         <div class="platform-card mb-3 p-3 border-start border-3 border-warning">
-                            <h6 class="fw-bold text-dark mb-2">▍本次治療目標與課後狀況</h6>
+                            <h6 class="fw-bold text-dark mb-2">▍本次治療目標與課堂表現</h6>
                             <p class="small text-secondary mb-2">請說明今日教學重點及幼兒達成狀況</p>
                             <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日教學重點為聽懂兩項連續指令..."></textarea>
                         </div>
@@ -1026,39 +1026,6 @@
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-success text-white rounded-pill px-4 fw-bold" onclick="submitIepGoal()">建立目標</button>
-                </div>
-            </div>
-        </div>
-    </div>
-<!-- 編輯個案資料視窗 -->
-    <div class="modal fade" id="editCaseModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-                <div class="modal-header bg-white border-bottom-0 pb-0">
-                    <h5 class="modal-title fw-bold text-dark">
-                        <i class="fas fa-user-edit text-primary me-2"></i>編輯個案資料
-                    </h5>
-                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                </div>
-                <div class="modal-body p-4">
-                    <form id="editCaseForm">
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-secondary small">個案姓名</label>
-                            <input type="text" class="form-control" id="input-case-name" style="border-radius: 8px;">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-secondary small">班級 / 年級</label>
-                            <input type="text" class="form-control" id="input-case-grade" style="border-radius: 8px;">
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold text-secondary small">出生年月日</label>
-                            <input type="date" class="form-control" id="input-case-birthday" style="border-radius: 8px;">
-                        </div>
-                    </form>
-                </div>
-                <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
-                    <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitCaseEdit()">儲存修改</button>
                 </div>
             </div>
         </div>
