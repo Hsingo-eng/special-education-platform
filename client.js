@@ -462,66 +462,107 @@ function calculateAge(birthdayString) {
     return age;
 }
 
-// 載入個案資料並顯示在主畫面
+// 載入個案資料並顯示在主畫面與彈窗
 async function loadCaseInfo() {
     try {
         const res = await apiRequest(`${API_URL}/api/case_info`);
         const json = await res.json();
         const caseData = json.data;
 
-        document.getElementById('display-case-name').innerText = caseData.name || "未設定";
-        document.getElementById('display-case-grade').innerText = caseData.grade || "-";
+        // 1. 首頁卡片
+        if (hasElement('display-case-name')) document.getElementById('display-case-name').innerText = caseData.name || "未設定";
+        if (hasElement('display-case-grade')) document.getElementById('display-case-grade').innerText = caseData.grade || "-";
         
         if (caseData.birthday) {
-            document.getElementById('display-case-birthday').innerText = caseData.birthday.replace(/-/g, '/');
+            if (hasElement('display-case-birthday')) document.getElementById('display-case-birthday').innerText = caseData.birthday.replace(/-/g, '/');
             const age = calculateAge(caseData.birthday);
-            document.getElementById('display-case-age').innerText = `(${age}歲)`;
+            if (hasElement('display-case-age')) document.getElementById('display-case-age').innerText = `(${age}歲)`;
         } else {
-            document.getElementById('display-case-birthday').innerText = "--/--/--";
-            document.getElementById('display-case-age').innerText = "";
+            if (hasElement('display-case-birthday')) document.getElementById('display-case-birthday').innerText = "--/--/--";
+            if (hasElement('display-case-age')) document.getElementById('display-case-age').innerText = "";
         }
 
-        // 將資料預填入編輯表單
-        document.getElementById('input-case-name').value = caseData.name || "";
-        document.getElementById('input-case-grade').value = caseData.grade || "";
-        document.getElementById('input-case-birthday').value = caseData.birthday || "";
+        // 2. 檢視視窗 (View Modal) 防呆填入
+        const setText = (id, text) => { const el = document.getElementById(id); if (el) el.innerText = text; };
+        setText('view-name', caseData.name || "未設定");
+        setText('view-grade', caseData.grade || "-");
+        setText('view-birthday', caseData.birthday || "--/--/--");
+        setText('view-understanding', caseData.understanding || "尚未填寫");
+        setText('view-expression', caseData.expression || "尚未填寫");
+        setText('view-communication', caseData.communication || "尚未填寫");
+        setText('view-participation', caseData.participation || "尚未填寫");
+
+        // 3. 編輯視窗 (Edit Modal) 防呆填入
+        const setVal = (id, val) => { const el = document.getElementById(id); if (el) el.value = val || ""; };
+        setVal('input-case-name', caseData.name);
+        setVal('input-case-grade', caseData.grade);
+        setVal('input-case-birthday', caseData.birthday);
+        setVal('input-understanding', caseData.understanding);
+        setVal('input-expression', caseData.expression);
+        setVal('input-communication', caseData.communication);
+        setVal('input-participation', caseData.participation);
         
     } catch (err) {
         console.error("載入個案資料失敗", err);
     }
 }
 
-// 打開編輯視窗
-function openEditCaseModal() {
-    new bootstrap.Modal(document.getElementById('editCaseModal')).show();
-}
+// 修正 Bootstrap 彈窗多重 Backdrop 崩潰問題
+window.openViewCaseModal = function() {
+    const modalEl = document.getElementById('viewCaseModal');
+    if(modalEl) bootstrap.Modal.getOrCreateInstance(modalEl).show();
+};
+
+window.openEditCaseModal = function() {
+    const viewModalEl = document.getElementById('viewCaseModal');
+    if (viewModalEl && viewModalEl.classList.contains('show')) {
+        bootstrap.Modal.getInstance(viewModalEl).hide();
+    }
+    
+    setTimeout(() => {
+        const editModalEl = document.getElementById('editCaseModal');
+        if(editModalEl) bootstrap.Modal.getOrCreateInstance(editModalEl).show();
+    }, 300);
+};
 
 // 送出編輯資料
-async function submitCaseEdit() {
-    const name = document.getElementById('input-case-name').value.trim();
-    const grade = document.getElementById('input-case-grade').value.trim();
-    const birthday = document.getElementById('input-case-birthday').value;
+window.submitCaseEdit = async function() {
+    const getVal = (id) => document.getElementById(id)?.value.trim() || '';
+    
+    const payload = {
+        name: getVal('input-case-name'),
+        grade: getVal('input-case-grade'),
+        birthday: document.getElementById('input-case-birthday')?.value || '',
+        understanding: getVal('input-understanding'),
+        expression: getVal('input-expression'),
+        communication: getVal('input-communication'),
+        participation: getVal('input-participation')
+    };
 
-    if (!name) return Swal.fire('提示', '請至少填寫個案姓名', 'warning');
+    if (!payload.name) return Swal.fire('提示', '請至少填寫個案姓名', 'warning');
 
     try {
         const res = await apiRequest(`${API_URL}/api/case_info`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({ name, grade, birthday })
+            body: JSON.stringify(payload)
         });
 
         if (res.ok) {
-            bootstrap.Modal.getInstance(document.getElementById('editCaseModal')).hide();
+            const editModalEl = document.getElementById('editCaseModal');
+            if (editModalEl) {
+                const editModal = bootstrap.Modal.getInstance(editModalEl);
+                if (editModal) editModal.hide();
+            }
             Swal.fire({ icon: 'success', title: '更新成功', timer: 1500, showConfirmButton: false });
-            loadCaseInfo(); // 重新載入畫面資料
+            loadCaseInfo(); 
         } else {
             throw new Error('更新失敗');
         }
     } catch (err) {
-        Swal.fire({ icon: 'error', title: '更新失敗', text: '請確認網路連線或權限' });
+        Swal.fire({ icon: 'error', title: '更新失敗', text: '請確認網路連線' });
     }
-}
+};
 
 // ==========================================
 // 💡 提問與回覆：角色視覺對照輔助函數
