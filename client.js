@@ -1341,17 +1341,17 @@ async function loadRecords() {
             }).join('');
 
             // 🟢 操作選單 (僅限治療師或老師可以編輯/刪除)
+            // 🟢 替換為直接呈現的實體按鈕
             let actionMenu = '';
             if (currentUser && (currentUser.role === 'therapist' || currentUser.role === 'teacher')) {
                 actionMenu = `
-                <div class="dropdown ms-2">
-                    <button class="btn btn-sm text-white" type="button" data-bs-toggle="dropdown" style="background: transparent; border: none; padding: 2px 8px;">
-                        <i class="fas fa-ellipsis-v"></i>
+                <div class="d-flex gap-2 ms-3">
+                    <button class="btn btn-sm btn-light rounded-pill px-3 fw-bold shadow-sm" onclick="openEditRecordModal('${r.id}')" style="color: #3b82f6;">
+                        <i class="fas fa-edit me-1"></i> 編輯
                     </button>
-                    <ul class="dropdown-menu dropdown-menu-end shadow-sm border-0 rounded-3">
-                        <li><a class="dropdown-item" href="javascript:void(0)" onclick="openEditRecordModal('${r.id}')"><i class="fas fa-edit text-primary me-2"></i>編輯紀錄</a></li>
-                        <li><a class="dropdown-item text-danger" href="javascript:void(0)" onclick="deleteRecord('${r.id}')"><i class="fas fa-trash-alt me-2"></i>刪除紀錄</a></li>
-                    </ul>
+                    <button class="btn btn-sm btn-danger rounded-pill px-3 fw-bold shadow-sm" onclick="deleteRecord('${r.id}')">
+                        <i class="fas fa-trash-alt me-1"></i> 刪除
+                    </button>
                 </div>
                 `;
             }
