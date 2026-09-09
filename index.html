@@ -1036,13 +1036,13 @@
             </div>
         </div>
     </div>
-    <!-- 👁️ 檢視：個案與班級現況視窗 (所有人可見) -->
+    <!-- 👁️ 檢視：個案能力面向視窗 (所有人可見) -->
     <div class="modal fade" id="viewCaseModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
             <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
                 <div class="modal-header bg-primary text-white border-bottom-0">
                     <h5 class="modal-title fw-bold">
-                        <i class="fas fa-id-card me-2"></i>個案與班級現況檔案
+                        <i class="fas fa-id-card me-2"></i>個案能力面向與資訊
                     </h5>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
@@ -1054,37 +1054,36 @@
                             <h4 class="fw-bold mb-1" id="view-name">--</h4>
                             <div class="text-secondary small">
                                 <span id="view-grade" class="badge bg-light text-dark border me-2">--</span>
-                                <i class="fas fa-birthday-cake me-1"></i><span id="view-birthday">--</span> <span id="view-age" class="fw-bold text-primary"></span>
+                                <i class="fas fa-birthday-cake me-1"></i><span id="view-birthday">--</span> 
+                                <span id="view-age" class="fw-bold text-primary"></span>
                             </div>
                         </div>
                     </div>
                     
-                    <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-school me-2"></i>班級表現觀察紀錄</h6>
+                    <h6 class="fw-bold text-secondary mb-3"><i class="fas fa-star me-2"></i>能力面向觀察紀錄</h6>
                     
                     <!-- 三大能力面向區塊 -->
                     <div class="card border-0 shadow-sm mb-3">
                         <div class="card-body">
                             <div class="mb-3">
                                 <div class="fw-bold mb-1" style="color: #5A728A;">1. 理解 (活動指令理解狀況)</div>
-                                <div id="view-understanding" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                                <div id="view-understanding" class="text-dark" style="white-space: pre-wrap; font-size: 0.95rem;">載入中...</div>
                             </div>
+                            <hr class="text-muted opacity-25">
                             <div class="mb-3">
                                 <div class="fw-bold mb-1" style="color: #5A728A;">2. 表達 (主要的表達方式)</div>
-                                <div id="view-expression" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                                <div id="view-expression" class="text-dark" style="white-space: pre-wrap; font-size: 0.95rem;">載入中...</div>
                             </div>
+                            <hr class="text-muted opacity-25">
                             <div class="mb-0">
                                 <div class="fw-bold mb-1" style="color: #5A728A;">3. 溝通互動 (同儕與師生互動)</div>
-                                <div id="view-communication" class="text-dark small" style="white-space: pre-wrap;">尚未填寫</div>
+                                <div id="view-communication" class="text-dark" style="white-space: pre-wrap; font-size: 0.95rem;">載入中...</div>
                             </div>
                         </div>
                     </div>
                 </div>
                 <div class="modal-footer border-top-0 bg-white">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">關閉</button>
-                    <!-- 只有老師能看到編輯按鈕 -->
-                    <button type="button" class="btn btn-outline-primary rounded-pill px-4 fw-bold role-only" data-allow="teacher" onclick="openEditCaseModal()">
-                        <i class="fas fa-edit me-1"></i> 編輯更新資料
-                    </button>
                 </div>
             </div>
         </div>
