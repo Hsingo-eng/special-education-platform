@@ -199,10 +199,10 @@ app.get("/api/case_info", verifyToken, async (req, res) => {
 app.put("/api/case_info", verifyToken, checkRole(['teacher']), async (req, res) => {
     try {
         const { name, grade, birthday } = req.body;
-        // 直接覆寫 case_info 的第二列 (A2:C2)
+        // 直接覆寫 case_info 的第二列 (A2:G2)
         await sheets.spreadsheets.values.update({
             spreadsheetId: SHEET_ID, 
-            range: `case_info!A2:C2`, 
+            range: `case_info!A2:G2`, 
             valueInputOption: "USER_ENTERED",
             resource: { values: [[name, grade, birthday]] }
         });
