@@ -198,13 +198,22 @@ app.get("/api/case_info", verifyToken, async (req, res) => {
 // 更新個案資料 (限教師)
 app.put("/api/case_info", verifyToken, checkRole(['teacher']), async (req, res) => {
     try {
-        const { name, grade, birthday } = req.body;
-        // 直接覆寫 case_info 的第二列 (A2:G2)
+        // 1. 從前端 req.body 中把能力面向的變數解構出來
+        const { name, grade, birthday, understanding, expression, communication } = req.body;
+        
+        // 2. 依序對應試算表的 A 到 F 欄 (共 6 欄)
         await sheets.spreadsheets.values.update({
             spreadsheetId: SHEET_ID, 
-            range: `case_info!A2:G2`, 
+            range: `case_info!A2:F2`, 
             valueInputOption: "USER_ENTERED",
-            resource: { values: [[name, grade, birthday]] }
+            resource: { values: [[
+                name || "", 
+                grade || "", 
+                birthday || "", 
+                understanding || "", 
+                expression || "", 
+                communication || ""
+            ]] }
         });
         
         if (typeof io !== 'undefined') io.emit("case_info_update");
