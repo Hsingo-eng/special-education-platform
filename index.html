@@ -1077,8 +1077,14 @@
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer border-top-0 bg-white">
-                    <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">關閉</button>
+                <div class="modal-footer border-top-0 bg-white d-flex justify-content-end gap-2">
+                    <!-- 只有教師能看到編輯按鈕，放在關閉按鈕的左側 -->
+                    <button type="button" class="btn rounded-pill px-4 fw-bold shadow-sm role-only text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A;">
+                        <i class="fas fa-edit me-1"></i> 編輯資料
+                    </button>
+                    
+                    <!-- 關閉按鈕放在最右側 -->
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">關閉</button>
                 </div>
             </div>
         </div>
