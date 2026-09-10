@@ -1136,14 +1136,12 @@
                         </div>
                     </form>
                 </div>
-                <div class="modal-footer border-top-0 bg-white d-flex justify-content-end gap-2">
-                    <!-- 只有老師能看到編輯按鈕，放在關閉按鈕的左側 -->
-                    <button type="button" class="btn rounded-pill px-4 fw-bold shadow-sm role-only text-white" data-allow="teacher" onclick="openEditCaseModal()" style="background-color: #5A728A; border-color: #5A728A;">
-                        <i class="fas fa-edit me-1"></i> 編輯資料
+                <div class="modal-footer border-top-0 pt-0 pb-4 px-4 bg-white d-flex justify-content-end gap-2">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">取消</button>
+                    <!-- 這是真正的儲存按鈕，綁定 submitCaseEdit() -->
+                    <button type="button" class="btn rounded-pill px-4 fw-bold text-white shadow-sm" onclick="submitCaseEdit()" style="background-color: #5A728A; border: none;">
+                        <i class="fas fa-save me-1"></i> 儲存修改
                     </button>
-                    
-                    <!-- 關閉按鈕放在最右側 -->
-                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">關閉</button>
                 </div>
             </div>
         </div>
