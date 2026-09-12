@@ -610,7 +610,7 @@ const cleanQuestionPersonName = (name = '', role = '') => {
 };
 
 // ==========================================
-// 💬 提問與回覆：載入與渲染功能 (左右對話框排版版)
+// 💬 提問與回覆：載入與渲染功能 (三欄式網格排版)
 // ==========================================
 async function loadQuestions() {
     try {
@@ -624,7 +624,7 @@ async function loadQuestions() {
             return;
         }
 
-        // 🟢 智慧排序：先依照「是否已回覆」排序 (未回覆置頂)，接著再依日期排序
+        // 🟢 智慧排序：先依照「是否已回覆」排序 (未回覆置頂)，接著再依日期由新到舊排序
         const sortedQuestions = json.data.sort((a, b) => {
             const aHasReply = (a.reply && a.reply.trim() !== "");
             const bHasReply = (b.reply && b.reply.trim() !== "");
@@ -633,7 +633,7 @@ async function loadQuestions() {
             if (!aHasReply && bHasReply) return -1; 
             if (aHasReply && !bHasReply) return 1;  
             
-            // 狀態相同時，依日期由新到舊排序
+            // 狀態相同時，依日期排序
             return new Date(b.date) - new Date(a.date);
         });
         
@@ -645,49 +645,38 @@ async function loadQuestions() {
             let safeReply = encodeURIComponent(q.reply || '');
 
             const askerVis = getRoleVisuals(askerRole);
-            const targetVisuals = targetRoles.map(role => getRoleVisuals(role));
-            const targetAvatars = targetVisuals.map(visual => visual.avatar).join(' ');
-            const targetClass = targetVisuals[0]?.class || 'text-warning';
-
             const hasReply = q.reply && q.reply.trim() !== "";
 
+            // 狀態區塊視覺設定
+            const statusBg = hasReply ? '#ecfdf5' : '#fffbeb'; // 淺綠 / 淺黃
+            const statusColor = hasReply ? '#059669' : '#d97706'; // 深綠 / 深橘
+            const statusIcon = hasReply ? 'fa-check-circle' : 'fa-hourglass-half';
+            const statusText = hasReply ? '已回覆' : '待回覆';
+            const statusBorder = hasReply ? '#10b981' : '#f59e0b';
+
             // ========================================
-            // 1. 卡片外框與表頭區塊 (誰問誰)
+            // 中間：提問區 HTML
             // ========================================
-            let html = `
-            <div class="card mb-4 shadow-sm" style="border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
-                
-                <div class="card-header d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border-bottom: 1px solid #cbd5e1; padding: 12px 20px;">
-                    <div class="fw-bold" style="font-size: 1rem; color: #334155;">
-                        <span class="${askerVis.class}">${askerVis.avatar} ${askerStr}</span>
-                        <i class="fas fa-arrow-right mx-2 text-muted"></i>
-                        <span class="${targetClass}">${targetAvatars} ${targetStr}</span>
+            const questionHtml = `
+                <div class="mb-3 d-flex justify-content-between align-items-center border-bottom pb-2">
+                    <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 1rem;">
+                        ${askerVis.avatar} <span class="ms-1">${askerStr}</span> <span class="text-muted ms-2 fw-normal small">提問</span>
                     </div>
                     <div class="text-muted small">${q.date}</div>
                 </div>
-
-                <!-- 這裡使用 Flexbox 讓內部對話框可以靠左與靠右對齊 -->
-                <div class="card-body d-flex flex-column gap-3" style="padding: 24px;">
-                    
-                    <!-- ======================================== -->
-                    <!-- 2. 提問區塊 (靠左排版, 左側藍色粗框)       -->
-                    <!-- ======================================== -->
-                    <div class="align-self-start" style="width: 85%;">
-                        <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 6px solid #0ea5e9; border-radius: 8px; padding: 16px;">
-                            <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
-                                ${askerVis.avatar} ${askerStr} <span class="ms-2 text-muted fw-normal">提出問題</span>
-                            </div>
-                            <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${q.question}</div>
-                        </div>
-                    </div>
+                <div class="text-dark mb-3" style="white-space: pre-wrap; line-height: 1.6; font-size: 1.05rem;">${q.question}</div>
+                <div class="mt-auto text-secondary small bg-light p-2 rounded">
+                    <i class="fas fa-bullseye me-1 text-primary"></i>指定回覆：<span class="fw-bold">${targetStr}</span>
+                </div>
             `;
 
             // ========================================
-            // 3. 回覆區塊 (靠右排版, 若有回覆)
+            // 右側：回覆區 HTML
             // ========================================
+            let replyHtml = '';
             if (hasReply) {
                 const replyList = q.reply.split('[SPLIT]');
-                let repliesHtml = replyList.map(r => {
+                const repliesContent = replyList.map(r => {
                     let roleName = '回覆者'; let replyName = q.replier_name || '回覆者'; let replyText = r;
 
                     if (r.startsWith('[REPLY]')) {
@@ -703,50 +692,63 @@ async function loadQuestions() {
                     const rVis = getRoleVisuals(replyRole);
 
                     return `
-                    <!-- 靠右排版, 右側綠色粗框 -->
-                    <div class="align-self-end" style="width: 85%;">
-                        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-right: 6px solid #10b981; border-radius: 8px; padding: 16px;">
-                            <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
-                                ${rVis.avatar} ${replyName} <span class="ms-2 text-muted fw-normal">回覆</span>
-                            </div>
-                            <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${replyText}</div>
+                    <div class="mb-3 bg-white p-3 rounded-3 shadow-sm border-start border-3 border-success">
+                        <div class="fw-bold text-dark mb-2 d-flex align-items-center" style="font-size: 0.9rem;">
+                            ${rVis.avatar} ${replyName} <span class="ms-2 text-muted fw-normal small">回覆</span>
                         </div>
+                        <div class="text-dark" style="white-space: pre-wrap; line-height: 1.5;">${replyText}</div>
                     </div>`;
                 }).join('');
-                
-                html += repliesHtml;
-                
-                html += `
-                </div>
-                <!-- ======================================== -->
-                <!-- 4. 底部狀態列 (已回覆狀態)                 -->
-                <!-- ======================================== -->
-                <div class="card-footer d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border-top: 1px solid #cbd5e1; padding: 14px 20px;">
-                    <span class="badge rounded-pill" style="background-color: #d1fae5; color: #065f46; font-size: 0.9rem; padding: 8px 16px; border: 1px solid #a7f3d0;">
-                        <i class="fas fa-check-circle me-1"></i> 已回覆
-                    </span>
-                    <button class="btn btn-outline-secondary btn-sm rounded-pill px-4 fw-bold" onclick="openReplyModal('${q.id}', '${safeReply}')">
-                        <i class="fas fa-reply me-1"></i> 補充回覆
-                    </button>
-                </div>`;
+
+                replyHtml = `
+                    <div class="d-flex flex-column h-100">
+                        <div class="flex-grow-1">${repliesContent}</div>
+                        <div class="text-end mt-2 pt-2 border-top border-light">
+                            <button class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold bg-white" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                                <i class="fas fa-plus me-1"></i> 補充回覆
+                            </button>
+                        </div>
+                    </div>
+                `;
             } else {
-                html += `
-                </div>
-                <!-- ======================================== -->
-                <!-- 4. 底部狀態列 (等待回覆狀態)               -->
-                <!-- ======================================== -->
-                <div class="card-footer d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border-top: 1px solid #cbd5e1; padding: 14px 20px;">
-                    <span class="badge rounded-pill" style="background-color: #fef3c7; color: #b45309; font-size: 0.9rem; padding: 8px 16px; border: 1px solid #fde68a;">
-                        <i class="fas fa-hourglass-half me-1"></i> 待回覆
-                    </span>
-                    <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="openReplyModal('${q.id}', '${safeReply}')">
-                        <i class="fas fa-reply me-1"></i> 回覆此問題
-                    </button>
-                </div>`;
+                replyHtml = `
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-muted py-4">
+                        <i class="fas fa-comment-dots fa-2x mb-3" style="color: #cbd5e1;"></i>
+                        <p class="mb-3 small fw-bold">等待 ${targetStr} 進行回覆</p>
+                        <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                            <i class="fas fa-reply me-1"></i> 立即回覆
+                        </button>
+                    </div>
+                `;
             }
 
-            html += `</div>`; // 結束整張卡片
-            return html;
+            // ========================================
+            // 組合三欄式卡片
+            // ========================================
+            return `
+            <div class="card mb-4 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
+                <div class="row g-0 align-items-stretch">
+                    
+                    <!-- 區塊 1: 狀態區 (靠左) -->
+                    <div class="col-12 col-md-2 d-flex flex-row flex-md-column justify-content-center align-items-center p-3" 
+                         style="background-color: ${statusBg}; border-left: 6px solid ${statusBorder};">
+                        <i class="fas ${statusIcon} fa-2x mb-md-2 me-3 me-md-0" style="color: ${statusColor};"></i>
+                        <span class="fw-bold" style="color: ${statusColor}; font-size: 1.15rem; letter-spacing: 2px;">${statusText}</span>
+                    </div>
+                    
+                    <!-- 區塊 2: 提問區 (置中) -->
+                    <div class="col-12 col-md-5 p-4 bg-white border-end d-flex flex-column">
+                        ${questionHtml}
+                    </div>
+
+                    <!-- 區塊 3: 回覆區 (靠右) -->
+                    <div class="col-12 col-md-5 p-4" style="background-color: #f8fafc;">
+                        ${replyHtml}
+                    </div>
+                    
+                </div>
+            </div>
+            `;
         }).join('');
         
     } catch (err) { 
