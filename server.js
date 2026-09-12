@@ -559,6 +559,33 @@ app.post("/api/home_logs/reply", verifyToken, checkRole(['teacher', 'therapist']
     }
 });
 
+// 4. 刪除居家表現貼文
+app.delete("/api/home_logs/:id", verifyToken, async (req, res) => {
+    try {
+        await deleteRow("home_logs", req.params.id);
+        if (typeof io !== 'undefined') io.emit("home_log_update", { action: 'delete', username: req.user.username, user: req.user.name });
+        res.json({ message: "刪除成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// 5. 刪除居家表現回覆 (收回留言)
+app.put("/api/home_logs/:id", verifyToken, async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { replies } = req.body;
+        
+        // 透過 updateRow 更新特定的 replies 欄位
+        await updateRow("home_logs", id, { replies: replies });
+        
+        if (typeof io !== 'undefined') io.emit("home_log_update", { action: 'reply_delete', username: req.user.username, user: req.user.name });
+        res.json({ message: "回覆刪除成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
 // --- IEP API ---
 app.get("/api/iep", verifyToken, async (req, res) => {
     const data = await getSheetData("iep_files"); res.json({ data });
