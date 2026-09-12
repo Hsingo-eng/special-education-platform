@@ -1907,6 +1907,7 @@ async function submitHomeLog() {
 }
 
 // 載入貼文牆
+// 載入貼文牆 (加入刪除鍵與權限防呆)
 async function loadHomeLogs() {
     const feedContainer = document.getElementById('home-log-feed');
     if (!feedContainer) return;
@@ -1932,17 +1933,45 @@ async function loadHomeLogs() {
             const authorDisplay = formatHomeAuthor(log.author);
             const authorAvatar = getRoleVisuals(authorDisplay).avatar;
             
+            // 🟢 判斷貼文刪除權限 (本人或同身分者可刪除)
+            const rawAuthorName = authorDisplay.split(' | ')[0];
+            const rawAuthorRole = authorDisplay.split(' | ')[1] || '';
+            const canDeleteLog = currentUser && (
+                currentUser.name === rawAuthorName || 
+                currentUser.username === rawAuthorName ||
+                (currentUser.role === 'teacher' && rawAuthorRole === '教師') ||
+                (currentUser.role === 'therapist' && rawAuthorRole === '治療師') ||
+                (currentUser.role === 'parents' && rawAuthorRole === '家長')
+            );
+            const deleteLogBtn = canDeleteLog ? `<button class="btn btn-link text-danger p-0 ms-3" onclick="deleteHomeLog('${log.id}')" title="刪除此紀錄"><i class="fas fa-trash-alt"></i></button>` : '';
+
             // 渲染回覆區塊
-            const repliesHtml = log.replies.map(r => {
+            const repliesHtml = log.replies.map((r, index) => {
                 const replyDisplay = formatHomeAuthor(r.author);
                 const replyAvatar = getRoleVisuals(replyDisplay).avatar;
+                
+                // 🟢 判斷回覆刪除權限
+                const rName = replyDisplay.split(' | ')[0];
+                const rRole = replyDisplay.split(' | ')[1] || '';
+                const canDeleteReply = currentUser && (
+                    currentUser.name === rName || 
+                    currentUser.username === rName ||
+                    (currentUser.role === 'teacher' && rRole === '教師') ||
+                    (currentUser.role === 'therapist' && rRole === '治療師') ||
+                    (currentUser.role === 'parents' && rRole === '家長')
+                );
+                const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-2" onclick="deleteHomeLogReply('${log.id}', ${index})" title="收回回覆"><i class="fas fa-times"></i></button>` : '';
+
                 return `
                 <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
                     <div class="d-flex justify-content-between align-items-center mb-1">
                         <span class="fw-bold small text-dark">${replyAvatar} ${replyDisplay}</span>
-                        <span class="text-muted" style="font-size: 0.75rem;">${new Date(r.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                        <div class="d-flex align-items-center">
+                            <span class="text-muted" style="font-size: 0.75rem;">${new Date(r.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
+                            ${deleteReplyBtn}
+                        </div>
                     </div>
-                    <p class="mb-0 small text-secondary">${r.text}</p>
+                    <p class="mb-0 small text-secondary" style="white-space: pre-wrap;">${r.text}</p>
                 </div>
             `;
             }).join('');
@@ -1950,9 +1979,12 @@ async function loadHomeLogs() {
             return `
                 <div class="card border-0 shadow-sm rounded-4 mb-4">
                     <div class="card-body p-4">
-                        <div class="d-flex justify-content-between align-items-center mb-3">
+                        <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
                             <h6 class="fw-bold mb-0 text-primary">${authorAvatar} ${authorDisplay}</h6>
-                            <span class="text-muted small">${dateStr}</span>
+                            <div class="d-flex align-items-center">
+                                <span class="text-muted small">${dateStr}</span>
+                                ${deleteLogBtn}
+                            </div>
                         </div>
                         <p class="text-dark mb-3" style="white-space: pre-wrap;">${log.content}</p>
                         ${imageHtml}
@@ -1966,7 +1998,7 @@ async function loadHomeLogs() {
                         <!-- 新增回覆輸入框 -->
                         <div class="input-group input-group-sm mt-3">
                             <input type="text" id="reply-input-${log.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="撰寫專業回饋或建議...">
-                            <button class="btn btn-primary rounded-pill-end px-3" onclick="submitLogReply('${log.id}')">回覆</button>
+                            <button class="btn btn-primary rounded-pill-end px-3 fw-bold" onclick="submitLogReply('${log.id}')">回覆</button>
                         </div>
                     </div>
                 </div>
@@ -1976,6 +2008,92 @@ async function loadHomeLogs() {
         feedContainer.innerHTML = '<div class="text-center text-danger py-4">載入失敗，請稍後再試。</div>';
     }
 }
+
+// 發送回覆
+async function submitLogReply(logId) {
+    const inputEl = document.getElementById(`reply-input-${logId}`);
+    const replyText = inputEl.value.trim();
+    if (!replyText) return;
+
+    try {
+        inputEl.disabled = true;
+        const res = await apiRequest(`${API_URL}/api/home_logs/reply`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ logId, replyText })
+        });
+        
+        if (res.ok) {
+            loadHomeLogs(); // 重新載入以顯示最新回覆
+        }
+    } catch (err) {
+        Swal.fire({ icon: 'error', title: '回覆失敗' });
+        inputEl.disabled = false;
+    }
+}
+
+// 刪除居家表現紀錄
+window.deleteHomeLog = async function(id) {
+    const result = await Swal.fire({
+        title: '確定要刪除這筆紀錄嗎？',
+        text: "刪除後，所有的回饋與留言也會一併消失喔！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await apiRequest(`${API_URL}/api/home_logs/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: '已刪除', timer: 1500, showConfirmButton: false });
+                loadHomeLogs();
+            } else throw new Error('刪除失敗');
+        } catch (err) { Swal.fire('錯誤', err.message, 'error'); }
+    }
+};
+
+// 刪除居家表現單筆回覆
+window.deleteHomeLogReply = async function(logId, replyIndex) {
+    const result = await Swal.fire({
+        title: '確定要收回您的回饋嗎？',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，收回',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            // 先取得最新的貼文資料
+            const resLog = await apiRequest(`${API_URL}/api/home_logs`);
+            const jsonLog = await resLog.json();
+            const log = jsonLog.data.find(l => l.id === logId);
+            if (!log) return;
+
+            // 從陣列中剔除該筆回覆
+            let replies = log.replies || [];
+            replies.splice(replyIndex, 1);
+
+            // 送出更新
+            const res = await apiRequest(`${API_URL}/api/home_logs/${logId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ replies: JSON.stringify(replies) })
+            });
+
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: '回饋已收回', timer: 1500, showConfirmButton: false });
+                loadHomeLogs();
+            } else throw new Error('刪除失敗');
+        } catch (err) { Swal.fire('錯誤', err.message, 'error'); }
+    }
+};
 
 // 發送回覆
 async function submitLogReply(logId) {
