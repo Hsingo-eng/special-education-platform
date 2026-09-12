@@ -322,18 +322,35 @@
             }
         }
         
-        /* 登入頁經典灰色拼圖樣式 */
+         /* 登入頁經典拼圖樣式 (已修改為三色) */
         .puzzle-svg-container {
             width: 100%; height: auto; max-width: 320px; cursor: pointer;
         }
         .grey-piece {
-            fill: #9ca3af; stroke: #ffffff; stroke-width: 2px;
+            /* 移除了統一的灰色，將顏色分派給獨立的區塊 */
+            stroke: #ffffff; 
+            stroke-width: 2px;
             transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1); 
             transform-origin: center;
         }
-        .piece-1-svg { transform: translate(-25px, -25px) rotate(-8deg); }
-        .piece-2-svg { transform: translate(30px, -15px) rotate(6deg); }
-        .piece-3-svg { transform: translate(-15px, 30px) rotate(-5deg); }
+        
+        /* 第一片：橘色 */
+        .piece-1-svg { 
+            fill: #F97316; 
+            transform: translate(-25px, -25px) rotate(-8deg); 
+        }
+        
+        /* 第二片：藍色 */
+        .piece-2-svg { 
+            fill: #3B82F6; 
+            transform: translate(30px, -15px) rotate(6deg); 
+        }
+        
+        /* 第三片：綠色 */
+        .piece-3-svg { 
+            fill: #10B981; 
+            transform: translate(-15px, 30px) rotate(-5deg); 
+        }
         .puzzle-svg-container:hover .piece-1-svg,
         .puzzle-svg-container:hover .piece-2-svg,
         .puzzle-svg-container:hover .piece-3-svg {
