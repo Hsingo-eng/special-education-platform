@@ -610,7 +610,67 @@ const cleanQuestionPersonName = (name = '', role = '') => {
 };
 
 // ==========================================
-// 💬 提問與回覆：載入與渲染功能 (三欄式網格排版)
+// 💬 提問與回覆：提問視窗 (自動隱藏自己的身分)
+// ==========================================
+function openQuestionModal() {
+    const roleLabel = getUserRoleLabel(currentUser?.role);
+    let checkboxesHtml = '';
+    
+    // 如果登入者不是該身分，才顯示該選項
+    if (roleLabel !== '教師') {
+        checkboxesHtml += `<div class="form-check"><input class="form-check-input q-target-cb" type="checkbox" value="教師" id="q-tgt-teacher"><label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;"><img src="sticker1.png" class="role-avatar" alt="教師頭像">教師</label></div>`;
+    }
+    if (roleLabel !== '治療師') {
+        checkboxesHtml += `<div class="form-check"><input class="form-check-input q-target-cb" type="checkbox" value="治療師" id="q-tgt-therapist"><label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;"><img src="sticker2.png" class="role-avatar" alt="治療師頭像">治療師</label></div>`;
+    }
+    if (roleLabel !== '家長') {
+        checkboxesHtml += `<div class="form-check"><input class="form-check-input q-target-cb" type="checkbox" value="家長" id="q-tgt-parents"><label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;"><img src="sticker3.png" class="role-avatar" alt="家長頭像">家長</label></div>`;
+    }
+
+    Swal.fire({
+        title: '新增提問',
+        html: `
+            <div class="mb-3 text-start" style="width: 80%; margin: 0 auto;">
+                <label class="form-label text-secondary small fw-bold mb-2">選擇提問對象 (可複選)：</label>
+                <div class="d-flex justify-content-start gap-4 mb-3">
+                    ${checkboxesHtml}
+                </div>
+            </div>
+            <textarea id="swal-q-text" class="swal2-textarea mt-0" placeholder="請輸入您的問題..." style="width: 80%; border-radius: 12px;"></textarea>
+        `,
+        showCancelButton: true,
+        confirmButtonText: '<i class="fas fa-paper-plane me-1"></i> 送出提問',
+        cancelButtonText: '取消',
+        customClass: { confirmButton: 'btn btn-primary rounded-pill px-4', cancelButton: 'btn btn-light rounded-pill px-4' },
+        buttonsStyling: false,
+        preConfirm: () => {
+            const checkedBoxes = document.querySelectorAll('.q-target-cb:checked');
+            const targets = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
+            const question = document.getElementById('swal-q-text').value.trim();
+
+            if (!targets) { Swal.showValidationMessage('請至少勾選一個提問對象！'); return false; }
+            if (!question) { Swal.showValidationMessage('問題內容不能為空白！'); return false; }
+            return { target_role: targets, question: question };
+        }
+    }).then(async (result) => {
+        if (result.isConfirmed) {
+            try {
+                const res = await fetch(`${API_URL}/api/questions`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
+                    body: JSON.stringify(result.value)
+                });
+                if (res.ok) {
+                    Swal.fire({ icon: 'success', title: '成功', text: '提問已送出！', timer: 1500, showConfirmButton: false });
+                    loadQuestions();
+                } else throw new Error('伺服器錯誤');
+            } catch (err) { Swal.fire('錯誤', '送出失敗，請檢查網路連線', 'error'); }
+        }
+    });
+}
+
+// ==========================================
+// 💬 提問與回覆：三欄式網格載入與刪除權限判斷
 // ==========================================
 async function loadQuestions() {
     try {
@@ -624,16 +684,11 @@ async function loadQuestions() {
             return;
         }
 
-        // 🟢 智慧排序：先依照「是否已回覆」排序 (未回覆置頂)，接著再依日期由新到舊排序
         const sortedQuestions = json.data.sort((a, b) => {
             const aHasReply = (a.reply && a.reply.trim() !== "");
             const bHasReply = (b.reply && b.reply.trim() !== "");
-            
-            // 未回覆的排在前面
             if (!aHasReply && bHasReply) return -1; 
             if (aHasReply && !bHasReply) return 1;  
-            
-            // 狀態相同時，依日期排序
             return new Date(b.date) - new Date(a.date);
         });
         
@@ -647,36 +702,38 @@ async function loadQuestions() {
             const askerVis = getRoleVisuals(askerRole);
             const hasReply = q.reply && q.reply.trim() !== "";
 
-            // 狀態區塊視覺設定
-            const statusBg = hasReply ? '#ecfdf5' : '#fffbeb'; // 淺綠 / 淺黃
-            const statusColor = hasReply ? '#059669' : '#d97706'; // 深綠 / 深橘
+            const statusBg = hasReply ? '#ecfdf5' : '#fffbeb'; 
+            const statusColor = hasReply ? '#059669' : '#d97706'; 
             const statusIcon = hasReply ? 'fa-check-circle' : 'fa-hourglass-half';
             const statusText = hasReply ? '已回覆' : '待回覆';
             const statusBorder = hasReply ? '#10b981' : '#f59e0b';
 
-            // ========================================
-            // 中間：提問區 HTML
-            // ========================================
+            // 判斷是否為提問者本人 (給予刪除整棟樓的權限)
+            const canDeleteQuestion = currentUser && (currentUser.username === q.asker_username || currentUser.name === q.asker_name);
+            const deleteQuestionBtn = canDeleteQuestion ? `<button class="btn btn-link text-danger p-0 ms-3" onclick="deleteQuestion('${q.id}')" title="刪除此提問"><i class="fas fa-trash-alt"></i></button>` : '';
+
+            // 1. 中間欄：提問區
             const questionHtml = `
-                <div class="mb-3 d-flex justify-content-between align-items-center border-bottom pb-2">
-                    <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 1rem;">
-                        ${askerVis.avatar} <span class="ms-1">${askerStr}</span> <span class="text-muted ms-2 fw-normal small">提問</span>
+                <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
+                    <div class="fw-bold text-dark d-flex align-items-center">
+                        ${askerVis.avatar} <span class="ms-2">${askerStr}</span> <span class="text-muted ms-2 fw-normal small">提問</span>
                     </div>
-                    <div class="text-muted small">${q.date}</div>
+                    <div class="d-flex align-items-center">
+                        <div class="text-muted small">${q.date}</div>
+                        ${deleteQuestionBtn}
+                    </div>
                 </div>
-                <div class="text-dark mb-3" style="white-space: pre-wrap; line-height: 1.6; font-size: 1.05rem;">${q.question}</div>
-                <div class="mt-auto text-secondary small bg-light p-2 rounded">
+                <div class="text-dark mb-4" style="white-space: pre-wrap; line-height: 1.6; font-size: 1.05rem;">${q.question}</div>
+                <div class="mt-auto text-secondary small bg-light p-2 rounded border">
                     <i class="fas fa-bullseye me-1 text-primary"></i>指定回覆：<span class="fw-bold">${targetStr}</span>
                 </div>
             `;
 
-            // ========================================
-            // 右側：回覆區 HTML
-            // ========================================
+            // 2. 右側欄：回覆區
             let replyHtml = '';
             if (hasReply) {
                 const replyList = q.reply.split('[SPLIT]');
-                const repliesContent = replyList.map(r => {
+                const repliesContent = replyList.map((r, index) => {
                     let roleName = '回覆者'; let replyName = q.replier_name || '回覆者'; let replyText = r;
 
                     if (r.startsWith('[REPLY]')) {
@@ -691,10 +748,17 @@ async function loadQuestions() {
                     replyName = cleanQuestionPersonName(replyName, replyRole);
                     const rVis = getRoleVisuals(replyRole);
 
+                    // 判斷是否為回覆者本人 (給予刪除自己單則回覆的權限)
+                    const canDeleteReply = currentUser && (currentUser.name === replyName || currentUser.username === replyName);
+                    const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-3" onclick="deleteQuestionReply('${q.id}', ${index})" title="刪除此回覆"><i class="fas fa-times"></i></button>` : '';
+
                     return `
                     <div class="mb-3 bg-white p-3 rounded-3 shadow-sm border-start border-3 border-success">
-                        <div class="fw-bold text-dark mb-2 d-flex align-items-center" style="font-size: 0.9rem;">
-                            ${rVis.avatar} ${replyName} <span class="ms-2 text-muted fw-normal small">回覆</span>
+                        <div class="d-flex justify-content-between align-items-center mb-2 border-bottom pb-2">
+                            <div class="fw-bold text-dark d-flex align-items-center" style="font-size: 0.9rem;">
+                                ${rVis.avatar} <span class="ms-2">${replyName}</span> <span class="ms-2 text-muted fw-normal small">回覆</span>
+                            </div>
+                            <div>${deleteReplyBtn}</div>
                         </div>
                         <div class="text-dark" style="white-space: pre-wrap; line-height: 1.5;">${replyText}</div>
                     </div>`;
@@ -703,8 +767,8 @@ async function loadQuestions() {
                 replyHtml = `
                     <div class="d-flex flex-column h-100">
                         <div class="flex-grow-1">${repliesContent}</div>
-                        <div class="text-end mt-2 pt-2 border-top border-light">
-                            <button class="btn btn-outline-success btn-sm rounded-pill px-3 fw-bold bg-white" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                        <div class="text-end mt-3 pt-3 border-top border-light">
+                            <button class="btn btn-outline-success btn-sm rounded-pill px-4 fw-bold bg-white shadow-sm" onclick="openReplyModal('${q.id}', '${safeReply}')">
                                 <i class="fas fa-plus me-1"></i> 補充回覆
                             </button>
                         </div>
@@ -712,36 +776,31 @@ async function loadQuestions() {
                 `;
             } else {
                 replyHtml = `
-                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-muted py-4">
-                        <i class="fas fa-comment-dots fa-2x mb-3" style="color: #cbd5e1;"></i>
+                    <div class="h-100 d-flex flex-column justify-content-center align-items-center text-muted py-5">
+                        <i class="fas fa-comment-dots fa-3x mb-3" style="color: #cbd5e1;"></i>
                         <p class="mb-3 small fw-bold">等待 ${targetStr} 進行回覆</p>
-                        <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="openReplyModal('${q.id}', '${safeReply}')">
+                        <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="openReplyModal('${q.id}', '${safeReply}')">
                             <i class="fas fa-reply me-1"></i> 立即回覆
                         </button>
                     </div>
                 `;
             }
 
-            // ========================================
-            // 組合三欄式卡片
-            // ========================================
+            // 3. 組合三欄式卡片
             return `
             <div class="card mb-4 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
-                <div class="row g-0 align-items-stretch">
+                <div class="row g-0 align-items-stretch" style="min-height: 200px;">
                     
-                    <!-- 區塊 1: 狀態區 (靠左) -->
-                    <div class="col-12 col-md-2 d-flex flex-row flex-md-column justify-content-center align-items-center p-3" 
+                    <div class="col-12 col-md-2 d-flex flex-row flex-md-column justify-content-center align-items-center p-3 border-bottom border-md-bottom-0" 
                          style="background-color: ${statusBg}; border-left: 6px solid ${statusBorder};">
-                        <i class="fas ${statusIcon} fa-2x mb-md-2 me-3 me-md-0" style="color: ${statusColor};"></i>
-                        <span class="fw-bold" style="color: ${statusColor}; font-size: 1.15rem; letter-spacing: 2px;">${statusText}</span>
+                        <i class="fas ${statusIcon} fa-2x mb-0 mb-md-2 me-3 me-md-0" style="color: ${statusColor};"></i>
+                        <span class="fw-bold" style="color: ${statusColor}; font-size: 1.15rem; letter-spacing: 1px;">${statusText}</span>
                     </div>
                     
-                    <!-- 區塊 2: 提問區 (置中) -->
                     <div class="col-12 col-md-5 p-4 bg-white border-end d-flex flex-column">
                         ${questionHtml}
                     </div>
 
-                    <!-- 區塊 3: 回覆區 (靠右) -->
                     <div class="col-12 col-md-5 p-4" style="background-color: #f8fafc;">
                         ${replyHtml}
                     </div>
@@ -751,10 +810,69 @@ async function loadQuestions() {
             `;
         }).join('');
         
-    } catch (err) { 
-        console.error("Load questions failed:", err); 
-    }
+    } catch (err) { console.error("Load questions failed:", err); }
 }
+
+// 刪除整筆提問
+window.deleteQuestion = async function(id) {
+    const result = await Swal.fire({
+        title: '確定要刪除這筆提問嗎？',
+        text: "刪除後，所有的回覆也會一併消失喔！",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，刪除',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const res = await apiRequest(`${API_URL}/api/questions/${id}`, { method: 'DELETE' });
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: '已刪除', timer: 1500, showConfirmButton: false });
+                loadQuestions();
+            } else throw new Error('刪除失敗');
+        } catch (err) { Swal.fire('錯誤', err.message, 'error'); }
+    }
+};
+
+// 刪除單筆回覆
+window.deleteQuestionReply = async function(questionId, replyIndex) {
+    const result = await Swal.fire({
+        title: '確定要收回您的回覆嗎？',
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#d33',
+        cancelButtonColor: '#3085d6',
+        confirmButtonText: '是的，收回',
+        cancelButtonText: '取消'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            const resQ = await apiRequest(`${API_URL}/api/questions`);
+            const jsonQ = await resQ.json();
+            const question = jsonQ.data.find(q => q.id === questionId);
+            if (!question) return;
+
+            let replyList = question.reply.split('[SPLIT]');
+            replyList.splice(replyIndex, 1); // 抽出該筆回覆
+            const newReplyStr = replyList.join('[SPLIT]'); // 重新組合
+
+            const res = await apiRequest(`${API_URL}/api/questions/${questionId}`, {
+                method: 'PUT',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ reply: newReplyStr })
+            });
+
+            if (res.ok) {
+                Swal.fire({ icon: 'success', title: '回覆已收回', timer: 1500, showConfirmButton: false });
+                loadQuestions();
+            } else throw new Error('刪除失敗');
+        } catch (err) { Swal.fire('錯誤', err.message, 'error'); }
+    }
+};
 
 function openReplyModal(questionId, encodedExistingReply) {
     const existingReply = encodedExistingReply ? decodeURIComponent(encodedExistingReply) : '';
@@ -1275,75 +1393,7 @@ function handleEnter(e) {
     }
 }
 
-function openQuestionModal() {
-    Swal.fire({
-        title: '新增提問',
-        html: `
-            <div class="mb-3 text-start" style="width: 80%; margin: 0 auto;">
-                <label class="form-label text-secondary small fw-bold mb-2">選擇提問對象 (可複選)：</label>
-                <div class="d-flex justify-content-start gap-4 mb-3">
-                    <div class="form-check">
-                        <!-- value 改為統一的中文名稱 -->
-                        <input class="form-check-input q-target-cb" type="checkbox" value="教師" id="q-tgt-teacher">
-                        <label class="form-check-label" for="q-tgt-teacher" style="cursor: pointer;"><img src="sticker1.png" class="role-avatar" alt="教師頭像">教師</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input q-target-cb" type="checkbox" value="治療師" id="q-tgt-therapist">
-                        <label class="form-check-label" for="q-tgt-therapist" style="cursor: pointer;"><img src="sticker2.png" class="role-avatar" alt="治療師頭像">治療師</label>
-                    </div>
-                    <div class="form-check">
-                        <input class="form-check-input q-target-cb" type="checkbox" value="家長" id="q-tgt-parents">
-                        <label class="form-check-label" for="q-tgt-parents" style="cursor: pointer;"><img src="sticker3.png" class="role-avatar" alt="家長頭像">家長</label>
-                    </div>
-                </div>
-            </div>
-            <textarea id="swal-q-text" class="swal2-textarea mt-0" placeholder="請輸入您的問題..." style="width: 80%; border-radius: 12px;"></textarea>
-        `,
-        showCancelButton: true,
-        confirmButtonText: '<i class="fas fa-paper-plane me-1"></i> 送出提問',
-        cancelButtonText: '取消',
-        // 套用與主畫面一致的圓角按鈕風格
-        customClass: {
-            confirmButton: 'btn btn-primary rounded-pill px-4',
-            cancelButton: 'btn btn-light rounded-pill px-4'
-        },
-        buttonsStyling: false,
-        preConfirm: () => {
-            const checkedBoxes = document.querySelectorAll('.q-target-cb:checked');
-            // 將複選的對象用逗號隔開 (例如："教師, 治療師")
-            const targets = Array.from(checkedBoxes).map(cb => cb.value).join(', ');
-            const question = document.getElementById('swal-q-text').value.trim();
 
-            if (!targets) {
-                Swal.showValidationMessage('請至少勾選一個提問對象！');
-                return false;
-            }
-            if (!question) {
-                Swal.showValidationMessage('問題內容不能為空白！');
-                return false;
-            }
-
-            return { target_role: targets, question: question };
-        }
-    }).then(async (result) => {
-        if (result.isConfirmed) {
-            try {
-                const res = await fetch(`${API_URL}/api/questions`, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-                    body: JSON.stringify(result.value)
-                });
-                if (res.ok) {
-                    // 送出成功後，顯示簡短的成功提示並自動關閉
-                    Swal.fire({ icon: 'success', title: '成功', text: '提問已送出！', timer: 1500, showConfirmButton: false });
-                    loadQuestions(); // 重新載入對話串
-                } else throw new Error('伺服器錯誤');
-            } catch (err) { 
-                Swal.fire('錯誤', '送出失敗，請檢查後端設定', 'error'); 
-            }
-        }
-    });
-}
 
 // 全域變數：用來判斷現在是新增還是編輯
 window.currentEditRecordId = null;

@@ -771,22 +771,35 @@ app.post("/api/questions", verifyToken, async (req, res) => {
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
+// 刪除提問 (將整筆問題與底下的回覆一併刪除)
+app.delete("/api/questions/:id", verifyToken, async (req, res) => {
+    try {
+        await deleteRow("questions", req.params.id);
+        io.emit("question_update", { action: "delete", id: req.params.id });
+        res.json({ message: "刪除提問成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// 更新提問回覆 (加入防呆：若回覆被刪光，狀態自動退回「待回覆」)
 app.put("/api/questions/:id", verifyToken, async (req, res) => {
     try {
         const { id } = req.params; const { reply } = req.body;
         const questions = await getSheetData("questions");
         const question = questions.find(item => item.id === id);
         if (!question) return res.status(404).json({ message: "找不到該筆提問" });
-        await updateRow("questions", id, { reply: reply, replier_name: cleanQuestionPersonName(req.user.name, req.user.role), status: "已回覆" });
-        io.emit("question_update", {
-            action: 'reply',
-            username: req.user.username,
-            replier_name: req.user.name,
-            asker_username: question.asker_username,
-            asker_role: question.asker_role,
-            asker_name: question.asker_name
+        
+        // 動態判斷狀態
+        const newStatus = reply && reply.trim() !== "" ? "已回覆" : "待回覆";
+        
+        await updateRow("questions", id, { 
+            reply: reply, 
+            replier_name: cleanQuestionPersonName(req.user.name, req.user.role), 
+            status: newStatus 
         });
-        res.json({ message: "回覆成功" });
+        io.emit("question_update", { action: 'reply' });
+        res.json({ message: "回覆更新成功" });
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
