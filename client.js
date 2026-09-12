@@ -670,7 +670,7 @@ function openQuestionModal() {
 }
 
 // ==========================================
-// 💬 提問與回覆：三欄式網格載入與刪除權限判斷
+// 💬 提問與回覆：三欄式網格載入與權限放寬
 // ==========================================
 async function loadQuestions() {
     try {
@@ -708,11 +708,14 @@ async function loadQuestions() {
             const statusText = hasReply ? '已回覆' : '待回覆';
             const statusBorder = hasReply ? '#10b981' : '#f59e0b';
 
-            // 判斷是否為提問者本人 (給予刪除整棟樓的權限)
-            const canDeleteQuestion = currentUser && (currentUser.username === q.asker_username || currentUser.name === q.asker_name);
+            // 🟢 修正：放寬提問刪除權限 (本人，或同為教師身分皆可刪除)
+            const canDeleteQuestion = currentUser && (
+                currentUser.username === q.asker_username || 
+                currentUser.name === q.asker_name || 
+                (currentUser.role === 'teacher' && askerRole === '教師')
+            );
             const deleteQuestionBtn = canDeleteQuestion ? `<button class="btn btn-link text-danger p-0 ms-3" onclick="deleteQuestion('${q.id}')" title="刪除此提問"><i class="fas fa-trash-alt"></i></button>` : '';
 
-            // 1. 中間欄：提問區
             const questionHtml = `
                 <div class="d-flex justify-content-between align-items-center mb-3 pb-2 border-bottom">
                     <div class="fw-bold text-dark d-flex align-items-center">
@@ -729,7 +732,6 @@ async function loadQuestions() {
                 </div>
             `;
 
-            // 2. 右側欄：回覆區
             let replyHtml = '';
             if (hasReply) {
                 const replyList = q.reply.split('[SPLIT]');
@@ -748,8 +750,12 @@ async function loadQuestions() {
                     replyName = cleanQuestionPersonName(replyName, replyRole);
                     const rVis = getRoleVisuals(replyRole);
 
-                    // 判斷是否為回覆者本人 (給予刪除自己單則回覆的權限)
-                    const canDeleteReply = currentUser && (currentUser.name === replyName || currentUser.username === replyName);
+                    // 🟢 修正：放寬回覆刪除權限 (本人，或同為教師身分皆可刪除)
+                    const canDeleteReply = currentUser && (
+                        currentUser.name === replyName || 
+                        currentUser.username === replyName || 
+                        (currentUser.role === 'teacher' && replyRole === '教師')
+                    );
                     const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-3" onclick="deleteQuestionReply('${q.id}', ${index})" title="刪除此回覆"><i class="fas fa-times"></i></button>` : '';
 
                     return `
@@ -786,7 +792,6 @@ async function loadQuestions() {
                 `;
             }
 
-            // 3. 組合三欄式卡片
             return `
             <div class="card mb-4 shadow-sm border-0" style="border-radius: 12px; overflow: hidden;">
                 <div class="row g-0 align-items-stretch" style="min-height: 200px;">
