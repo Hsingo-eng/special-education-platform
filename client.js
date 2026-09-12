@@ -1906,8 +1906,8 @@ async function submitHomeLog() {
     }
 }
 
-// 載入貼文牆
 // 載入貼文牆 (加入刪除鍵與權限防呆)
+// 載入貼文牆 (加入刪除鍵與精準權限防呆)
 async function loadHomeLogs() {
     const feedContainer = document.getElementById('home-log-feed');
     if (!feedContainer) return;
@@ -1933,17 +1933,15 @@ async function loadHomeLogs() {
             const authorDisplay = formatHomeAuthor(log.author);
             const authorAvatar = getRoleVisuals(authorDisplay).avatar;
             
-            // 🟢 判斷貼文刪除權限 (本人或同身分者可刪除)
-            const rawAuthorName = authorDisplay.split(' | ')[0];
-            const rawAuthorRole = authorDisplay.split(' | ')[1] || '';
+            // 🟢 判斷貼文刪除權限 (直接比對原始 log.author，只要包含登入者名字或符合教師/治療師/家長身分皆可)
             const canDeleteLog = currentUser && (
-                currentUser.name === rawAuthorName || 
-                currentUser.username === rawAuthorName ||
-                (currentUser.role === 'teacher' && rawAuthorRole === '教師') ||
-                (currentUser.role === 'therapist' && rawAuthorRole === '治療師') ||
-                (currentUser.role === 'parents' && rawAuthorRole === '家長')
+                log.author.includes(currentUser.name) || 
+                log.author.includes(currentUser.username) ||
+                (currentUser.role === 'teacher' && log.author.includes('教師')) ||
+                (currentUser.role === 'therapist' && log.author.includes('治療師')) ||
+                (currentUser.role === 'parents' && log.author.includes('家長'))
             );
-            const deleteLogBtn = canDeleteLog ? `<button class="btn btn-link text-danger p-0 ms-3" onclick="deleteHomeLog('${log.id}')" title="刪除此紀錄"><i class="fas fa-trash-alt"></i></button>` : '';
+            const deleteLogBtn = canDeleteLog ? `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteHomeLog('${log.id}')" title="刪除此紀錄"><i class="fas fa-trash-alt"></i></button>` : '';
 
             // 渲染回覆區塊
             const repliesHtml = log.replies.map((r, index) => {
@@ -1951,16 +1949,14 @@ async function loadHomeLogs() {
                 const replyAvatar = getRoleVisuals(replyDisplay).avatar;
                 
                 // 🟢 判斷回覆刪除權限
-                const rName = replyDisplay.split(' | ')[0];
-                const rRole = replyDisplay.split(' | ')[1] || '';
                 const canDeleteReply = currentUser && (
-                    currentUser.name === rName || 
-                    currentUser.username === rName ||
-                    (currentUser.role === 'teacher' && rRole === '教師') ||
-                    (currentUser.role === 'therapist' && rRole === '治療師') ||
-                    (currentUser.role === 'parents' && rRole === '家長')
+                    r.author.includes(currentUser.name) || 
+                    r.author.includes(currentUser.username) ||
+                    (currentUser.role === 'teacher' && r.author.includes('教師')) ||
+                    (currentUser.role === 'therapist' && r.author.includes('治療師')) ||
+                    (currentUser.role === 'parents' && r.author.includes('家長'))
                 );
-                const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-2" onclick="deleteHomeLogReply('${log.id}', ${index})" title="收回回覆"><i class="fas fa-times"></i></button>` : '';
+                const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteHomeLogReply('${log.id}', ${index})" title="收回回覆"><i class="fas fa-times"></i></button>` : '';
 
                 return `
                 <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
