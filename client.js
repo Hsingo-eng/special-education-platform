@@ -610,7 +610,7 @@ const cleanQuestionPersonName = (name = '', role = '') => {
 };
 
 // ==========================================
-// 💬 提問與回覆：載入與渲染功能 (強烈區塊設計版)
+// 💬 提問與回覆：載入與渲染功能 (左右對話框排版版)
 // ==========================================
 async function loadQuestions() {
     try {
@@ -624,8 +624,18 @@ async function loadQuestions() {
             return;
         }
 
-        // 依日期排序 (最新在上)
-        const sortedQuestions = json.data.sort((a, b) => new Date(b.date) - new Date(a.date));
+        // 🟢 智慧排序：先依照「是否已回覆」排序 (未回覆置頂)，接著再依日期排序
+        const sortedQuestions = json.data.sort((a, b) => {
+            const aHasReply = (a.reply && a.reply.trim() !== "");
+            const bHasReply = (b.reply && b.reply.trim() !== "");
+            
+            // 未回覆的排在前面
+            if (!aHasReply && bHasReply) return -1; 
+            if (aHasReply && !bHasReply) return 1;  
+            
+            // 狀態相同時，依日期由新到舊排序
+            return new Date(b.date) - new Date(a.date);
+        });
         
         list.innerHTML = sortedQuestions.map(q => {
             const targetRoles = getQuestionTargetRoles(q.target_role);
@@ -639,8 +649,10 @@ async function loadQuestions() {
             const targetAvatars = targetVisuals.map(visual => visual.avatar).join(' ');
             const targetClass = targetVisuals[0]?.class || 'text-warning';
 
+            const hasReply = q.reply && q.reply.trim() !== "";
+
             // ========================================
-            // 1. 卡片外框與表頭區塊 (灰色底, 清楚的邊框)
+            // 1. 卡片外框與表頭區塊 (誰問誰)
             // ========================================
             let html = `
             <div class="card mb-4 shadow-sm" style="border: 1px solid #cbd5e1; border-radius: 12px; overflow: hidden; background-color: #ffffff;">
@@ -654,23 +666,26 @@ async function loadQuestions() {
                     <div class="text-muted small">${q.date}</div>
                 </div>
 
-                <div class="card-body" style="padding: 24px;">
+                <!-- 這裡使用 Flexbox 讓內部對話框可以靠左與靠右對齊 -->
+                <div class="card-body d-flex flex-column gap-3" style="padding: 24px;">
                     
                     <!-- ======================================== -->
-                    <!-- 2. 提問區塊 (淺藍色底, 左側藍色粗框)       -->
+                    <!-- 2. 提問區塊 (靠左排版, 左側藍色粗框)       -->
                     <!-- ======================================== -->
-                    <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 6px solid #0ea5e9; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                        <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
-                            ${askerVis.avatar} ${askerStr} <span class="ms-2 text-muted fw-normal">提出問題</span>
+                    <div class="align-self-start" style="width: 85%;">
+                        <div style="background-color: #f0f9ff; border: 1px solid #bae6fd; border-left: 6px solid #0ea5e9; border-radius: 8px; padding: 16px;">
+                            <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
+                                ${askerVis.avatar} ${askerStr} <span class="ms-2 text-muted fw-normal">提出問題</span>
+                            </div>
+                            <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${q.question}</div>
                         </div>
-                        <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${q.question}</div>
                     </div>
             `;
 
             // ========================================
-            // 3. 回覆區塊 (若有回覆)
+            // 3. 回覆區塊 (靠右排版, 若有回覆)
             // ========================================
-            if (q.reply && q.reply.trim() !== "") {
+            if (hasReply) {
                 const replyList = q.reply.split('[SPLIT]');
                 let repliesHtml = replyList.map(r => {
                     let roleName = '回覆者'; let replyName = q.replier_name || '回覆者'; let replyText = r;
@@ -688,14 +703,14 @@ async function loadQuestions() {
                     const rVis = getRoleVisuals(replyRole);
 
                     return `
-                    <div class="text-center text-muted my-3"><i class="fas fa-arrow-down" style="color: #94a3b8;"></i></div>
-                    
-                    <!-- 淺綠色底, 左側綠色粗框 -->
-                    <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-left: 6px solid #10b981; border-radius: 8px; padding: 16px; margin-bottom: 12px;">
-                        <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
-                            ${rVis.avatar} ${replyName} <span class="ms-2 text-muted fw-normal">回覆</span>
+                    <!-- 靠右排版, 右側綠色粗框 -->
+                    <div class="align-self-end" style="width: 85%;">
+                        <div style="background-color: #f0fdf4; border: 1px solid #bbf7d0; border-right: 6px solid #10b981; border-radius: 8px; padding: 16px;">
+                            <div class="d-flex align-items-center mb-2" style="font-size: 0.9rem; font-weight: 600; color: #475569;">
+                                ${rVis.avatar} ${replyName} <span class="ms-2 text-muted fw-normal">回覆</span>
+                            </div>
+                            <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${replyText}</div>
                         </div>
-                        <div style="color: #0f172a; font-size: 1.05rem; white-space: pre-wrap; line-height: 1.6;">${replyText}</div>
                     </div>`;
                 }).join('');
                 
@@ -722,7 +737,7 @@ async function loadQuestions() {
                 <!-- ======================================== -->
                 <div class="card-footer d-flex justify-content-between align-items-center" style="background-color: #f8fafc; border-top: 1px solid #cbd5e1; padding: 14px 20px;">
                     <span class="badge rounded-pill" style="background-color: #fef3c7; color: #b45309; font-size: 0.9rem; padding: 8px 16px; border: 1px solid #fde68a;">
-                        <i class="fas fa-hourglass-half me-1"></i> 等待 ${targetStr} 回覆
+                        <i class="fas fa-hourglass-half me-1"></i> 待回覆
                     </span>
                     <button class="btn btn-primary btn-sm rounded-pill px-4 fw-bold shadow-sm" onclick="openReplyModal('${q.id}', '${safeReply}')">
                         <i class="fas fa-reply me-1"></i> 回覆此問題
