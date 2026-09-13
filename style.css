@@ -292,14 +292,14 @@ hr::before {
     margin-bottom: 2rem; /* 🟢 縮小間距，讓標題與表單更緊密 */
 }
 
-/* --- 表單設計比例 (向中線集中) --- */
+/* --- 表單設計比例 (加深標籤、縮減行距) --- */
 .ed-form-wrapper {
     width: 100%;
     max-width: 360px;
 }
 
 .ed-input-row {
-    margin-bottom: 1.5rem; /* 🟢 縮小輸入框之間的距離 */
+    margin-bottom: 1.2rem; /* 🟢 縮小輸入框群組間的距離 */
     position: relative;
 }
 
@@ -307,10 +307,11 @@ hr::before {
     display: block;
     font-family: var(--font-mono);
     font-size: 0.8rem;
-    color: #94A3B8;
+    color: #475569; /* 🟢 顏色明顯加深 (原為 #94A3B8) */
     letter-spacing: 0.15em;
-    margin-bottom: 0.4rem; /* 🟢 縮小標籤與輸入框的距離 */
+    margin-bottom: 0.1rem; /* 🟢 大幅縮小與下方輸入框的距離 */
     text-transform: uppercase;
+    font-weight: 600; /* 🟢 稍微加粗提升層次感 */
 }
 
 .ed-input {
@@ -318,7 +319,7 @@ hr::before {
     border: none;
     border-bottom: 1px solid #E2E8F0;
     background: transparent;
-    padding: 0.4rem 0;
+    padding: 0.3rem 0; /* 🟢 稍微減少內距讓結構更緊湊 */
     font-size: 1.25rem;
     color: #17233A;
     font-weight: 500;
@@ -336,7 +337,7 @@ hr::before {
     font-weight: 400 !important;
 }
 
-/* --- 登入按鈕 (向中線集中) --- */
+/* --- 登入按鈕 (向上收攏) --- */
 .ed-submit-btn {
     display: flex;
     align-items: center;
@@ -346,7 +347,7 @@ hr::before {
     border: none;
     border-bottom: 2px solid #0F172A;
     padding: 0.8rem 0;
-    margin-top: 1.5rem; /* 🟢 大幅縮小按鈕與上方輸入框的間距 */
+    margin-top: 1.2rem; /* 🟢 縮小間距，讓整個 SIGN IN 按鈕往上提升 */
     cursor: pointer;
     color: #0F172A;
     transition: color 0.3s ease, border-color 0.3s ease;
