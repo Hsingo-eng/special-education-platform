@@ -228,136 +228,204 @@ hr::before {
 .status-indicator { display: none !important; }
 
 /* =========================================
-   Login / Hero (滿版無滾動修正)
+   🔐 Art Direction: Swiss Editorial Login (Final Polish)
    ========================================= */
-
-/* 1. 登入頁容器：強制滿版，禁止溢出 */
-#login-section {
+.ed-login-container {
     width: 100vw;
-    height: 100vh;
-    max-width: 100vw; 
-    padding: 0 5vw; 
-    overflow: hidden; /* 禁止出現捲軸 */
-    position: relative;
-    background-image: radial-gradient(circle at center, rgba(246, 248, 250, 1) 40%, rgba(246, 248, 250, 0.8) 100%);
-}
-
-/* 2. Hero 網格：確保高度佔滿 */
-.hero {
-    min-height: 100vh; 
-    height: 100vh;     
-    display: grid; 
-    grid-template-columns: 1.2fr 1fr; 
-    align-items: center; 
-    gap: 2rem; 
-    padding: 0;
-    margin: 0;
-}
-
-/* 3. 右側拼圖容器：絕對定位或 Flex 居中 */
-.hero-image-wrapper {
+    min-height: 100vh;
+    background-color: #F8FAFC;
+    background-image: 
+        linear-gradient(rgba(23, 35, 58, 0.03) 1px, transparent 1px),
+        linear-gradient(90deg, rgba(23, 35, 58, 0.03) 1px, transparent 1px);
+    background-size: 60px 60px;
     display: flex;
-    justify-content: center; 
-    align-items: center;     
-    height: 100%;            
+    overflow-x: hidden;
     position: relative;
+    z-index: 1;
 }
 
-.circle-sketch { 
-    display: inline-block; position: relative; z-index: 1; white-space: nowrap; 
-}
-/* 隱藏藍色圈圈 */
-.circle-sketch::after {
-    display: none !important;
-}
+/* (已徹底移除背景巨大浮水印) */
 
-/* 標題字體加大 */
-.display-text { 
-    font-size: 3.9rem !important; 
-    font-weight: 800; 
-    line-height: 1.2; 
-    color: var(--text-primary); 
-    margin-bottom: 2rem; 
-}
-
-/* =========================================
-   🧩 右側拼圖動畫區塊 (超大擬真形狀版)
-   ========================================= */
-
-/* 1. 外層容器與群組 */
-.hero-image-placeholder {
+.ed-left-col {
+    width: 45%;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    justify-content: center;
+    justify-content: center; /* 完美垂直置中 */
+    padding: 2rem 4vw 2rem 8vw;
+    z-index: 10;
     position: relative;
+}
+
+.ed-right-col {
+    width: 55%;
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center; 
+    padding: 4vw; 
+    z-index: 5;
+}
+
+/* --- Typography 排版比例 (向中線集中) --- */
+.ed-label-mono {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    letter-spacing: 0.35em;
+    color: #64748B;
+    margin-bottom: 1.5rem; 
+    text-transform: uppercase;
+}
+
+.ed-title-sub {
+    font-size: 1.6rem;
+    font-weight: 500;
+    color: #334155;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.2rem;
+}
+
+.ed-title-bold {
+    font-size: 3.5rem;
+    font-weight: 900;
+    color: #0F172A;
+    letter-spacing: 0.05em;
+    margin-bottom: 2rem; /* 🟢 縮小間距，讓標題與表單更緊密 */
+}
+
+/* --- 表單設計比例 (向中線集中) --- */
+.ed-form-wrapper {
+    width: 100%;
+    max-width: 360px;
+}
+
+.ed-input-row {
+    margin-bottom: 1.5rem; /* 🟢 縮小輸入框之間的距離 */
+    position: relative;
+}
+
+.ed-input-label {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    color: #94A3B8;
+    letter-spacing: 0.15em;
+    margin-bottom: 0.4rem; /* 🟢 縮小標籤與輸入框的距離 */
+    text-transform: uppercase;
+}
+
+.ed-input {
+    width: 100%;
+    border: none;
+    border-bottom: 1px solid #E2E8F0;
+    background: transparent;
+    padding: 0.4rem 0;
+    font-size: 1.25rem;
+    color: #17233A;
+    font-weight: 500;
+    outline: none;
+    transition: border-color 0.4s ease;
+    border-radius: 0;
+}
+
+.ed-input:focus {
+    border-bottom-color: #315B9B;
+}
+
+.ed-input::placeholder {
+    color: #94A3B8 !important;
+    font-weight: 400 !important;
+}
+
+/* --- 登入按鈕 (向中線集中) --- */
+.ed-submit-btn {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 2px solid #0F172A;
+    padding: 0.8rem 0;
+    margin-top: 1.5rem; /* 🟢 大幅縮小按鈕與上方輸入框的間距 */
+    cursor: pointer;
+    color: #0F172A;
+    transition: color 0.3s ease, border-color 0.3s ease;
+}
+
+.ed-submit-btn:hover {
+    color: #D96B3B; 
+    border-bottom-color: #D96B3B;
+}
+
+.ed-submit-text {
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 800;
+    letter-spacing: 0.2em;
+}
+
+.ed-submit-icon {
+    font-size: 1.2rem;
+    transition: transform 0.4s ease;
+}
+.ed-submit-btn:hover .ed-submit-icon {
+    transform: translateX(5px);
+}
+
+/* --- 幾何拼圖 (翻轉 45 度) --- */
+.ed-puzzle-wrapper {
+    width: 65%; 
+    max-width: 500px;
+    aspect-ratio: 1 / 1;
+    position: relative;
+    cursor: pointer;
+}
+
+.ed-puzzle-svg {
     width: 100%;
     height: 100%;
-    min-height: 500px; /* 確保有足夠空間 */
+    overflow: visible; 
+    transform: rotate(45deg); 
 }
 
-/* 2. 拼圖群組容器：調整位置與尺寸 */
-.puzzle-group {
-    position: relative;
-    width: 450px;  /* 大幅加大容器 */
-    height: 450px;
-    transform: rotate(-10deg); 
-    transition: transform 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    margin-bottom: 0; 
-    left: 50px; /* 往右推 */
+.ed-puzzle-shape {
+    transition: transform 0.9s cubic-bezier(0.25, 1, 0.2, 1); 
+    transform-origin: center;
 }
 
-.hero-image-placeholder:hover .puzzle-group {
-    transform: rotate(0deg);
+/* Default State 散落動畫設定 */
+.ed-piece-med { transform: translate(-25px, -25px) rotate(-5deg); } 
+.ed-piece-edu { transform: translate(30px, -15px) rotate(8deg); }   
+.ed-piece-fam { transform: translate(-15px, 30px) rotate(-6deg); }  
+
+.ed-puzzle-wrapper:hover .ed-puzzle-shape {
+    transform: translate(0, 0) rotate(0deg);
 }
 
-/* 3. 基礎拼圖塊設定 */
-.puzzle-piece {
-    position: absolute;
-    width: 220px;  /* 加大至 220px */
-    height: 220px; /* 加大至 220px */
-    display: flex; align-items: center; justify-content: center;
-    color: white; font-size: 3.5rem; /* 加大圖示 */
-    /* 深色濾鏡陰影，增加立體感 */
-    filter: drop-shadow(4px 6px 10px rgba(0,0,0,0.2));
-    transition: all 0.6s cubic-bezier(0.34, 1.56, 0.64, 1);
-    z-index: 1;
-    background-blend-mode: multiply;
+.ed-connect-lines {
+    stroke: #64748B;
+    stroke-width: 1;
+    stroke-dasharray: 4 6;
+    opacity: 0;
+    transition: opacity 0.8s ease 0.3s;
 }
 
-/* 4. 藍色拼圖 (左上角) - 雙凸耳角落塊 (放大路徑) */
-.piece-blue { 
-    background-color: var(--accent-color); 
-    top: 0; left: 20px; z-index: 2; 
-    clip-path: path('M15,15 L150,15 L150,62.5 C177.6,62.5 200,84.9 200,112.5 C200,140.1 177.6,162.5 150,162.5 L150,205 L102.5,205 C102.5,177.4 80.1,155 52.5,155 C24.9,155 2.5,177.4 2.5,205 L2.5,205 L15,205 L15,15 Z');
+.ed-puzzle-wrapper:hover .ed-connect-lines {
+    opacity: 0.3;
 }
 
-/* 5. 綠色拼圖 (右上角) - 雙凹槽塊 (放大路徑) */
-.piece-green { 
-    background-color: var(--evt-green); 
-    top: 30px; left: 190px; z-index: 1; /* 調整位置 */
-    clip-path: path('M52.5,15 L205,15 L205,205 L152.5,205 C152.5,177.4 130.1,155 102.5,155 C74.9,155 52.5,177.4 52.5,205 L52.5,205 L0,205 L0,162.5 C27.6,162.5 50,140.1 50,112.5 C50,84.9 27.6,62.5 0,62.5 L0,62.5 L0,15 L52.5,15 Z');
+/* RWD: Mobile / Tablet */
+@media (max-width: 992px) {
+    .ed-login-container {
+        flex-direction: column-reverse;
+        height: auto;
+        padding: 0;
+    }
+    .ed-left-col { width: 100%; padding: 4rem 8vw 6rem 8vw; }
+    .ed-right-col { width: 100%; height: auto; min-height: 400px; padding: 4rem 2rem; }
+    .ed-title-bold { font-size: 2.8rem; margin-bottom: 2rem; }
+    .ed-puzzle-wrapper { width: 70%; max-width: 320px; }
 }
-
-/* 6. 橘色拼圖 (下方) - 混合塊 (放大路徑) */
-.piece-orange { 
-    background-color: var(--evt-orange); 
-    top: 200px; left: 100px; z-index: 3; /* 調整位置 */
-    clip-path: path('M15,52.5 L62.5,52.5 C62.5,24.9 84.9,2.5 112.5,2.5 C140.1,2.5 162.5,24.9 162.5,52.5 L205,52.5 L205,205 L15,205 L15,152.5 C42.6,152.5 65,130.1 65,102.5 C65,74.9 42.6,52.5 15,52.5 L15,52.5 L15,52.5 Z');
-}
-
-/* Hover 動畫：大幅度分離與旋轉 */
-.hero-image-placeholder:hover .piece-blue { transform: translate(-40px, -40px) scale(1.05) rotate(-8deg); }
-.hero-image-placeholder:hover .piece-green { transform: translate(40px, -20px) scale(1.05) rotate(8deg); }
-.hero-image-placeholder:hover .piece-orange { transform: translate(0px, 50px) scale(1.05) rotate(0deg); }
-
-.image-caption {
-    display: block; position: relative; margin-top: 2rem;
-    font-family: var(--font-mono); font-size: 0.9rem; color: var(--text-hint);
-    font-weight: 400; text-transform: uppercase; letter-spacing: 0.12em;
-    text-align: center; z-index: 5;
-}
-
 /* =========================================
    LEVEL 1: Calendar
    ========================================= */
@@ -365,7 +433,6 @@ hr::before {
     margin-bottom: var(--spacing-section); 
 }
 
-/* 🧩 Puzzle Design: Dashboard 背景裝飾 */
 /* =========================================
    🧩 Dashboard Background (儀表板背景優化)
    ========================================= */
