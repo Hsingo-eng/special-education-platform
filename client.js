@@ -2148,7 +2148,7 @@ function getGoalStatusStyle(status) {
     return { bg: '#F1F5F9', text: '#475569', border: '#E2E8F0' }; // 未開始
 }
 
-// 重新載入目標與策略 (加入狀態追蹤與修正排版)
+// 重新載入目標與策略 (升級為：折疊式面板 + 雙向動態追蹤時間軸)
 async function loadIepGoals() {
     const list = document.getElementById('iep-goal-list');
     if (!list) return;
@@ -2164,78 +2164,111 @@ async function loadIepGoals() {
         }
 
         list.innerHTML = json.data.map(goal => {
-            // 1. 刪除按鈕
+            // 1. 刪除按鈕 (限教師)
             const canDeleteGoal = currentUser && currentUser.role === 'teacher';
             const goalDeleteBtn = canDeleteGoal ? 
-                `<button class="btn btn-outline-danger btn-sm rounded-pill py-0 px-2 ms-3" onclick="deleteIepGoal('${goal.id}')" title="刪除此目標"><i class="fas fa-trash-alt small"></i></button>` : '';
+                `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteIepGoal('${goal.id}')" title="刪除此目標"><i class="fas fa-trash-alt"></i></button>` : '';
 
-            // 2. 狀態標籤 (下拉選單或純標籤)
+            // 2. 狀態標籤 (下拉選單或純標籤) - 加入 onClick 阻止冒泡，避免點選狀態時觸發折疊
             const currentStatus = goal.status || '未開始';
             const sStyle = getGoalStatusStyle(currentStatus);
             let statusHtml = '';
             
             if (currentUser && currentUser.role === 'teacher') {
                 statusHtml = `
-                    <select class="form-select form-select-sm ms-md-4 mt-3 mt-md-0 fw-bold rounded-pill shadow-sm" 
-                            style="width: 120px; background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; cursor: pointer;"
-                            onchange="updateIepGoalStatus('${goal.id}', this.value)">
+                    <select class="form-select form-select-sm fw-bold rounded-pill shadow-sm" 
+                            style="width: 110px; background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; cursor: pointer;"
+                            onchange="updateIepGoalStatus('${goal.id}', this.value)"
+                            onclick="event.stopPropagation();">
                         <option value="未開始" ${currentStatus === '未開始' ? 'selected' : ''}>未開始</option>
                         <option value="練習中" ${currentStatus === '練習中' ? 'selected' : ''}>練習中</option>
                         <option value="已達成" ${currentStatus === '已達成' ? 'selected' : ''}>已達成</option>
                     </select>
                 `;
             } else {
-                statusHtml = `<span class="badge rounded-pill ms-md-4 mt-3 mt-md-0 px-3 py-2 shadow-sm" style="background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; font-size: 0.85rem;">${currentStatus}</span>`;
+                statusHtml = `<span class="badge rounded-pill px-3 py-2 shadow-sm" style="background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; font-size: 0.85rem;">${currentStatus}</span>`;
             }
 
-            // 3. 策略內容
+            // 3. 動態時間軸內容 (區分進度回報 vs 專業建議)
+            const strategiesCount = goal.strategies ? goal.strategies.length : 0;
             const strategiesHtml = goal.strategies.map(st => {
-                const authorVis = getRoleVisuals(st.author).avatar;
-                const authorRoleClass = st.author.includes('治療師') ? 'text-success' : 'text-primary';
-                
                 const authorName = st.author.split(' | ')[0];
+                const authorRole = st.author.split(' | ')[1] || '';
+                
+                // 判斷是教師回報進度，還是專業人員給建議
+                const isTeacher = authorRole.includes('教師');
+                const threadClass = isTeacher ? 'iep-thread-teacher' : 'iep-thread-therapist';
+                const iconHtml = isTeacher ? '<i class="fas fa-chart-line text-primary me-1"></i><span class="text-primary fw-bold small me-2">[進度回報]</span>' 
+                                           : '<i class="fas fa-lightbulb text-success me-1"></i><span class="text-success fw-bold small me-2">[專業建議]</span>';
+                
+                const authorVis = getRoleVisuals(st.author).avatar;
+                
+                // 刪除權限：本人或教師可刪除
                 const canDeleteSt = currentUser && (currentUser.role === 'teacher' || currentUser.name === authorName || currentUser.username === authorName);
                 const stDeleteBtn = canDeleteSt ? 
-                    `<button class="btn btn-link text-danger p-0 border-0 ms-2 text-decoration-none" onclick="deleteIepStrategy('${goal.id}', '${st.id}')" title="刪除此建議"><i class="fas fa-times"></i></button>` : '';
+                    `<button class="btn btn-link text-danger p-0 border-0 ms-3 text-decoration-none" onclick="deleteIepStrategy('${goal.id}', '${st.id}')" title="刪除此紀錄"><i class="fas fa-times"></i></button>` : '';
 
                 return `
-                <div class="bg-light p-3 rounded-3 mb-2 ms-3 border-start border-3 border-success shadow-sm">
-                    <div class="d-flex justify-content-between align-items-center mb-2">
-                        <span class="fw-bold small ${authorRoleClass}">${authorVis} ${st.author}</span>
+                <div class="iep-thread-card ${threadClass}">
+                    <div class="d-flex justify-content-between align-items-center mb-2 pb-2 border-bottom border-light">
+                        <div class="d-flex align-items-center">
+                            ${iconHtml}
+                            <span class="fw-bold small text-dark me-2">${authorVis} ${authorName}</span>
+                        </div>
                         <div class="d-flex align-items-center">
                             <span class="text-muted" style="font-size: 0.75rem;">${new Date(st.timestamp).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' })}</span>
                             ${stDeleteBtn}
                         </div>
                     </div>
-                    <p class="mb-0 text-dark" style="line-height: 1.5; font-size: 0.95rem;">${st.text}</p>
+                    <p class="mb-0 text-dark" style="line-height: 1.6; font-size: 0.95rem; white-space: pre-wrap;">${st.text}</p>
                 </div>
                 `;
             }).join('');
 
-            // 4. 卡片排版整合
+            // 4. 智慧型輸入框 (依據角色改變提示文字與按鈕)
+            const isUserTeacher = currentUser && currentUser.role === 'teacher';
+            const inputPlaceholder = isUserTeacher ? "填寫目前進度與達成率 (例如：目前已能獨立完成 2 項指令，達成率約 50%)..." : "依據目前進度，給予後續引導策略或方向建議...";
+            const btnText = isUserTeacher ? "更新進度" : "新增建議";
+            const btnClass = isUserTeacher ? "btn-primary" : "btn-success";
+
+            // 5. 組合：折疊面板卡片
             return `
             <div class="card border-0 shadow-sm rounded-4 overflow-hidden mb-3">
-                <div class="card-header bg-white border-bottom px-4 py-3 d-flex flex-column flex-md-row align-items-md-center">
-                    <div class="d-flex align-items-center">
-                        <i class="fas fa-star text-warning me-2"></i>
-                        <h5 class="fw-bold text-dark mb-0">${goal.goal_title}</h5>
+                
+                <!-- 標題區 (點擊展開/收合) -->
+                <div class="card-header bg-white border-bottom-0 p-3 iep-goal-header d-flex flex-column flex-md-row justify-content-between align-items-md-center">
+                    
+                    <div class="d-flex align-items-center flex-grow-1 cursor-pointer" data-bs-toggle="collapse" data-bs-target="#collapse-${goal.id}" aria-expanded="false" style="cursor: pointer;">
+                        <i class="fas fa-chevron-down text-muted me-3 iep-toggle-icon"></i>
+                        <h6 class="fw-bold text-dark mb-0 d-flex align-items-center">
+                            <i class="fas fa-star text-warning me-2"></i>${goal.goal_title}
+                        </h6>
+                        <span class="badge bg-light text-secondary border ms-3 rounded-pill fw-normal">${strategiesCount} 則動態</span>
                     </div>
-                    <!-- 狀態追蹤插入在這裡 -->
-                    ${statusHtml}
-                    <!-- 日期與刪除按鈕靠右對齊 -->
-                    <div class="ms-md-auto d-flex align-items-center mt-3 mt-md-0">
-                        <span class="text-muted small">${goal.date}</span>
+
+                    <!-- 操作與狀態區 (點擊不觸發折疊) -->
+                    <div class="ms-md-auto d-flex align-items-center mt-3 mt-md-0 ps-md-3">
+                        <span class="text-muted small me-3 d-none d-md-inline">${goal.date}</span>
+                        ${statusHtml}
                         ${goalDeleteBtn}
                     </div>
                 </div>
-                <div class="card-body px-4 py-3 bg-white">
-                    <div class="mb-3">
-                        ${strategiesHtml ? strategiesHtml : '<p class="text-muted small ms-3 mb-0">尚無具體作法，等待團隊新增建議...</p>'}
-                    </div>
-                    
-                    <div class="input-group input-group-sm mt-3 ms-3" style="width: calc(100% - 1rem);">
-                        <input type="text" id="strategy-input-${goal.id}" class="form-control rounded-pill-start bg-light border-0 px-3 py-2" placeholder="撰寫具體引導作法或居家建議...">
-                        <button class="btn btn-success rounded-pill-end px-3 fw-bold" onclick="submitIepStrategy('${goal.id}')">新增建議</button>
+
+                <!-- 折疊內容區 (預設隱藏) -->
+                <div id="collapse-${goal.id}" class="collapse">
+                    <div class="card-body p-4 bg-light border-top">
+                        
+                        <!-- 動態時間軸 -->
+                        <div class="mb-3">
+                            ${strategiesHtml ? strategiesHtml : '<div class="text-center text-muted py-4 small"><i class="fas fa-seedling fa-2x mb-2" style="color: #cbd5e1;"></i><br>尚無進度與建議，開始追蹤吧！</div>'}
+                        </div>
+                        
+                        <!-- 智慧型輸入框 -->
+                        <div class="input-group mt-3 shadow-sm rounded-pill overflow-hidden border">
+                            <input type="text" id="strategy-input-${goal.id}" class="form-control border-0 px-4 py-2 bg-white" placeholder="${inputPlaceholder}">
+                            <button class="btn ${btnClass} px-4 fw-bold" onclick="submitIepStrategy('${goal.id}')">${btnText}</button>
+                        </div>
+                        
                     </div>
                 </div>
             </div>

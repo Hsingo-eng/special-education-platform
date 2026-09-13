@@ -1228,3 +1228,38 @@ textarea::placeholder {
     opacity: 1 !important; /* 確保不同瀏覽器顯示一致 */
     font-weight: 400 !important; /* 避免預設文字過粗 */
 }
+
+/* =========================================
+   🎯 IEP 目標折疊與動態時間軸樣式
+   ========================================= */
+/* 讓點擊區塊有互動感 */
+.iep-goal-header {
+    transition: background-color 0.2s ease;
+}
+.iep-goal-header:hover {
+    background-color: #F8FAFC !important;
+}
+
+/* 箭頭旋轉動畫 */
+.iep-toggle-icon {
+    transition: transform 0.3s ease;
+}
+/* 當折疊面板展開時，讓箭頭轉 180 度向上 */
+[aria-expanded="true"] .iep-toggle-icon {
+    transform: rotate(180deg);
+}
+
+/* 針對時間軸對話框的優化 */
+.iep-thread-card {
+    background-color: #ffffff;
+    border-radius: 12px;
+    padding: 16px;
+    margin-bottom: 12px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.03);
+}
+.iep-thread-teacher {
+    border-left: 4px solid #3B82F6; /* 教師進度：藍色 */
+}
+.iep-thread-therapist {
+    border-left: 4px solid #10B981; /* 治療師建議：綠色 */
+}
