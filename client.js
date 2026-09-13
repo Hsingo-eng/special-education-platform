@@ -2149,6 +2149,7 @@ function getGoalStatusStyle(status) {
 }
 
 // 重新載入目標與策略 (升級為：折疊式面板 + 雙向動態追蹤時間軸)
+// 重新載入目標與策略 (修改標籤名稱，並關閉家長輸入權限)
 async function loadIepGoals() {
     const list = document.getElementById('iep-goal-list');
     if (!list) return;
@@ -2169,7 +2170,7 @@ async function loadIepGoals() {
             const goalDeleteBtn = canDeleteGoal ? 
                 `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteIepGoal('${goal.id}')" title="刪除此目標"><i class="fas fa-trash-alt"></i></button>` : '';
 
-            // 2. 狀態標籤 (下拉選單或純標籤) - 加入 onClick 阻止冒泡，避免點選狀態時觸發折疊
+            // 2. 狀態標籤 (下拉選單或純標籤)
             const currentStatus = goal.status || '未開始';
             const sStyle = getGoalStatusStyle(currentStatus);
             let statusHtml = '';
@@ -2189,17 +2190,27 @@ async function loadIepGoals() {
                 statusHtml = `<span class="badge rounded-pill px-3 py-2 shadow-sm" style="background-color: ${sStyle.bg}; color: ${sStyle.text}; border: 1px solid ${sStyle.border}; font-size: 0.85rem;">${currentStatus}</span>`;
             }
 
-            // 3. 動態時間軸內容 (區分進度回報 vs 專業建議)
+            // 3. 動態時間軸內容 (區分進度分享 vs 回饋建議)
             const strategiesCount = goal.strategies ? goal.strategies.length : 0;
             const strategiesHtml = goal.strategies.map(st => {
                 const authorName = st.author.split(' | ')[0];
                 const authorRole = st.author.split(' | ')[1] || '';
                 
-                // 判斷是教師回報進度，還是專業人員給建議
-                const isTeacher = authorRole.includes('教師');
-                const threadClass = isTeacher ? 'iep-thread-teacher' : 'iep-thread-therapist';
-                const iconHtml = isTeacher ? '<i class="fas fa-chart-line text-primary me-1"></i><span class="text-primary fw-bold small me-2">[進度回報]</span>' 
-                                           : '<i class="fas fa-lightbulb text-success me-1"></i><span class="text-success fw-bold small me-2">[專業建議]</span>';
+                let threadClass = '';
+                let iconHtml = '';
+                
+                // 🟢 精準分類與命名
+                if (authorRole.includes('教師') || authorName.includes('老師')) {
+                    threadClass = 'iep-thread-teacher';
+                    iconHtml = '<i class="fas fa-chart-line text-primary me-1"></i><span class="text-primary fw-bold small me-2">[進度分享]</span>';
+                } else if (authorRole.includes('治療師')) {
+                    threadClass = 'iep-thread-therapist';
+                    iconHtml = '<i class="fas fa-lightbulb text-success me-1"></i><span class="text-success fw-bold small me-2">[回饋建議]</span>';
+                } else {
+                    // 相容舊測試資料，標示為家長留言
+                    threadClass = 'iep-thread-parent';
+                    iconHtml = '<i class="fas fa-comment-dots text-warning me-1"></i><span class="text-warning fw-bold small me-2">[家長留言]</span>';
+                }
                 
                 const authorVis = getRoleVisuals(st.author).avatar;
                 
@@ -2225,11 +2236,28 @@ async function loadIepGoals() {
                 `;
             }).join('');
 
-            // 4. 智慧型輸入框 (依據角色改變提示文字與按鈕)
-            const isUserTeacher = currentUser && currentUser.role === 'teacher';
-            const inputPlaceholder = isUserTeacher ? "填寫目前進度與達成率 (例如：目前已能獨立完成 2 項指令，達成率約 50%)..." : "依據目前進度，給予後續引導策略或方向建議...";
-            const btnText = isUserTeacher ? "更新進度" : "新增建議";
-            const btnClass = isUserTeacher ? "btn-primary" : "btn-success";
+            // 4. 智慧型輸入框 (🟢 加入權限防呆：家長不顯示輸入框)
+            let inputBoxHtml = '';
+            if (currentUser && (currentUser.role === 'teacher' || currentUser.role === 'therapist')) {
+                const isUserTeacher = currentUser.role === 'teacher';
+                const inputPlaceholder = isUserTeacher ? "填寫目前進度與達成率 (例如：目前已能獨立完成 2 項指令，達成率約 50%)..." : "依據目前進度，給予後續引導策略或方向建議...";
+                const btnText = isUserTeacher ? "進度分享" : "回饋建議";
+                const btnClass = isUserTeacher ? "btn-primary" : "btn-success";
+
+                inputBoxHtml = `
+                <div class="input-group mt-3 shadow-sm rounded-pill overflow-hidden border">
+                    <input type="text" id="strategy-input-${goal.id}" class="form-control border-0 px-4 py-2 bg-white" placeholder="${inputPlaceholder}">
+                    <button class="btn ${btnClass} px-4 fw-bold" onclick="submitIepStrategy('${goal.id}')">${btnText}</button>
+                </div>
+                `;
+            } else {
+                // 家長視角：隱藏輸入框，改為貼心提示字眼
+                inputBoxHtml = `
+                <div class="text-center mt-3 p-2 bg-white rounded-pill border shadow-sm">
+                    <span class="text-muted small"><i class="fas fa-info-circle me-1"></i> IEP 目標進度與建議由專業團隊更新。</span>
+                </div>
+                `;
+            }
 
             // 5. 組合：折疊面板卡片
             return `
@@ -2263,11 +2291,8 @@ async function loadIepGoals() {
                             ${strategiesHtml ? strategiesHtml : '<div class="text-center text-muted py-4 small"><i class="fas fa-seedling fa-2x mb-2" style="color: #cbd5e1;"></i><br>尚無進度與建議，開始追蹤吧！</div>'}
                         </div>
                         
-                        <!-- 智慧型輸入框 -->
-                        <div class="input-group mt-3 shadow-sm rounded-pill overflow-hidden border">
-                            <input type="text" id="strategy-input-${goal.id}" class="form-control border-0 px-4 py-2 bg-white" placeholder="${inputPlaceholder}">
-                            <button class="btn ${btnClass} px-4 fw-bold" onclick="submitIepStrategy('${goal.id}')">${btnText}</button>
-                        </div>
+                        <!-- 智慧型輸入框 / 家長提示區 -->
+                        ${inputBoxHtml}
                         
                     </div>
                 </div>
