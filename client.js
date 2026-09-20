@@ -2008,7 +2008,7 @@ async function loadHomeLogs() {
                         
                         <!-- 新增回覆輸入框 -->
                         <div class="input-group input-group-sm mt-3">
-                            <input type="text" id="reply-input-${log.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="撰寫專業回饋或建議...">
+                            <input type="text" id="reply-input-${log.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="回饋">
                             <button class="btn btn-primary rounded-pill-end px-3 fw-bold" onclick="submitLogReply('${log.id}')">回覆</button>
                         </div>
                     </div>
