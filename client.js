@@ -1877,10 +1877,13 @@ if (logImageInput) {
     });
 }
 
-// 3. 收集資料準備送往後端
+// 1. 收集資料準備送往後端 (加入標籤資料)
 async function submitHomeLog() {
     const textContent = document.getElementById('log-text').value.trim();
     const imageBase64 = document.getElementById('log-image-base64').value;
+    
+    // 收集打勾的標籤
+    const selectedTags = Array.from(document.querySelectorAll('.tag-check:checked')).map(cb => cb.value);
 
     if (!textContent && !imageBase64) {
         return Swal.fire({ icon: 'warning', title: '內容不可空白', text: '請填寫文字或上傳照片！' });
@@ -1891,23 +1894,18 @@ async function submitHomeLog() {
         const res = await fetch(`${API_URL}/api/home_logs`, {
             method: 'POST',
             headers: { 'Content-Type': 'application/json', 'Authorization': `Bearer ${token}` },
-            body: JSON.stringify({ content: textContent, image: imageBase64 })
+            body: JSON.stringify({ content: textContent, image: imageBase64, tags: selectedTags })
         });
 
         if (res.ok) {
             bootstrap.Modal.getInstance(document.getElementById('homeLogModal')).hide();
             Swal.fire({ icon: 'success', title: '發佈成功！', timer: 1500, showConfirmButton: false });
             loadHomeLogs();
-        } else {
-            throw new Error('伺服器錯誤');
-        }
-    } catch (err) {
-        Swal.fire({ icon: 'error', title: '發佈失敗', text: '請檢查網路連線。' });
-    }
+        } else throw new Error('伺服器錯誤');
+    } catch (err) { Swal.fire({ icon: 'error', title: '發佈失敗' }); }
 }
 
-// 載入貼文牆 (加入刪除鍵與權限防呆)
-// 載入貼文牆 (加入刪除鍵與精準權限防呆)
+// 2. 載入貼文牆 (加入標籤與互動按鈕渲染)
 async function loadHomeLogs() {
     const feedContainer = document.getElementById('home-log-feed');
     if (!feedContainer) return;
@@ -1926,37 +1924,52 @@ async function loadHomeLogs() {
             return;
         }
 
-        // 渲染貼文
         feedContainer.innerHTML = json.data.map(log => {
             const dateStr = new Date(log.datetime).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
             const imageHtml = log.image ? `<img src="${log.image}" class="img-fluid rounded-3 mb-3 border" style="max-height: 300px; object-fit: contain; width: 100%;">` : '';
             const authorDisplay = formatHomeAuthor(log.author);
             const authorAvatar = getRoleVisuals(authorDisplay).avatar;
             
-            // 🟢 判斷貼文刪除權限 (直接比對原始 log.author，只要包含登入者名字或符合教師/治療師/家長身分皆可)
-            const canDeleteLog = currentUser && (
-                log.author.includes(currentUser.name) || 
-                log.author.includes(currentUser.username) ||
-                (currentUser.role === 'teacher' && log.author.includes('教師')) ||
-                (currentUser.role === 'therapist' && log.author.includes('治療師')) ||
-                (currentUser.role === 'parents' && log.author.includes('家長'))
-            );
-            const deleteLogBtn = canDeleteLog ? `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteHomeLog('${log.id}')" title="刪除此紀錄"><i class="fas fa-trash-alt"></i></button>` : '';
+            const canDeleteLog = currentUser && (log.author.includes(currentUser.name) || log.author.includes(currentUser.username) || (currentUser.role === 'teacher' && log.author.includes('教師')));
+            const deleteLogBtn = canDeleteLog ? `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteHomeLog('${log.id}')" title="刪除"><i class="fas fa-trash-alt"></i></button>` : '';
+
+            // 🟢 渲染標籤
+            let tagsHtml = '';
+            if (log.tags && log.tags.length > 0) {
+                tagsHtml = '<div class="mb-3">' + log.tags.map(t => `<span class="badge rounded-pill me-2 mb-1 log-tag-badge">${t}</span>`).join('') + '</div>';
+            }
+
+            // 🟢 判斷目前使用者是否已經點過按鈕
+            const currUserKey = currentUser?.username;
+            const readActive = log.reactions?.read?.includes(currUserKey) ? 'active' : '';
+            const encourageActive = log.reactions?.encourage?.includes(currUserKey) ? 'active' : '';
+            const loveActive = log.reactions?.love?.includes(currUserKey) ? 'active' : '';
+
+            const readCount = log.reactions?.read?.length || 0;
+            const encourageCount = log.reactions?.encourage?.length || 0;
+            const loveCount = log.reactions?.love?.length || 0;
+
+            // 🟢 渲染可愛微互動按鈕區
+            const reactionsHtml = `
+                <div class="d-flex flex-wrap gap-2 mt-2 mb-3 border-top pt-3 border-light">
+                    <button class="btn reaction-btn reaction-read ${readActive}" onclick="toggleHomeLogReaction('${log.id}', 'read')">
+                        👀 已閱 <span class="badge">${readCount}</span>
+                    </button>
+                    <button class="btn reaction-btn reaction-encourage ${encourageActive}" onclick="toggleHomeLogReaction('${log.id}', 'encourage')">
+                        🌟 鼓勵 <span class="badge">${encourageCount}</span>
+                    </button>
+                    <button class="btn reaction-btn reaction-love ${loveActive}" onclick="toggleHomeLogReaction('${log.id}', 'love')">
+                        💖 愛心 <span class="badge">${loveCount}</span>
+                    </button>
+                </div>
+            `;
 
             // 渲染回覆區塊
             const repliesHtml = log.replies.map((r, index) => {
                 const replyDisplay = formatHomeAuthor(r.author);
                 const replyAvatar = getRoleVisuals(replyDisplay).avatar;
-                
-                // 🟢 判斷回覆刪除權限
-                const canDeleteReply = currentUser && (
-                    r.author.includes(currentUser.name) || 
-                    r.author.includes(currentUser.username) ||
-                    (currentUser.role === 'teacher' && r.author.includes('教師')) ||
-                    (currentUser.role === 'therapist' && r.author.includes('治療師')) ||
-                    (currentUser.role === 'parents' && r.author.includes('家長'))
-                );
-                const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteHomeLogReply('${log.id}', ${index})" title="收回回覆"><i class="fas fa-times"></i></button>` : '';
+                const canDeleteReply = currentUser && (r.author.includes(currentUser.name) || r.author.includes(currentUser.username) || (currentUser.role === 'teacher' && r.author.includes('教師')));
+                const deleteReplyBtn = canDeleteReply ? `<button class="btn btn-link text-danger p-0 ms-3 text-decoration-none" onclick="deleteHomeLogReply('${log.id}', ${index})" title="收回"><i class="fas fa-times"></i></button>` : '';
 
                 return `
                 <div class="bg-light p-3 rounded-3 mb-2 ms-4 border-start border-3 border-primary">
@@ -1982,9 +1995,11 @@ async function loadHomeLogs() {
                                 ${deleteLogBtn}
                             </div>
                         </div>
+                        ${tagsHtml}
                         <p class="text-dark mb-3" style="white-space: pre-wrap;">${log.content}</p>
                         ${imageHtml}
-                        <hr class="text-muted opacity-25">
+                        
+                        ${reactionsHtml}
                         
                         <!-- 回覆列表 -->
                         <div class="replies-container mb-3">
@@ -2000,10 +2015,29 @@ async function loadHomeLogs() {
                 </div>
             `;
         }).join('');
+    } catch (err) { feedContainer.innerHTML = '<div class="text-center text-danger py-4">載入失敗。</div>'; }
+}
+
+// 3. 觸發微互動按鈕
+async function toggleHomeLogReaction(logId, type) {
+    try {
+        // 先在前端呈現 UI 的瞬間變化 (Optimistic UI Update)
+        // 這裡可以透過重新呼叫 loadHomeLogs 達成，但為了順暢度我們直接送 API 更新
+        const res = await apiRequest(`${API_URL}/api/home_logs/${logId}/reaction`, {
+            method: 'PUT',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ type })
+        });
+        
+        if (res.ok) {
+            // 背景重新載入，因為我們有用 Socket.io 監聽，所以這裡不需要手動呼叫，
+            // 伺服器廣播後，畫面上所有人的愛心數字都會自動跳動！
+        }
     } catch (err) {
-        feedContainer.innerHTML = '<div class="text-center text-danger py-4">載入失敗，請稍後再試。</div>';
+        console.error("互動更新失敗", err);
     }
 }
+
 
 // 發送回覆
 async function submitLogReply(logId) {
