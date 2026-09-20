@@ -1939,27 +1939,37 @@ async function loadHomeLogs() {
                 tagsHtml = '<div class="mb-3">' + log.tags.map(t => `<span class="badge rounded-pill me-2 mb-1 log-tag-badge">${t}</span>`).join('') + '</div>';
             }
 
-            // 🟢 判斷目前使用者是否已經點過按鈕
+            // 🟢 解析五種互動數量與狀態
             const currUserKey = currentUser?.username;
             const readActive = log.reactions?.read?.includes(currUserKey) ? 'active' : '';
             const encourageActive = log.reactions?.encourage?.includes(currUserKey) ? 'active' : '';
             const loveActive = log.reactions?.love?.includes(currUserKey) ? 'active' : '';
+            const greatActive = log.reactions?.great?.includes(currUserKey) ? 'active' : '';
+            const surpriseActive = log.reactions?.surprise?.includes(currUserKey) ? 'active' : '';
 
             const readCount = log.reactions?.read?.length || 0;
             const encourageCount = log.reactions?.encourage?.length || 0;
             const loveCount = log.reactions?.love?.length || 0;
+            const greatCount = log.reactions?.great?.length || 0;
+            const surpriseCount = log.reactions?.surprise?.length || 0;
 
-            // 🟢 渲染可愛微互動按鈕區
+            // 🟢 渲染 5 個可愛微互動按鈕區 (加入專屬 id 以便 JS 即時修改數字)
             const reactionsHtml = `
                 <div class="d-flex flex-wrap gap-2 mt-2 mb-3 border-top pt-3 border-light">
-                    <button class="btn reaction-btn reaction-read ${readActive}" onclick="toggleHomeLogReaction('${log.id}', 'read')">
-                        👀 已閱 <span class="badge">${readCount}</span>
+                    <button id="btn-react-${log.id}-read" class="btn reaction-btn reaction-read ${readActive}" onclick="toggleHomeLogReaction('${log.id}', 'read')">
+                        👀 已閱 <span class="badge" id="badge-${log.id}-read">${readCount}</span>
                     </button>
-                    <button class="btn reaction-btn reaction-encourage ${encourageActive}" onclick="toggleHomeLogReaction('${log.id}', 'encourage')">
-                        🌟 鼓勵 <span class="badge">${encourageCount}</span>
+                    <button id="btn-react-${log.id}-encourage" class="btn reaction-btn reaction-encourage ${encourageActive}" onclick="toggleHomeLogReaction('${log.id}', 'encourage')">
+                        🌟 鼓勵 <span class="badge" id="badge-${log.id}-encourage">${encourageCount}</span>
                     </button>
-                    <button class="btn reaction-btn reaction-love ${loveActive}" onclick="toggleHomeLogReaction('${log.id}', 'love')">
-                        💖 愛心 <span class="badge">${loveCount}</span>
+                    <button id="btn-react-${log.id}-love" class="btn reaction-btn reaction-love ${loveActive}" onclick="toggleHomeLogReaction('${log.id}', 'love')">
+                        💖 愛心 <span class="badge" id="badge-${log.id}-love">${loveCount}</span>
+                    </button>
+                    <button id="btn-react-${log.id}-great" class="btn reaction-btn reaction-great ${greatActive}" onclick="toggleHomeLogReaction('${log.id}', 'great')">
+                        👍 好棒 <span class="badge" id="badge-${log.id}-great">${greatCount}</span>
+                    </button>
+                    <button id="btn-react-${log.id}-surprise" class="btn reaction-btn reaction-surprise ${surpriseActive}" onclick="toggleHomeLogReaction('${log.id}', 'surprise')">
+                        😮 驚喜 <span class="badge" id="badge-${log.id}-surprise">${surpriseCount}</span>
                     </button>
                 </div>
             `;
@@ -2018,26 +2028,38 @@ async function loadHomeLogs() {
     } catch (err) { feedContainer.innerHTML = '<div class="text-center text-danger py-4">載入失敗。</div>'; }
 }
 
-// 3. 觸發微互動按鈕
+// 3. 觸發微互動按鈕 (即時畫面更新版)
 async function toggleHomeLogReaction(logId, type) {
     try {
-        // 先在前端呈現 UI 的瞬間變化 (Optimistic UI Update)
-        // 這裡可以透過重新呼叫 loadHomeLogs 達成，但為了順暢度我們直接送 API 更新
-        const res = await apiRequest(`${API_URL}/api/home_logs/${logId}/reaction`, {
+        // 1. 抓取被點擊的按鈕與數字徽章
+        const btn = document.getElementById(`btn-react-${logId}-${type}`);
+        const badge = document.getElementById(`badge-${logId}-${type}`);
+        
+        // 2. 畫面即時變更 (Optimistic UI Update) - 不需要等伺服器回應，直接變更顏色與數字
+        if (btn && badge) {
+            let count = parseInt(badge.innerText) || 0;
+            if (btn.classList.contains('active')) {
+                // 原本是啟動狀態，代表使用者要「取消」
+                btn.classList.remove('active');
+                badge.innerText = count > 0 ? count - 1 : 0;
+            } else {
+                // 原本未啟動，代表使用者要「按讚」
+                btn.classList.add('active');
+                badge.innerText = count + 1;
+            }
+        }
+
+        // 3. 背景默默送出 API 更新資料庫 (不重整畫面)
+        await apiRequest(`${API_URL}/api/home_logs/${logId}/reaction`, {
             method: 'PUT',
             headers: { 'Content-Type': 'application/json' },
             body: JSON.stringify({ type })
         });
         
-        if (res.ok) {
-            // 背景重新載入，因為我們有用 Socket.io 監聽，所以這裡不需要手動呼叫，
-            // 伺服器廣播後，畫面上所有人的愛心數字都會自動跳動！
-        }
     } catch (err) {
         console.error("互動更新失敗", err);
     }
 }
-
 
 // 發送回覆
 async function submitLogReply(logId) {

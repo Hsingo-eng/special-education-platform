@@ -1335,14 +1335,32 @@ textarea::placeholder {
 /* =========================================
    💖 居家表現：微互動按鈕與標籤樣式
    ========================================= */
-/* 發展領域標籤 */
+/* 1. 發展領域標籤
 .log-tag-badge {
-    background-color: #E0F2FE;
-    color: #0284C7;
-    border: 1px solid #BAE6FD;
+    background-color: #F1F5F9;
+    color: #5A728A;
+    border: 1px solid #CBD5E1;
     font-weight: 600;
     padding: 0.4em 0.8em;
     font-size: 0.8rem;
+}
+
+/* 2. 發文表單的標籤選擇按鈕 (客製化莫蘭迪色系) */
+.btn-outline-morandi {
+    color: #647D98;
+    border-color: #647D98;
+    background-color: transparent;
+}
+.btn-outline-morandi:hover {
+    color: #475569;
+    background-color: #F1F5F9;
+    border-color: #647D98;
+}
+/* 打勾時的反白狀態 */
+.btn-check:checked + .btn-outline-morandi {
+    color: #ffffff;
+    background-color: #647D98;
+    border-color: #647D98;
 }
 
 /* 可愛微互動按鈕 */
@@ -1381,6 +1399,18 @@ textarea::placeholder {
     background-color: #FCE7F3;
     border-color: #FBCFE8;
     color: #BE185D;
+}
+/* 👍 好棒 (紫色系) */
+.reaction-great.active {
+    background-color: #F3E8FF;
+    border-color: #E9D5FF;
+    color: #7E22CE;
+}
+/* 😮 驚喜 (青綠色系) */
+.reaction-surprise.active {
+    background-color: #CCFBF1;
+    border-color: #99F6E4;
+    color: #0F766E;
 }
 
 /* 按鈕內的數字 Badge */

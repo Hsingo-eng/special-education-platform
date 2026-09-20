@@ -469,11 +469,7 @@ app.get('/api/summary', verifyToken, async (req, res) => {
 // ==========================================
 // 🏠 居家表現 API (貼文與雙向回覆)
 // ==========================================
-// ==========================================
-// 🏠 居家表現 API (貼文與雙向回覆)
-// ==========================================
-
-// 1. 取得所有居家表現紀錄 (加入標籤與互動解析)
+// 1. 取得所有居家表現紀錄 (加入好棒、驚喜解析)
 app.get("/api/home_logs", verifyToken, async (req, res) => {
     try {
         const data = await getSheetData("home_logs");
@@ -481,7 +477,7 @@ app.get("/api/home_logs", verifyToken, async (req, res) => {
             ...log,
             replies: log.replies ? JSON.parse(log.replies) : [],
             tags: log.tags ? JSON.parse(log.tags) : [],
-            reactions: log.reactions ? JSON.parse(log.reactions) : { encourage: [], read: [], love: [] }
+            reactions: log.reactions ? JSON.parse(log.reactions) : { encourage: [], read: [], love: [], great: [], surprise: [] }
         })).reverse();
         res.json({ data: parsedData });
     } catch (e) {
@@ -489,7 +485,7 @@ app.get("/api/home_logs", verifyToken, async (req, res) => {
     }
 });
 
-// 2. 新增居家表現貼文 (家長端 - 加入標籤與互動初始化)
+// 2. 新增居家表現貼文 (加入好棒、驚喜初始化)
 app.post("/api/home_logs", verifyToken, checkRole(['parents']), async (req, res) => {
     try {
         const roleLabel = getRoleLabel(req.user.role);
@@ -501,7 +497,7 @@ app.post("/api/home_logs", verifyToken, checkRole(['parents']), async (req, res)
             image: req.body.image || "",
             replies: JSON.stringify([]),
             tags: JSON.stringify(req.body.tags || []),
-            reactions: JSON.stringify({ encourage: [], read: [], love: [] })
+            reactions: JSON.stringify({ encourage: [], read: [], love: [], great: [], surprise: [] })
         };
         await appendRow("home_logs", newLog);
         io.emit("home_log_update", { action: 'add', username: req.user.username, user: req.user.name });
@@ -511,17 +507,17 @@ app.post("/api/home_logs", verifyToken, checkRole(['parents']), async (req, res)
     }
 });
 
-// 🌟 新增：微互動更新 API (愛心、鼓勵、已閱)
+// 🌟 修改：微互動更新 API (愛心、鼓勵、已閱、好棒、驚喜)
 app.put("/api/home_logs/:id/reaction", verifyToken, async (req, res) => {
     try {
         const { id } = req.params;
-        const { type } = req.body; // 'encourage', 'read', 'love'
+        const { type } = req.body; 
         const logs = await getSheetData("home_logs");
         const logIndex = logs.findIndex(l => l.id === id);
         
         if (logIndex === -1) return res.status(404).json({ message: "找不到該貼文" });
 
-        let reactions = logs[logIndex].reactions ? JSON.parse(logs[logIndex].reactions) : { encourage: [], read: [], love: [] };
+        let reactions = logs[logIndex].reactions ? JSON.parse(logs[logIndex].reactions) : { encourage: [], read: [], love: [], great: [], surprise: [] };
         
         // 確保結構存在
         if (!reactions[type]) reactions[type] = [];
@@ -540,7 +536,8 @@ app.put("/api/home_logs/:id/reaction", verifyToken, async (req, res) => {
         // 更新至 Google Sheet
         await updateRow("home_logs", id, { reactions: updatedReactionsStr });
 
-        if (typeof io !== 'undefined') io.emit("home_log_update", { action: 'reaction' });
+        // 🟢 關鍵修正：將廣播事件改名為 'reaction_update'，這樣前端就不會誤以為有新文章而重整頁面
+        if (typeof io !== 'undefined') io.emit("reaction_update", { logId: id });
         res.json({ message: "互動更新成功" });
     } catch (e) { 
         res.status(500).json({ message: e.message }); 
