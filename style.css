@@ -1420,3 +1420,41 @@ textarea::placeholder {
     font-size: 0.75rem;
     margin-left: 4px;
 }
+/* =========================================
+   📝 治療紀錄 UI 優化 (對齊與回饋框)
+   ======================================== */
+/* 1. 強制質性紀錄文字靠左對齊 */
+#record-list .p-3.border,
+#record-list .card-body p,
+#record-list .text-dark {
+    text-align: left !important;
+    line-height: 1.7;
+}
+
+/* 2. 教師與家長回饋區塊加大、改為灰色系 */
+.record-reply-group {
+    height: 52px; /* 加高輸入框 */
+    box-shadow: 0 2px 6px rgba(0,0,0,0.04);
+}
+.record-reply-group .form-control {
+    background-color: #F8FAFC !important;
+    border: 1px solid #CBD5E1 !important;
+    color: #334155 !important;
+    font-size: 1.05rem !important;
+    padding-left: 1.5rem !important;
+}
+.record-reply-group .form-control::placeholder {
+    color: #94A3B8 !important;
+}
+.record-reply-group .btn-reply {
+    background-color: #64748B !important; /* 質感灰 */
+    border-color: #64748B !important;
+    color: #ffffff !important;
+    font-size: 1.05rem !important;
+    font-weight: 700 !important;
+    padding: 0 1.5rem !important;
+    transition: background-color 0.2s;
+}
+.record-reply-group .btn-reply:hover {
+    background-color: #475569 !important; /* 滑鼠移過去變深灰 */
+}

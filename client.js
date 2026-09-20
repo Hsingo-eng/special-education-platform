@@ -1034,7 +1034,7 @@ async function loadRecords() {
                     </div>
                     
                     <div class="input-group input-group-sm mt-3">
-                        <input type="text" id="record-reply-input-${r.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="老師或家長可在此提問或回饋實施狀況...">
+                        <input type="text" id="record-reply-input-${r.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="老師或家長可在此提問或回饋實施狀況">
                         <button class="btn btn-primary rounded-pill-end px-3 fw-bold" onclick="submitRecordReply('${r.id}')">留言</button>
                     </div>
 
@@ -1104,6 +1104,51 @@ async function loadMessages() {
         chatBox.scrollTop = chatBox.scrollHeight;
     } catch (err) { console.error("Load messages failed", err); }
 }
+// 打開獨立能力評估視窗
+window.openAssessmentModal = function() {
+    document.getElementById('input-standalone-assessment').value = '';
+    document.getElementById('form-assess-date').value = new Date().toISOString().split('T')[0];
+    new bootstrap.Modal(document.getElementById('assessmentModal')).show();
+};
+
+// 送出獨立能力評估
+window.submitAssessmentRecord = async function() {
+    const date = document.getElementById('form-assess-date').value;
+    const text = document.getElementById('input-standalone-assessment').value.trim();
+
+    if (!text) return Swal.fire({ icon: 'warning', title: '內容不可為空', text: '請填寫評估內容！' });
+
+    try {
+        Swal.fire({ title: '建檔中...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+        
+        // 刻意將 session_Type 標記為「能力評估」，以便前端渲染時可做特殊顏色區隔
+        const payload = {
+            date: date,
+            session_Type: "能力評估",
+            assessment: text,
+            // 補齊後端必填的其他空欄位
+            duration: "", comp_content: "", comp_perf: "", exp_content: "", exp_perf: "",
+            art_content: "", art_perf: "", comm_content: "", comm_perf: "", participation: "",
+            participation_oth: "", strategies: "", strategies_other: "", remarks: "", goals_status: "", class_integration: ""
+        };
+
+        const res = await apiRequest(`${API_URL}/api/records`, {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify(payload)
+        });
+
+        if (res.ok) {
+            bootstrap.Modal.getInstance(document.getElementById('assessmentModal')).hide();
+            Swal.fire({ icon: 'success', title: '評估已建檔', timer: 1500, showConfirmButton: false });
+            loadRecords(); // 重新整理治療紀錄列表
+        } else {
+            throw new Error('伺服器錯誤');
+        }
+    } catch (e) {
+        Swal.fire('錯誤', '建檔失敗', 'error');
+    }
+};
 
 async function loadIepFiles() {
     try {
@@ -1537,7 +1582,7 @@ async function loadRecords() {
                     </div>
                     
                     <div class="input-group input-group-sm mt-3">
-                        <input type="text" id="record-reply-input-${r.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="老師或家長可在此提問或回饋實施狀況...">
+                        <input type="text" id="record-reply-input-${r.id}" class="form-control rounded-pill-start bg-light border-0 px-3" placeholder="老師或家長可在此提問或回饋實施狀況">
                         <button class="btn btn-primary rounded-pill-end px-3 fw-bold" onclick="submitRecordReply('${r.id}')">留言</button>
                     </div>
                 </div>
@@ -2296,7 +2341,7 @@ async function loadIepGoals() {
             let inputBoxHtml = '';
             if (currentUser && (currentUser.role === 'teacher' || currentUser.role === 'therapist')) {
                 const isUserTeacher = currentUser.role === 'teacher';
-                const inputPlaceholder = isUserTeacher ? "填寫目前進度與達成率 (例如：目前已能獨立完成 2 項指令，達成率約 50%)..." : "依據目前進度，給予後續引導策略或方向建議...";
+                const inputPlaceholder = isUserTeacher ? "填寫目前進度與達成率 (例如：目前已能獨立完成 2 項指令，達成率約 50%)..." : "依據目前進度，給予後續引導策略或方向建議";
                 const btnText = isUserTeacher ? "進度分享" : "回饋建議";
                 const btnClass = isUserTeacher ? "btn-primary" : "btn-success";
 

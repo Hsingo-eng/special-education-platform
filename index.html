@@ -695,6 +695,9 @@
                         </div>
                     </div>
                     <div>
+                        <button class="btn btn-outline-info btn-sm role-only shadow-sm rounded-pill px-3 fw-bold me-2" data-allow="therapist" onclick="openAssessmentModal()">
+                            <i class="fas fa-user-check"></i> 填寫能力評估
+                        </button>
                         <button class="btn btn-success btn-sm role-only shadow-sm rounded-pill px-3 fw-bold" data-allow="therapist" onclick="openTherapyForm()">
                             <i class="fas fa-plus"></i> 新增紀錄
                         </button>
@@ -761,7 +764,7 @@
                     <div id="chat-box" class="chat-box p-3"></div>
                 </div>
                 <div class="input-group">
-                    <input type="text" id="msg-input" class="form-control form-control-lg px-4" placeholder="輸入訊息..." onkeypress="handleEnter(event)">
+                    <input type="text" id="msg-input" class="form-control form-control-lg px-4" placeholder="輸入訊息" onkeypress="handleEnter(event)">
                     <button class="btn btn-primary px-4" onclick="sendMessage()" style="border-radius: 0 12px 12px 0;">
                         <i class="fas fa-paper-plane"></i>
                     </button>
@@ -937,25 +940,11 @@
                                 </div>
                             </div>
                         </div>
-                        <!-- 1. 新增：階段性能力評估摘要 (改為開關隱藏式) -->
-                        <div class="platform-card mb-3 p-3 border-start border-3 border-info">
-                            <div class="form-check form-switch mb-0">
-                                <input class="form-check-input" type="checkbox" id="check-assessment" onchange="document.getElementById('area-assessment').classList.toggle('d-none', !this.checked)" style="cursor: pointer;">
-                                <label class="form-check-label fw-bold text-dark" for="check-assessment" style="cursor: pointer;">
-                                    📝 填寫階段性能力評估 (非每次必填)
-                                </label>
-                            </div>
-                            <div id="area-assessment" class="d-none mt-3 border-top pt-3">
-                                <p class="small text-secondary mb-2">請簡述幼兒目前的能力基準 (例如：指令理解程度、主要表達方式、同儕互動等)，建議於治療初期或能力有明顯進展時填寫。</p>
-                                <textarea class="form-control bg-light border-0" id="input-assessment" rows="3" placeholder="請簡述評估當時的能力表現..."></textarea>
-                            </div>
-                        </div>
-
                         <!-- 2. 調整：本次治療目標與課堂表現 (訓練改為教學) -->
                         <div class="platform-card mb-3 p-3 border-start border-3 border-warning">
                             <h6 class="fw-bold text-dark mb-2">▍本次治療目標與課堂表現</h6>
                             <p class="small text-secondary mb-2">請說明今日教學重點及幼兒達成狀況</p>
-                            <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日教學重點為聽懂兩項連續指令..."></textarea>
+                            <textarea class="form-control bg-light border-0" id="input-goals-status" rows="2" placeholder="例如：今日教學重點為聽懂兩項連續指令"></textarea>
                         </div>
 
                         <!-- 3. 調整：融入班級作息之具體建議 (作息舉例修改) -->
@@ -1047,7 +1036,7 @@
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold text-secondary small">表現描述</label>
-                            <textarea class="form-control" id="log-text" rows="4" placeholder="請描述幼兒在家的狀況..." style="border-radius: 12px; resize: none; border: 1px solid #e2e8f0;"></textarea>
+                            <textarea class="form-control" id="log-text" rows="4" placeholder="請描述幼兒在家的狀況" style="border-radius: 12px; resize: none; border: 1px solid #e2e8f0;"></textarea>
                         </div>
                         <div class="mb-3">
                             <label class="form-label fw-bold text-secondary small">上傳照片 (選填)</label>
@@ -1086,7 +1075,7 @@
                     <form id="iepGoalForm">
                         <div class="mb-3">
                             <label class="form-label fw-bold text-secondary small">目標名稱 / 描述</label>
-                            <input type="text" class="form-control" id="goal-title-input" placeholder="例如：提升子音構音清晰度..." style="border-radius: 8px; border: 1px solid #e2e8f0;">
+                            <input type="text" class="form-control" id="goal-title-input" placeholder="例如：提升子音構音清晰度" style="border-radius: 8px; border: 1px solid #e2e8f0;">
                         </div>
                     </form>
                 </div>
@@ -1208,6 +1197,25 @@
                     <button type="button" class="btn rounded-pill px-4 fw-bold text-white shadow-sm" onclick="submitCaseEdit()" style="background-color: #5A728A; border: none;">
                         <i class="fas fa-save me-1"></i> 儲存修改
                     </button>
+                </div>
+                <!-- 📋 獨立視窗：階段性能力評估 (限治療師) -->
+    <div class="modal fade" id="assessmentModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg">
+            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
+                <div class="modal-header bg-info text-white border-bottom-0">
+                    <h5 class="modal-title fw-bold">
+                        <i class="fas fa-user-check me-2"></i>填寫階段性能力評估
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-4 bg-light">
+                    <p class="small text-secondary mb-3">請簡述幼兒目前的能力基準（例如：指令理解程度、主要表達方式、同儕互動等）。此評估將獨立建檔，方便團隊隨時回顧基線能力。</p>
+                    <input type="date" id="form-assess-date" class="form-control mb-3" style="width: 200px;">
+                    <textarea class="form-control border-0 shadow-sm" id="input-standalone-assessment" rows="6" placeholder="請簡述評估當時的能力表現..." style="border-radius: 12px; font-size: 1.05rem; padding: 1rem;"></textarea>
+                </div>
+                <div class="modal-footer border-top-0 bg-white">
+                    <button type="button" class="btn btn-light rounded-pill px-4 fw-bold" data-bs-dismiss="modal">取消</button>
+                    <button type="button" class="btn btn-info text-white rounded-pill px-4 fw-bold shadow-sm" onclick="submitAssessmentRecord()">送出評估</button>
                 </div>
             </div>
         </div>
