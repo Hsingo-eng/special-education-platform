@@ -1458,3 +1458,63 @@ textarea::placeholder {
 .record-reply-group .btn-reply:hover {
     background-color: #475569 !important; /* 滑鼠移過去變深灰 */
 }
+
+/* =========================================
+   📝 治療紀錄強制靠左對齊 (終極覆寫版)
+   ======================================== */
+/* 1. 鎖定所有帶有邊框的內容區塊，強制解除彈性置中，轉為純文字區塊 */
+#record-list .card-body .border {
+    display: block !important; 
+    text-align: left !important;
+    width: 100% !important;
+    padding: 1.5rem !important; /* 確保文字跟邊框有足夠的呼吸空間 */
+}
+
+/* 2. 確保裡面的所有段落、文字標籤都 100% 貼齊左側 */
+#record-list .card-body .border p,
+#record-list .card-body .border span,
+#record-list .card-body .border div {
+    text-align: left !important;
+    justify-content: flex-start !important;
+    width: 100% !important;
+    margin-left: 0 !important;
+}
+
+/* =========================================
+   📅 行事曆高度自適應 (修復裁切問題)
+   ======================================== */
+#calendar-section .content-stage-card {
+    padding: 1.5rem 2rem; 
+}
+
+/* 1. 給予明確的高度，取代原本會造成裁切的 max-height */
+#calendar {
+    height: calc(100vh - 280px); /* 動態計算螢幕高度減去標題列 */
+    min-height: 450px; /* 保底高度，避免在小筆電上縮得太扁 */
+}
+
+/* 2. 強制讓行事曆完全貼齊父容器，它會自動將 6 週的格子等比壓縮 */
+.fc {
+    height: 100% !important;
+}
+
+/* 3. 確保內部表格延展，並移除之前錯誤的限制 */
+.fc-scrollgrid-sync-table,
+.fc .fc-daygrid-body {
+    height: 100% !important;
+    width: 100% !important;
+}
+
+/* 解除之前強加的格子高度，讓系統自己算 */
+.fc .fc-daygrid-day-frame {
+    min-height: 0 !important; 
+    display: flex;
+    flex-direction: column;
+}
+
+/* 如果某一天事件特別多，只在該格子內出現捲軸，不撐破整個畫面 */
+.fc .fc-daygrid-day-events {
+    margin-bottom: 0 !important;
+    overflow-y: auto; 
+    flex-grow: 1;
+}

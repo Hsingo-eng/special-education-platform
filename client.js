@@ -1221,6 +1221,9 @@ function initCalendar() {
             right: 'dayGridMonth,timeGridWeek'
         },
         height: 'auto',
+        // 在 FullCalendar 的設定物件中加入：
+        contentHeight: "auto",      // 讓內容自動適應容器
+        aspectRatio: 1.8,           // 提高長寬比，數字越大越扁平 (預設為 1.35)
 
         events: async function(info, successCallback, failureCallback) {
             try {
