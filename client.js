@@ -71,7 +71,7 @@ const formatHomeAuthor = (author = '') => {
 };
 
 // ==========================================
-// 🔔 1. 通知系統邏輯 (修復亮燈與即時推播彈窗)
+// 🔔 1. 通知系統邏輯 (保留鈴鐺與紅點，關閉彈窗)
 // ==========================================
 const NOTIF_STORAGE_KEY = 'app_notifications';
 
@@ -96,13 +96,12 @@ function renderNotificationList() {
     const btn = document.getElementById('btn-notification');
     if (!list || !btn) return;
 
-    // 確保按鈕有相對定位，紅點才不會跑版
     btn.style.position = 'relative';
 
     const notifications = getStoredNotifications();
     const hasUnread = notifications.some(n => !n.read);
 
-    // 🟢 強制亮燈：直接寫入 Bootstrap 的絕對定位小紅點，無視外部 CSS 是否遺失
+    // 🟢 鈴鐺紅點邏輯 (保留)
     if (hasUnread) {
         btn.innerHTML = `<i class="far fa-bell"></i><span class="position-absolute top-0 start-100 translate-middle p-1 bg-danger border border-light rounded-circle" style="width: 10px; height: 10px; z-index: 10;"></span>`;
     } else {
@@ -123,7 +122,6 @@ function renderNotificationList() {
         let iconName = 'fas fa-bell';
         let iconBg = '#3b82f6';
 
-        // 根據通知類型給予對應色彩與圖示
         if (n.type === 'calendar') { iconName = 'fas fa-calendar-alt'; iconBg = '#f59e0b'; }
         else if (n.type === 'record') { iconName = 'fas fa-file-medical'; iconBg = '#3b82f6'; }
         else if (n.type === 'iep') { iconName = 'fas fa-bullseye'; iconBg = '#10b981'; }
@@ -134,7 +132,6 @@ function renderNotificationList() {
         const date = new Date(n.time);
         const timeStr = `${date.getMonth() + 1}/${date.getDate()} ${date.getHours().toString().padStart(2, '0')}:${date.getMinutes().toString().padStart(2, '0')}`;
 
-        // 直接寫入內聯樣式確保列表排版不會因為外部影響而亂掉
         html += `
             <li class="notif-item p-3 border-bottom d-flex align-items-center" onclick="markAsRead(${n.id})" style="cursor: pointer; background-color: ${n.read ? '#ffffff' : '#f8fafc'}; transition: background-color 0.2s;">
                 <div class="d-flex align-items-center justify-content-center text-white me-3 flex-shrink-0" style="width: 36px; height: 36px; border-radius: 50%; background-color: ${iconBg};">
@@ -165,21 +162,8 @@ function addNotification(type, text) {
     localStorage.setItem(getNotificationStorageKey(), JSON.stringify(notifications));
     renderNotificationList();
 
-    // 🟢 救星功能：在畫面右上角直接彈出「即時推播提示 (Toast)」
-    if (typeof Swal !== 'undefined') {
-        Swal.fire({
-            toast: true,
-            position: 'top-end',
-            icon: 'info',
-            title: text,
-            showConfirmButton: false,
-            timer: 3000,
-            timerProgressBar: true,
-            background: '#ffffff',
-            iconColor: '#3b82f6',
-            customClass: { title: 'fs-6 text-dark' }
-        });
-    }
+    // 🟢 已經把原本寫在這裡的 Swal.fire(toast: true) 徹底刪除了！
+    // 所以現在只會把通知存入鈴鐺選單，畫面絕對不會再跳出任何彈窗干擾。
 }
 
 function toggleNotificationMenu() {
@@ -218,7 +202,6 @@ document.addEventListener('click', function (e) {
 // ==========================================
 
 if (typeof io !== 'undefined') {
-    // 🟢 強化連線：強制開啟 websocket 與 polling 雙通道，避免被 Railway 阻擋
     socket = io(API_URL, { transports: ['websocket', 'polling'] });
 
     socket.on("calendar_update", (evt) => {
@@ -239,10 +222,10 @@ if (typeof io !== 'undefined') {
         addNotification('record', '治療紀錄有新上傳或回覆');
         const rSection = document.getElementById('section-records');
         if (rSection && !rSection.classList.contains('d-none')) loadRecords();
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 首頁日期即時跳動
     });
 
     socket.on("message_update", (msg) => {
-        // 自己傳的留言不通知自己
         if (currentUser && msg && msg.username === currentUser.username) return; 
         addNotification('message', '團隊留言板有新訊息');
         const chatBox = document.getElementById('chat-box');
@@ -258,9 +241,13 @@ if (typeof io !== 'undefined') {
     });
 
     socket.on("home_log_update", (data) => {
-        addNotification('home_log', data.message || '居家表現有新貼文或回覆');
-        const hlSection = document.getElementById('section-home-log');
-        if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
+        // 微互動(按讚)不會觸發通知
+        if (data && data.action !== 'reaction_update') {
+            addNotification('home_log', data.message || '居家表現有新貼文或回饋');
+            const hlSection = document.getElementById('section-home-log');
+            if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
+        }
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 首頁日期即時跳動
     });
 
     socket.on("case_info_update", () => {
@@ -2502,5 +2489,74 @@ async function submitIepStrategy(goalId) {
     } catch (err) {
         Swal.fire({ icon: 'error', title: '新增失敗' });
         inputEl.disabled = false;
+    }
+}
+
+// 🌟 動態載入首頁「近期資訊更新」
+async function loadRecentUpdates() {
+    const listEl = document.getElementById('recent-updates-list');
+    const titleEl = document.getElementById('recent-updates-title');
+    if (!listEl || !titleEl) return;
+
+    try {
+        // 同時向後端索取治療紀錄與居家表現資料
+        const [recordsRes, homeLogsRes] = await Promise.all([
+            apiRequest(`${API_URL}/api/records`),
+            apiRequest(`${API_URL}/api/home_logs`)
+        ]);
+        
+        const recordsData = await recordsRes.json();
+        const homeLogsData = await homeLogsRes.json();
+
+        let updates = [];
+
+        // 1. 處理治療紀錄 (找出日期最新的一筆)
+        if (recordsData.data && recordsData.data.length > 0) {
+            const latestRecord = recordsData.data.reduce((latest, current) => 
+                new Date(current.date) > new Date(latest.date) ? current : latest
+            , recordsData.data[0]);
+            
+            updates.push({
+                type: '治療紀錄',
+                date: new Date(latestRecord.date),
+                color: 'bg-primary' // 藍色點點
+            });
+        }
+
+        // 2. 處理居家表現 (後端已設定為最新的在最前面，所以直接取第一筆)
+        if (homeLogsData.data && homeLogsData.data.length > 0) {
+            const latestHomeLog = homeLogsData.data[0];
+            updates.push({
+                type: '居家表現',
+                date: new Date(latestHomeLog.datetime),
+                color: 'bg-danger' // 紅色點點
+            });
+        }
+
+        // 依日期降冪排序 (確保最新的排在最上面)
+        updates.sort((a, b) => b.date - a.date);
+
+        // 渲染畫面
+        if (updates.length === 0) {
+            titleEl.innerText = '近期資訊更新 (0)';
+            listEl.innerHTML = '<div class="text-muted small">尚無最新動態</div>';
+            return;
+        }
+
+        titleEl.innerText = `近期資訊更新 (${updates.length})`;
+        listEl.innerHTML = updates.map(u => {
+            const m = (u.date.getMonth() + 1).toString().padStart(2, '0');
+            const d = u.date.getDate().toString().padStart(2, '0');
+            return `
+                <div class="d-flex align-items-center text-dark">
+                    <span class="status-dot ${u.color} me-2"></span> ${u.type}
+                    <span class="text-muted ms-auto ps-3 fw-bold">${m}/${d}</span>
+                </div>
+            `;
+        }).join('');
+
+    } catch (error) {
+        console.error("載入近期動態失敗:", error);
+        listEl.innerHTML = '<div class="text-danger small">載入失敗</div>';
     }
 }
