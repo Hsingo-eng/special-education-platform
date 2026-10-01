@@ -309,6 +309,10 @@ async function verifyToken() {
             initCalendar();
             loadMessages();
             loadCaseInfo();
+            
+            // 🌟 加上這一行：讓系統一登入，就立刻去抓取最新的治療紀錄與居家表現日期！
+            loadRecentUpdates(); 
+            
         } else {
             logout();
         }
