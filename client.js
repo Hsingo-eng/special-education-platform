@@ -198,60 +198,59 @@ document.addEventListener('click', function (e) {
 });
 
 // ==========================================
-// 🔗 2. Socket.io 初始化與精準通知 (強化版)
+// 🔗 2. Socket.io 初始化與背景同步更新
 // ==========================================
 
 if (typeof io !== 'undefined') {
+    // 🟢 強制開啟 websocket 與 polling 雙通道
     socket = io(API_URL, { transports: ['websocket', 'polling'] });
 
-    socket.on("calendar_update", (evt) => {
-        addNotification('calendar', '行事曆有排程新增或異動');
+    socket.on("calendar_update", () => {
         if (calendar) calendar.refetchEvents();
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 觸發首頁更新
     });
 
     socket.on("iep_update", () => {
-        addNotification('iep', 'IEP 執行目標與策略有新進度');
         const section = document.getElementById('section-iep');
         if (section && !section.classList.contains('d-none')) {
             if (typeof loadIepFiles === 'function') loadIepFiles();
             if (typeof loadIepGoals === 'function') loadIepGoals();
         }
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 觸發首頁更新
     });
 
     socket.on("record_update", () => {
-        addNotification('record', '治療紀錄有新上傳或回覆');
         const rSection = document.getElementById('section-records');
         if (rSection && !rSection.classList.contains('d-none')) loadRecords();
-        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 首頁日期即時跳動
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 觸發首頁更新
     });
 
-    socket.on("message_update", (msg) => {
-        if (currentUser && msg && msg.username === currentUser.username) return; 
-        addNotification('message', '團隊留言板有新訊息');
+    socket.on("message_update", () => {
         const chatBox = document.getElementById('chat-box');
         if (chatBox && !document.getElementById('section-messages').classList.contains('d-none')) {
-            loadMessages();
+            if (typeof loadMessages === 'function') loadMessages();
         }
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 觸發首頁更新
     });
 
-    socket.on("question_update", (q) => {
-        addNotification('question', '提問回覆區有新動態');
+    socket.on("question_update", () => {
         const qSection = document.getElementById('section-questions');
-        if (qSection && !qSection.classList.contains('d-none')) loadQuestions();
+        if (qSection && !qSection.classList.contains('d-none')) {
+            if (typeof loadQuestions === 'function') loadQuestions();
+        }
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 觸發首頁更新
     });
 
     socket.on("home_log_update", (data) => {
-        // 微互動(按讚)不會觸發通知
-        if (data && data.action !== 'reaction_update') {
-            addNotification('home_log', data.message || '居家表現有新貼文或回饋');
-            const hlSection = document.getElementById('section-home-log');
-            if (hlSection && !hlSection.classList.contains('d-none')) loadHomeLogs();
+        const hlSection = document.getElementById('section-home-log');
+        // 確保不是微互動更新才重新載入整面牆，避免愛心按下去閃爍
+        if (hlSection && !hlSection.classList.contains('d-none') && data && data.action !== 'reaction_update') {
+            if (typeof loadHomeLogs === 'function') loadHomeLogs();
         }
-        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 首頁日期即時跳動
+        if (typeof loadRecentUpdates === 'function') loadRecentUpdates(); // 🌟 觸發首頁更新
     });
 
     socket.on("case_info_update", () => {
-        addNotification('iep', '目前服務個案基本資料已更新');
         if (typeof loadCaseInfo === 'function') loadCaseInfo();
     });
 }
@@ -2497,72 +2496,80 @@ async function submitIepStrategy(goalId) {
 }
 
 // 🌟 動態載入首頁「近期資訊更新」 (強化除錯版)
+// 🌟 動態載入首頁「近期資訊更新」 (全模組支援 + 只顯示最新 3 筆)
 async function loadRecentUpdates() {
     const listEl = document.getElementById('recent-updates-list');
     const titleEl = document.getElementById('recent-updates-title');
     if (!listEl || !titleEl) return;
 
     try {
-        // 同時向後端索取治療紀錄與居家表現資料
-        const [recordsRes, homeLogsRes] = await Promise.all([
+        // 1. 同時向後端索取 6 大模組的資料
+        const [recordsRes, homeLogsRes, messagesRes, questionsRes, iepRes, calendarRes] = await Promise.all([
             apiRequest(`${API_URL}/api/records`),
-            apiRequest(`${API_URL}/api/home_logs`)
+            apiRequest(`${API_URL}/api/home_logs`),
+            apiRequest(`${API_URL}/api/messages`),
+            apiRequest(`${API_URL}/api/questions`),
+            apiRequest(`${API_URL}/api/iep_goals`), // IEP 以目標更新為主
+            apiRequest(`${API_URL}/api/calendar`)
         ]);
         
         let updates = [];
 
-        // 1. 處理治療紀錄
-        if (recordsRes.ok) {
-            const recordsData = await recordsRes.json();
-            if (recordsData.data && recordsData.data.length > 0) {
-                // 找出日期最新的一筆 (治療紀錄的日期欄位為 'date'，格式為 YYYY-MM-DD)
-                const latestRecord = recordsData.data.reduce((latest, current) => 
-                    new Date(current.date) > new Date(latest.date) ? current : latest
-                , recordsData.data[0]);
-                
+        // 2. 建立輔助函式：安全地找出該模組「最新的一筆」日期
+        const extractLatest = async (response, dateFields, typeName, colorHex) => {
+            if (!response.ok) return;
+            const json = await response.json();
+            if (!json.data || json.data.length === 0) return;
+
+            // 比對陣列中每一筆資料的時間
+            const latestItem = json.data.reduce((latest, current) => {
+                const curDate = new Date(current[dateFields[0]] || current[dateFields[1]]);
+                const latDate = new Date(latest[dateFields[0]] || latest[dateFields[1]]);
+                return curDate > latDate ? current : latest;
+            }, json.data[0]);
+
+            const finalDateStr = latestItem[dateFields[0]] || latestItem[dateFields[1]];
+            const dateObj = new Date(finalDateStr);
+
+            if (!isNaN(dateObj.getTime())) {
                 updates.push({
-                    type: '治療紀錄',
-                    date: new Date(latestRecord.date),
-                    color: 'bg-primary' // 藍色點點
+                    type: typeName,
+                    date: dateObj,
+                    color: colorHex
                 });
             }
-        }
+        };
 
-        // 2. 處理居家表現
-        if (homeLogsRes.ok) {
-            const homeLogsData = await homeLogsRes.json();
-            if (homeLogsData.data && homeLogsData.data.length > 0) {
-                // 居家表現後端預設最新的在第一筆 (欄位為 'datetime' ISO 格式)
-                const latestHomeLog = homeLogsData.data[0];
-                updates.push({
-                    type: '居家表現',
-                    date: new Date(latestHomeLog.datetime),
-                    color: 'bg-danger' // 紅色點點
-                });
-            }
-        }
+        // 3. 依序解析各模組資料，並配對專屬的 UI 主題色
+        await extractLatest(recordsRes, ['date', 'timestamp'], '治療紀錄', '#3B82F6');   // 藍
+        await extractLatest(homeLogsRes, ['datetime', 'date'], '居家表現', '#EF4444');   // 紅
+        await extractLatest(messagesRes, ['timestamp', 'date'], '留言板', '#8B5CF6');    // 紫
+        await extractLatest(questionsRes, ['date', 'timestamp'], '提問回覆', '#06B6D4'); // 青
+        await extractLatest(iepRes, ['date', 'updated_at'], 'IEP 資料', '#10B981');      // 綠
+        await extractLatest(calendarRes, ['start', 'date'], '行事曆', '#F59E0B');        // 橘
 
-        // 依日期降冪排序 (確保最新的排在最上面)
+        // 4. 將全站 6 個模組的最新日期放在一起，進行大排序 (最新的在最上面)
         updates.sort((a, b) => b.date - a.date);
 
-        // 渲染畫面
-        if (updates.length === 0) {
+        // 🟢 5. 關鍵指令：只切下陣列中的前 3 筆資料
+        const top3Updates = updates.slice(0, 3);
+
+        // 6. 渲染畫面
+        if (top3Updates.length === 0) {
             titleEl.innerText = '近期資訊更新 (0)';
             listEl.innerHTML = '<div class="text-muted small">尚無最新動態資料</div>';
             return;
         }
 
-        titleEl.innerText = `近期資訊更新 (${updates.length})`;
-        listEl.innerHTML = updates.map(u => {
-            // 檢查日期是否有效 (避免 NaN/NaN)
-            if (isNaN(u.date.getTime())) return '';
-            
+        titleEl.innerText = `近期資訊更新 (${top3Updates.length})`;
+        listEl.innerHTML = top3Updates.map(u => {
             const m = (u.date.getMonth() + 1).toString().padStart(2, '0');
             const d = u.date.getDate().toString().padStart(2, '0');
             return `
-                <div class="d-flex align-items-center text-dark">
-                    <span class="status-dot ${u.color} me-2"></span> ${u.type}
-                    <span class="text-muted ms-auto ps-3 fw-bold">${m}/${d}</span>
+                <div class="d-flex align-items-center text-dark mb-2">
+                    <span class="status-dot shadow-sm me-2" style="background-color: ${u.color}; width: 10px; height: 10px; border-radius: 50%; display: inline-block;"></span> 
+                    <span class="fw-bold" style="color: #475569;">${u.type}</span>
+                    <span class="text-muted ms-auto ps-3 fw-bold" style="font-family: var(--font-mono); font-size: 0.85rem;">${m}/${d}</span>
                 </div>
             `;
         }).join('');
