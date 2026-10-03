@@ -582,16 +582,12 @@
 
                         <!-- 2. 近期更新動態 (中間 - 佔據 4 格) -->
                         <div class="col-12 col-md-4 px-md-4 py-1 border-start-md border-light mb-4 mb-md-0">
-                            <div class="text-secondary small fw-bold mb-2">近期資訊更新 (2)</div>
-                            <div class="d-flex flex-column gap-2 small">
-                                <div class="d-flex align-items-center text-dark">
-                                    <span class="status-dot bg-primary me-2"></span> 治療紀錄 
-                                    <span class="text-muted ms-auto ps-3">09/03</span>
-                                </div>
-                                <div class="d-flex align-items-center text-dark">
-                                    <span class="status-dot bg-danger me-2"></span> 居家表現 
-                                    <span class="text-muted ms-auto ps-3">08/28</span>
-                                </div>
+                            <!-- 加上 id="recent-updates-title" 讓 JS 可以修改標題數量 -->
+                            <div class="text-secondary small fw-bold mb-2" id="recent-updates-title">近期資訊更新 (載入中...)</div>
+                            
+                            <!-- 加上 id="recent-updates-list" 讓 JS 可以塞入最新日期 -->
+                            <div class="d-flex flex-column gap-2 small" id="recent-updates-list">
+                                <div class="text-muted"><i class="fas fa-spinner fa-spin me-2"></i>資料同步中...</div>
                             </div>
                         </div>
 
@@ -660,7 +656,7 @@
                         <div class="card-puzzle-watermark"></div>
                         <div class="card-icon-box"><i class="fas fa-home"></i></div>
                         <h5 class="card-title">居家表現</h5>
-                        <p class="card-desc">家長日常紀錄與專業即時回饋</p>
+                        <p class="card-desc">家長日常紀錄與專業回饋</p>
                     </div>
                 </div>
 
@@ -670,7 +666,7 @@
                         <div class="card-puzzle-watermark"></div>
                         <div class="card-icon-box"><i class="fas fa-question-circle"></i></div>
                         <h5 class="card-title">提問回覆</h5>
-                        <p class="card-desc">跨專業針對性諮詢與對話追蹤</p>
+                        <p class="card-desc">諮詢與團隊成員回覆</p>
                     </div>
                 </div>
             </div>
@@ -811,7 +807,7 @@
                         <div class="header-icon-box"><i class="fas fa-home"></i></div>
                         <div class="header-content">
                             <h4 class="header-title">居家表現</h4>
-                            <p class="header-desc">家長上傳日常紀錄，專業即時回饋</p>
+                            <p class="header-desc">家長上傳日常紀錄，專業進行回饋</p>
                         </div>
                     </div>
                     <div>

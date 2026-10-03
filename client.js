@@ -2496,7 +2496,7 @@ async function submitIepStrategy(goalId) {
     }
 }
 
-// 🌟 動態載入首頁「近期資訊更新」
+// 🌟 動態載入首頁「近期資訊更新」 (強化除錯版)
 async function loadRecentUpdates() {
     const listEl = document.getElementById('recent-updates-list');
     const titleEl = document.getElementById('recent-updates-title');
@@ -2509,32 +2509,37 @@ async function loadRecentUpdates() {
             apiRequest(`${API_URL}/api/home_logs`)
         ]);
         
-        const recordsData = await recordsRes.json();
-        const homeLogsData = await homeLogsRes.json();
-
         let updates = [];
 
-        // 1. 處理治療紀錄 (找出日期最新的一筆)
-        if (recordsData.data && recordsData.data.length > 0) {
-            const latestRecord = recordsData.data.reduce((latest, current) => 
-                new Date(current.date) > new Date(latest.date) ? current : latest
-            , recordsData.data[0]);
-            
-            updates.push({
-                type: '治療紀錄',
-                date: new Date(latestRecord.date),
-                color: 'bg-primary' // 藍色點點
-            });
+        // 1. 處理治療紀錄
+        if (recordsRes.ok) {
+            const recordsData = await recordsRes.json();
+            if (recordsData.data && recordsData.data.length > 0) {
+                // 找出日期最新的一筆 (治療紀錄的日期欄位為 'date'，格式為 YYYY-MM-DD)
+                const latestRecord = recordsData.data.reduce((latest, current) => 
+                    new Date(current.date) > new Date(latest.date) ? current : latest
+                , recordsData.data[0]);
+                
+                updates.push({
+                    type: '治療紀錄',
+                    date: new Date(latestRecord.date),
+                    color: 'bg-primary' // 藍色點點
+                });
+            }
         }
 
-        // 2. 處理居家表現 (後端已設定為最新的在最前面，所以直接取第一筆)
-        if (homeLogsData.data && homeLogsData.data.length > 0) {
-            const latestHomeLog = homeLogsData.data[0];
-            updates.push({
-                type: '居家表現',
-                date: new Date(latestHomeLog.datetime),
-                color: 'bg-danger' // 紅色點點
-            });
+        // 2. 處理居家表現
+        if (homeLogsRes.ok) {
+            const homeLogsData = await homeLogsRes.json();
+            if (homeLogsData.data && homeLogsData.data.length > 0) {
+                // 居家表現後端預設最新的在第一筆 (欄位為 'datetime' ISO 格式)
+                const latestHomeLog = homeLogsData.data[0];
+                updates.push({
+                    type: '居家表現',
+                    date: new Date(latestHomeLog.datetime),
+                    color: 'bg-danger' // 紅色點點
+                });
+            }
         }
 
         // 依日期降冪排序 (確保最新的排在最上面)
@@ -2543,12 +2548,15 @@ async function loadRecentUpdates() {
         // 渲染畫面
         if (updates.length === 0) {
             titleEl.innerText = '近期資訊更新 (0)';
-            listEl.innerHTML = '<div class="text-muted small">尚無最新動態</div>';
+            listEl.innerHTML = '<div class="text-muted small">尚無最新動態資料</div>';
             return;
         }
 
         titleEl.innerText = `近期資訊更新 (${updates.length})`;
         listEl.innerHTML = updates.map(u => {
+            // 檢查日期是否有效 (避免 NaN/NaN)
+            if (isNaN(u.date.getTime())) return '';
+            
             const m = (u.date.getMonth() + 1).toString().padStart(2, '0');
             const d = u.date.getDate().toString().padStart(2, '0');
             return `
@@ -2561,6 +2569,7 @@ async function loadRecentUpdates() {
 
     } catch (error) {
         console.error("載入近期動態失敗:", error);
-        listEl.innerHTML = '<div class="text-danger small">載入失敗</div>';
+        titleEl.innerText = '近期資訊更新 (錯誤)';
+        listEl.innerHTML = '<div class="text-danger small">資料載入失敗，請重整頁面</div>';
     }
 }
