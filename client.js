@@ -2580,3 +2580,55 @@ async function loadRecentUpdates() {
         listEl.innerHTML = '<div class="text-danger small">資料載入失敗，請重整頁面</div>';
     }
 }
+
+// ==========================================
+// 💡 系統操作導覽與 Q&A 功能
+// ==========================================
+
+// 開啟導覽視窗
+window.openGuideModal = function() {
+    // 清空上次填寫的 Q&A 內容
+    document.getElementById('qa-content').value = '';
+    new bootstrap.Modal(document.getElementById('guideModal')).show();
+};
+
+// 送出 Q&A 意見回饋
+window.submitGuideQA = async function() {
+    const type = document.getElementById('qa-type').value;
+    const content = document.getElementById('qa-content').value.trim();
+
+    if (!content) {
+        return Swal.fire({
+            icon: 'warning',
+            title: '請填寫內容',
+            text: '詳細描述不可為空白喔！'
+        });
+    }
+
+    try {
+        Swal.fire({
+            title: '傳送中...',
+            allowOutsideClick: false,
+            didOpen: () => Swal.showLoading()
+        });
+
+        // 🟢 實務上這裡會呼叫後端的 API (例如 /api/system_qa)
+        // const res = await apiRequest(`${API_URL}/api/system_qa`, { ... });
+        
+        // 為了展示順暢，我們先模擬網路延遲 0.8 秒後回傳成功
+        await new Promise(resolve => setTimeout(resolve, 800));
+
+        // 關閉視窗並跳出成功提示
+        bootstrap.Modal.getInstance(document.getElementById('guideModal')).hide();
+        Swal.fire({
+            icon: 'success',
+            title: '已送出！',
+            text: '管理團隊已收到您的回饋（類型：' + type + '），將會盡快處理。',
+            confirmButtonText: '好的',
+            confirmButtonColor: '#3B82F6'
+        });
+
+    } catch (error) {
+        Swal.fire('錯誤', '傳送失敗，請檢查網路連線', 'error');
+    }
+};

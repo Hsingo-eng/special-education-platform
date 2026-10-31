@@ -1518,3 +1518,90 @@ textarea::placeholder {
     overflow-y: auto; 
     flex-grow: 1;
 }
+
+/* =========================================
+   💡 系統導覽手冊與 Q&A (Guide & Help)
+   ======================================== */
+/* 可愛軟糖感「？」按鈕 */
+.btn-cute-guide {
+    width: 54px;
+    height: 54px;
+    border-radius: 20px; /* 介於圓形與方形之間的可愛圓角 */
+    background: linear-gradient(135deg, #3B82F6, #60A5FA);
+    color: white;
+    font-size: 1.8rem;
+    font-weight: 900;
+    border: none;
+    box-shadow: 0 8px 20px rgba(59, 130, 246, 0.3);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    margin: 3rem auto 1rem auto;
+    transition: all 0.4s cubic-bezier(0.34, 1.56, 0.64, 1);
+    cursor: pointer;
+}
+.btn-cute-guide:hover {
+    transform: translateY(-6px) rotate(8deg) scale(1.1);
+    box-shadow: 0 12px 25px rgba(59, 130, 246, 0.4);
+    color: #ffffff;
+}
+
+/* 導覽手冊內的圖文卡片 */
+.guide-card {
+    background-color: #ffffff;
+    border: 1px solid #E2E8F0;
+    border-radius: 16px;
+    padding: 20px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: flex-start;
+    gap: 20px;
+    box-shadow: 0 4px 12px rgba(0,0,0,0.02);
+}
+.guide-img-box {
+    width: 80px;
+    height: 80px;
+    border-radius: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2.2rem;
+    flex-shrink: 0;
+}
+.guide-text h6 {
+    font-weight: 800;
+    color: #1E293B;
+    margin-bottom: 8px;
+    font-size: 1.1rem;
+}
+.guide-text p {
+    color: #64748B;
+    font-size: 0.95rem;
+    line-height: 1.6;
+    margin-bottom: 0;
+}
+
+/* 六大功能微縮圖格 */
+.guide-mini-grid {
+    display: grid;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+    margin-top: 12px;
+}
+.guide-mini-item {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background-color: #F8FAFC;
+    padding: 8px 12px;
+    border-radius: 10px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #475569;
+}
+
+/* 手機版排版適配 */
+@media (max-width: 768px) {
+    .guide-card { flex-direction: column; align-items: center; text-align: center; }
+    .guide-mini-grid { grid-template-columns: 1fr; }
+}
