@@ -604,14 +604,6 @@
             </div>
         </div>
 
-        <!-- 🌟 新增：系統導覽可愛按鈕 -->
-        <div class="text-center mt-5">
-            <button class="btn-cute-guide" onclick="openGuideModal()" title="需要操作導覽嗎？">
-                <i class="fas fa-question"></i>
-            </button>
-            <div class="text-muted small fw-bold mt-2" style="letter-spacing: 1px;">操作導覽與 Q&A</div>
-        </div>
-
         <!-- 3. 六大專業功能模組 (保留原有色系，淡色化設計) -->
         <div class="system-modules-section max-w-900 mx-auto">
             <h6 class="fw-bold text-secondary mb-4 ps-2 border-start border-3 border-primary" style="letter-spacing: 1px;">
@@ -677,7 +669,15 @@
                         <p class="card-desc">諮詢與團隊成員回覆</p>
                     </div>
                 </div>
+                <!-- 🌟 獨立的導覽按鈕 (對齊行事曆左側) -->
+                <div class="col-12 mt-4 pt-3 d-flex flex-column align-items-start">
+                    <button class="btn-cute-guide m-0" onclick="showSection('guide')" title="操作導覽與 Q&A">
+                        <i class="fas fa-question"></i>
+                    </button>
+                    <div class="text-muted small fw-bold mt-2 ps-2" style="letter-spacing: 1px;">平台導覽</div>
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -826,6 +826,81 @@
                 </div>
                 
                 <div id="home-log-feed" class="d-flex flex-column gap-4">
+                </div>
+            </div>
+
+            <!-- 🌟 新增：第 7 個功能版塊 (系統操作導覽與 Q&A) -->
+            <div id="section-guide" class="d-none animate-fade">
+                
+                <div class="page-header-card d-flex flex-column flex-md-row justify-content-between align-items-md-center" style="border-left: 4px solid #3B82F6;">
+                    <div class="d-flex align-items-center">
+                        <div class="header-icon-box" style="background-color: #EFF6FF; color: #3B82F6;"><i class="fas fa-book-open"></i></div>
+                        <div class="header-content">
+                            <h4 class="header-title">平台操作導覽</h4>
+                            <p class="header-desc">系統功能教學與問題回報 Q&A</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row">
+                    <div class="col-12 col-lg-8">
+                        <!-- 圖文介紹 1：治療紀錄 -->
+                        <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
+                            <h5 class="fw-bold text-dark mb-4"><i class="fas fa-file-medical text-primary me-2"></i>1. 治療紀錄操作</h5>
+                            
+                            <div class="d-flex align-items-start mb-4">
+                                <span class="bg-primary text-white rounded-circle text-center fw-bold flex-shrink-0 me-3" style="width: 28px; height: 28px; line-height: 28px;">1</span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-2">新增與填寫基本資訊</h6>
+                                    <div class="guide-img-placeholder mb-2"><i class="fas fa-image text-muted opacity-25 fa-2x"></i><br><small class="text-muted">請替換為新增按鈕與表單上半部截圖</small></div>
+                                    <p class="text-secondary small mb-0">點擊右上方「新增紀錄」，依序選擇日期、形式與時長，並勾選幼兒當天的參與狀況。</p>
+                                </div>
+                            </div>
+                            
+                            <div class="d-flex align-items-start">
+                                <span class="bg-primary text-white rounded-circle text-center fw-bold flex-shrink-0 me-3" style="width: 28px; height: 28px; line-height: 28px;">2</span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-2">填寫教學領域與具體建議</h6>
+                                    <div class="guide-img-placeholder mb-2"><i class="fas fa-image text-muted opacity-25 fa-2x"></i><br><small class="text-muted">請替換為教學領域下拉選單與建議框截圖</small></div>
+                                    <p class="text-secondary small mb-0">勾選本堂課的領域，並在下方文字框給予「融入班級作息的具體建議」，這對特教教師非常重要。</p>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- 圖文介紹 2：IEP 資料 -->
+                        <div class="bg-white p-4 rounded-4 shadow-sm border mb-4">
+                            <h5 class="fw-bold text-dark mb-4"><i class="fas fa-folder-open text-success me-2"></i>2. IEP 執行目標更新</h5>
+                            <div class="d-flex align-items-start mb-4">
+                                <span class="bg-success text-white rounded-circle text-center fw-bold flex-shrink-0 me-3" style="width: 28px; height: 28px; line-height: 28px;">1</span>
+                                <div>
+                                    <h6 class="fw-bold text-dark mb-2">更新目標狀態與補充策略</h6>
+                                    <div class="guide-img-placeholder mb-2"><i class="fas fa-image text-muted opacity-25 fa-2x"></i><br><small class="text-muted">請替換為 IEP 下拉狀態與展開後的對話框截圖</small></div>
+                                    <p class="text-secondary small mb-0">教師可隨時切換目標狀態（未開始、練習中、已達成）。點擊目標即可展開面板，與治療師針對單一目標進行深入的策略討論。</p>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- 您可以繼續用相同的結構，複製並補上居家表現、提問回覆的步驟 -->
+                        
+                    </div>
+
+                    <!-- 右側：Q&A 表單區塊 -->
+                    <div class="col-12 col-lg-4">
+                        <div class="bg-light p-4 rounded-4 border sticky-top" style="top: 20px;">
+                            <h6 class="fw-bold text-dark mb-3"><i class="fas fa-headset text-primary me-2"></i>遇到困難嗎？</h6>
+                            <p class="small text-secondary mb-3">若您在操作網站時遇到錯誤或有功能建議，請在此填寫，管理員將會與您聯繫。</p>
+                            
+                            <div class="mb-3">
+                                <label class="form-label fw-bold small text-secondary">問題描述</label>
+                                <textarea class="form-control border-0 shadow-sm" id="support-content" rows="6" placeholder="請盡量詳細描述您遇到的狀況..."></textarea>
+                            </div>
+                            <div class="text-end mt-3">
+                                <button class="btn btn-primary w-100 rounded-pill px-4 fw-bold shadow-sm" onclick="submitSupport()">
+                                    <i class="fas fa-paper-plane me-1"></i> 送出問題
+                                </button>
+                            </div>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -1056,92 +1131,6 @@
                 <div class="modal-footer border-top-0 pt-0 pb-4 px-4">
                     <button type="button" class="btn btn-light rounded-pill px-4" data-bs-dismiss="modal">取消</button>
                     <button type="button" class="btn btn-primary rounded-pill px-4 fw-bold" onclick="submitHomeLog()">準備發佈</button>
-                </div>
-            </div>
-        </div>
-    </div>
-
-    <!-- 💡 系統操作導覽與 Q&A 視窗 -->
-    <div class="modal fade" id="guideModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered modal-lg modal-dialog-scrollable">
-            <div class="modal-content border-0 shadow-lg" style="border-radius: 16px;">
-                <!-- 視窗標題 -->
-                <div class="modal-header border-bottom-0 pb-0" style="background-color: #ffffff;">
-                    <h4 class="modal-title fw-bold text-dark w-100 text-center mt-3">
-                        <i class="fas fa-magic text-warning me-2"></i>平台操作導覽
-                    </h4>
-                    <button type="button" class="btn-close position-absolute top-0 end-0 m-3" data-bs-dismiss="modal"></button>
-                </div>
-                
-                <div class="modal-body p-4 p-md-5 pt-3">
-                    <p class="text-center text-secondary mb-4">歡迎使用學前特教專業人員溝通平台！以下是核心模組的簡單介紹：</p>
-
-                    <!-- 圖文介紹 1：個案資料 -->
-                    <div class="guide-card">
-                        <div class="guide-img-box" style="background-color: #EFF6FF; color: #3B82F6;">
-                            <i class="fas fa-id-card-alt"></i>
-                        </div>
-                        <div class="guide-text text-start w-100">
-                            <h6>1. 個案資料與能力面向</h6>
-                            <p>主畫面左上方為您目前負責的幼兒。點擊「查看能力面向」，可以隨時回顧幼兒在理解、表達與互動上的核心能力基線，讓團隊目標保持一致。</p>
-                        </div>
-                    </div>
-
-                    <!-- 圖文介紹 2：通知中心 -->
-                    <div class="guide-card">
-                        <div class="guide-img-box" style="background-color: #FEF2F2; color: #EF4444;">
-                            <i class="fas fa-bell"></i>
-                        </div>
-                        <div class="guide-text text-start w-100">
-                            <h6>2. 即時通知中心</h6>
-                            <p>不論是治療師更新了紀錄、家長上傳了居家表現，或是 IEP 有新進度，右上角的鈴鐺都會亮起紅點。點開即可一覽無遺，且不會有惱人的彈窗打擾。</p>
-                        </div>
-                    </div>
-
-                    <!-- 圖文介紹 3：六大功能 -->
-                    <div class="guide-card">
-                        <div class="guide-img-box" style="background-color: #F0FDF4; color: #10B981;">
-                            <i class="fas fa-shapes"></i>
-                        </div>
-                        <div class="guide-text text-start w-100">
-                            <h6>3. 六大專業功能模組</h6>
-                            <p>我們將特教實務中最需要的溝通管道，收斂為六個核心功能：</p>
-                            <div class="guide-mini-grid">
-                                <div class="guide-mini-item"><i class="fas fa-file-medical text-primary"></i>治療紀錄 (專業處遇)</div>
-                                <div class="guide-mini-item"><i class="fas fa-home text-danger"></i>居家表現 (日常連結)</div>
-                                <div class="guide-mini-item"><i class="fas fa-folder-open text-success"></i>IEP 策略 (目標追蹤)</div>
-                                <div class="guide-mini-item"><i class="fas fa-comments text-purple" style="color: #8B5CF6;"></i>留言板 (團隊討論)</div>
-                                <div class="guide-mini-item"><i class="fas fa-calendar-alt text-warning"></i>行事曆 (時程管理)</div>
-                                <div class="guide-mini-item"><i class="fas fa-question-circle text-info"></i>提問回覆 (指定諮詢)</div>
-                            </div>
-                        </div>
-                    </div>
-
-                    <hr class="text-muted opacity-25 my-5">
-
-                    <!-- Q&A 提問表單 -->
-                    <div class="bg-light p-4 rounded-4 border">
-                        <h6 class="fw-bold text-dark mb-3"><i class="fas fa-headset text-primary me-2"></i>遇到困難嗎？告訴管理員！</h6>
-                        <p class="small text-secondary mb-3">若您在操作網站時遇到 Bug 或有功能建議，請在此填寫，系統管理員將會查閱並與您聯繫。</p>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-secondary">問題類型</label>
-                            <select class="form-select border-0 shadow-sm" id="qa-type">
-                                <option value="功能操作疑問">🤔 功能操作疑問</option>
-                                <option value="系統錯誤回報">🐛 系統錯誤回報</option>
-                                <option value="新功能許願">✨ 新功能許願</option>
-                            </select>
-                        </div>
-                        <div class="mb-3">
-                            <label class="form-label fw-bold small text-secondary">詳細描述</label>
-                            <textarea class="form-control border-0 shadow-sm" id="qa-content" rows="4" placeholder="請盡量詳細描述您遇到的狀況..."></textarea>
-                        </div>
-                        <div class="text-end mt-3">
-                            <button class="btn btn-primary rounded-pill px-4 fw-bold shadow-sm" onclick="submitGuideQA()">
-                                <i class="fas fa-paper-plane me-1"></i> 送出問題
-                            </button>
-                        </div>
-                    </div>
-
                 </div>
             </div>
         </div>

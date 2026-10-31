@@ -865,6 +865,27 @@ app.put("/api/questions/:id", verifyToken, async (req, res) => {
     } catch (e) { res.status(500).json({ message: e.message }); }
 });
 
+// ==========================================
+// 💡 系統 Q&A 回報 API
+// ==========================================
+app.post("/api/system_qa", verifyToken, async (req, res) => {
+    try {
+        const roleLabel = getRoleLabel(req.user.role);
+        const newQA = {
+            id: `qa-${Date.now()}`,
+            datetime: new Date().toISOString(),
+            author: `${req.user.name || req.user.username} | ${roleLabel}`,
+            content: req.body.content || ""
+        };
+        
+        // 將資料寫入剛剛在 Google Sheets 新增的 'system_qa' 分頁中
+        await appendRow("system_qa", newQA);
+        
+        res.json({ message: "回報成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
 
 // 🟢 終極防呆版：直接在裡面寫死 process.env.PORT，不用管變數叫什麼了！
 server.listen(process.env.PORT || 8080, "0.0.0.0", () => {

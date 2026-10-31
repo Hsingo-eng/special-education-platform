@@ -13,7 +13,8 @@ const APP_SECTIONS = [
     'section-messages',
     'section-questions',
     'section-calendar',
-    'section-home-log'
+    'section-home-log',
+    'section-guide' // 🌟 加上這一行
 ];
 
 const safeCall = (fn) => typeof fn === 'function' && fn();
@@ -271,7 +272,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         'section-messages', 
         'section-questions',
         'section-calendar',
-        'section-home-log'
+        'section-home-log',
+        'section-guide'
     ];
     
     sections.forEach(id => {
@@ -2582,53 +2584,39 @@ async function loadRecentUpdates() {
 }
 
 // ==========================================
-// 💡 系統操作導覽與 Q&A 功能
+// 💡 系統操作導覽與 Q&A 發送
 // ==========================================
-
-// 開啟導覽視窗
-window.openGuideModal = function() {
-    // 清空上次填寫的 Q&A 內容
-    document.getElementById('qa-content').value = '';
-    new bootstrap.Modal(document.getElementById('guideModal')).show();
-};
-
-// 送出 Q&A 意見回饋
-window.submitGuideQA = async function() {
-    const type = document.getElementById('qa-type').value;
-    const content = document.getElementById('qa-content').value.trim();
+async function submitSupport() {
+    const content = document.getElementById('support-content').value.trim();
 
     if (!content) {
-        return Swal.fire({
-            icon: 'warning',
-            title: '請填寫內容',
-            text: '詳細描述不可為空白喔！'
-        });
+        return Swal.fire({ icon: 'warning', title: '請填寫內容', text: '問題描述不可為空白喔！' });
     }
 
     try {
-        Swal.fire({
-            title: '傳送中...',
-            allowOutsideClick: false,
-            didOpen: () => Swal.showLoading()
+        Swal.fire({ title: '傳送中...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+
+        const res = await fetch(`${API_URL}/api/system_qa`, {
+            method: 'POST',
+            headers: { 
+                'Content-Type': 'application/json',
+                'Authorization': `Bearer ${token}` 
+            },
+            body: JSON.stringify({ content: content })
         });
 
-        // 🟢 實務上這裡會呼叫後端的 API (例如 /api/system_qa)
-        // const res = await apiRequest(`${API_URL}/api/system_qa`, { ... });
-        
-        // 為了展示順暢，我們先模擬網路延遲 0.8 秒後回傳成功
-        await new Promise(resolve => setTimeout(resolve, 800));
-
-        // 關閉視窗並跳出成功提示
-        bootstrap.Modal.getInstance(document.getElementById('guideModal')).hide();
-        Swal.fire({
-            icon: 'success',
-            title: '已送出！',
-            text: '管理團隊已收到您的回饋（類型：' + type + '），將會盡快處理。',
-            confirmButtonText: '好的',
-            confirmButtonColor: '#3B82F6'
-        });
-
+        if (res.ok) {
+            Swal.fire({
+                icon: 'success',
+                title: '已成功送出！',
+                text: '系統管理團隊已收到您的問題描述。',
+                confirmButtonColor: '#3B82F6'
+            });
+            document.getElementById('support-content').value = '';
+        } else {
+            throw new Error('伺服器錯誤');
+        }
     } catch (error) {
         Swal.fire('錯誤', '傳送失敗，請檢查網路連線', 'error');
     }
-};
+}
