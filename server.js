@@ -868,6 +868,8 @@ app.put("/api/questions/:id", verifyToken, async (req, res) => {
 // ==========================================
 // 💡 系統 Q&A 回報 API
 // ==========================================
+
+// 1. 寫入提問 (POST)
 app.post("/api/system_qa", verifyToken, async (req, res) => {
     try {
         const roleLabel = getRoleLabel(req.user.role);
@@ -875,13 +877,24 @@ app.post("/api/system_qa", verifyToken, async (req, res) => {
             id: `qa-${Date.now()}`,
             datetime: new Date().toISOString(),
             author: `${req.user.name || req.user.username} | ${roleLabel}`,
-            content: req.body.content || ""
+            content: req.body.content || "",
+            reply: "" // 🌟 補上這個空的回覆欄位，確保對齊 Google Sheets 的 5 個欄位
         };
         
-        // 將資料寫入剛剛在 Google Sheets 新增的 'system_qa' 分頁中
         await appendRow("system_qa", newQA);
         
         res.json({ message: "回報成功" });
+    } catch (e) {
+        res.status(500).json({ message: e.message });
+    }
+});
+
+// 2. 🌟 新增讀取 API (GET)：讓畫面可以顯示歷史問題與管理員回覆
+app.get("/api/system_qa", verifyToken, async (req, res) => {
+    try {
+        const data = await getSheetData("system_qa");
+        // 若沒有資料則回傳空陣列防呆
+        res.json({ data: data || [] }); 
     } catch (e) {
         res.status(500).json({ message: e.message });
     }

@@ -388,6 +388,7 @@ const SECTION_LOADERS = {
     records: () => safeCall(loadRecords),
     iep: () => { safeCall(loadIepFiles); safeCall(loadIepGoals); },
     'home-log': () => safeCall(loadHomeLogs),
+    guide: () => safeCall(loadSystemQA)
 };
 
 function loadSectionData(sectionId) {
@@ -2613,10 +2614,59 @@ async function submitSupport() {
                 confirmButtonColor: '#3B82F6'
             });
             document.getElementById('support-content').value = '';
+            loadSystemQA();
         } else {
             throw new Error('伺服器錯誤');
         }
     } catch (error) {
         Swal.fire('錯誤', '傳送失敗，請檢查網路連線', 'error');
+    }
+}
+
+// 讀取 Q&A 列表與管理員回覆
+async function loadSystemQA() {
+    const list = document.getElementById('support-qna-list');
+    if (!list) return;
+
+    try {
+        const res = await apiRequest(`${API_URL}/api/system_qa`);
+        const json = await res.json();
+
+        if (!json.data || json.data.length === 0) {
+            list.innerHTML = '<div class="text-center text-muted small py-3">尚無提問紀錄</div>';
+            return;
+        }
+
+        // 依時間降冪排序 (最新的提問排在最上面)
+        const sortedQA = json.data.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
+
+        list.innerHTML = sortedQA.map(qa => {
+            // 判斷管理員是否有填寫回覆欄位
+            const hasReply = qa.reply && qa.reply.trim() !== '';
+            const dateStr = new Date(qa.datetime).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            
+            return `
+                <div class="bg-white p-3 rounded-3 shadow-sm border border-light">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <span class="fw-bold text-dark small"><i class="fas fa-user-circle text-secondary me-1"></i>${qa.author.split(' | ')[0]}</span>
+                        <span class="text-muted" style="font-size: 0.7rem;">${dateStr}</span>
+                    </div>
+                    <p class="text-secondary small mb-2" style="white-space: pre-wrap; line-height: 1.5;">${qa.content}</p>
+                    
+                    ${hasReply ? `
+                        <div class="bg-light p-2 rounded-2 mt-3 border-start border-3 border-primary">
+                            <div class="fw-bold text-primary mb-1" style="font-size: 0.75rem;"><i class="fas fa-user-shield me-1"></i>管理員回覆：</div>
+                            <div class="text-dark small" style="white-space: pre-wrap; line-height: 1.5;">${qa.reply}</div>
+                        </div>
+                    ` : `
+                        <div class="text-muted mt-2 border-top pt-2" style="font-size: 0.75rem;">
+                            <i class="fas fa-hourglass-half me-1"></i>等待管理員回覆中...
+                        </div>
+                    `}
+                </div>
+            `;
+        }).join('');
+    } catch (err) {
+        list.innerHTML = '<div class="text-danger small py-3 text-center">載入失敗</div>';
     }
 }
