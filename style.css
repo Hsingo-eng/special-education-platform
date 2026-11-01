@@ -1532,3 +1532,44 @@ textarea::placeholder {
     width: 100%;
     /* 當您換成真實圖片時，只要把包含這個 class 的 div 替換成 <img src="..." class="img-fluid rounded-3 border shadow-sm"> 即可 */
 }
+
+/* =========================================
+   💡 平台導覽高質感整合按鈕
+   ======================================== */
+.btn-platform-guide {
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    background-color: #ffffff;
+    color: #475569; 
+    border: 1px solid #E2E8F0;
+    padding: 12px 28px;
+    border-radius: 50px; /* 圓滑膠囊形狀 */
+    font-size: 1.05rem;
+    font-weight: 700;
+    letter-spacing: 0.5px;
+    box-shadow: 0 4px 15px rgba(0, 0, 0, 0.03);
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    cursor: pointer;
+    text-decoration: none;
+}
+
+/* 讓裡面的問號圖示保持品牌藍色 */
+.btn-platform-guide i {
+    color: #3B82F6; 
+    font-size: 1.25rem;
+    transition: color 0.3s ease;
+}
+
+/* 滑鼠懸停時的優雅浮起與色彩填滿效果 */
+.btn-platform-guide:hover {
+    background-color: #3B82F6;
+    color: #ffffff;
+    border-color: #3B82F6;
+    transform: translateY(-4px);
+    box-shadow: 0 10px 25px rgba(59, 130, 246, 0.25);
+}
+
+.btn-platform-guide:hover i {
+    color: #ffffff;
+}
