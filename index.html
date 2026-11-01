@@ -968,20 +968,26 @@
 
                     </div>
 
-                    <!-- 右側：Q&A 表單區塊 -->
+                    <!-- 右側：Q&A 表單區塊與歷史回報 -->
                     <div class="col-12 col-lg-4">
-                        <div class="bg-light p-4 rounded-4 border sticky-top" style="top: 20px;">
+                        <div class="bg-light p-4 rounded-4 border sticky-top" style="top: 20px; max-height: calc(100vh - 40px); overflow-y: auto;">
                             <h6 class="fw-bold text-dark mb-3"><i class="fas fa-headset text-primary me-2"></i>遇到困難嗎？</h6>
                             <p class="small text-secondary mb-3">若您在操作網站時遇到錯誤或有功能建議，請在此填寫，管理員將會與您聯繫。</p>
                             
                             <div class="mb-3">
                                 <label class="form-label fw-bold small text-secondary">問題描述</label>
-                                <textarea class="form-control border-0 shadow-sm" id="support-content" rows="6" placeholder="請盡量詳細描述您遇到的狀況..."></textarea>
+                                <textarea class="form-control border-0 shadow-sm" id="support-content" rows="4" placeholder="請盡量詳細描述您遇到的狀況..."></textarea>
                             </div>
-                            <div class="text-end mt-3">
+                            <div class="text-end mt-3 mb-4">
                                 <button class="btn btn-primary w-100 rounded-pill px-4 fw-bold shadow-sm" onclick="submitSupport()">
                                     <i class="fas fa-paper-plane me-1"></i> 送出問題
                                 </button>
+                            </div>
+                            
+                            <!-- 🌟 新增：歷年問題與回覆呈現區 -->
+                            <h6 class="fw-bold text-dark mb-3 border-top pt-4"><i class="fas fa-history text-secondary me-2"></i>問題回報紀錄</h6>
+                            <div id="support-qna-list" class="d-flex flex-column gap-3 pb-3">
+                                <div class="text-center text-muted small py-3"><i class="fas fa-spinner fa-spin me-2"></i>載入中...</div>
                             </div>
                         </div>
                     </div>
