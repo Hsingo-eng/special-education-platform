@@ -1573,3 +1573,157 @@ textarea::placeholder {
 .btn-platform-guide:hover i {
     color: #ffffff;
 }
+
+/* =========================================
+   🌌 平台操作導覽 - Soft Slate (柔和石板灰護眼版)
+   ======================================== */
+
+/* 1. 破除外層白色卡片限制 */
+.content-stage-card:has(#section-guide:not(.d-none)) {
+    background-color: #334155 !important; /* 調亮：柔和石板灰底色 */
+    border: none !important;
+    box-shadow: none !important;
+    padding: 0 !important;
+}
+
+/* 2. 工作區主體 */
+#section-guide {
+    background-color: #334155;
+    color: #CBD5E1;
+    padding: 10px 20px 40px 20px;
+    min-height: 80vh;
+}
+
+/* 3. Header 設計 */
+.guide-editorial-header {
+    display: flex; justify-content: space-between; align-items: flex-start;
+    padding-bottom: 24px; margin-bottom: 40px;
+    border-bottom: 1px solid #475569; /* 調亮：分隔線 */
+    position: relative;
+}
+.guide-header-left { display: flex; align-items: center; gap: 20px; }
+.guide-header-icon { font-size: 2.8rem; color: #60A5FA; }
+.guide-subtitle-eng { font-size: 0.8rem; font-weight: 700; color: #60A5FA; letter-spacing: 2px; margin-bottom: 4px; }
+.guide-main-title { font-size: 1.8rem; font-weight: 800; color: #F8FAFC; margin-bottom: 6px; letter-spacing: 1px; }
+.guide-desc { font-size: 1rem; color: #94A3B8; margin: 0; }
+.guide-header-puzzle { width: 80px; height: 80px; opacity: 0.06; fill: #F8FAFC; }
+
+/* 4. 左側教學時間軸 */
+.guide-timeline { padding-left: 10px; }
+.timeline-chapter {
+    position: relative; padding-left: 40px; padding-bottom: 60px;
+    border-left: 2px solid #475569; /* 調亮：時間軸線 */
+    transition: border-color 0.3s ease;
+}
+.timeline-chapter:last-child { border-left-color: transparent !important; }
+
+@media (prefers-reduced-motion: no-preference) {
+    .timeline-chapter:hover { border-left-color: var(--chapter-color); }
+    .timeline-chapter:hover .chapter-puzzle-node { transform: scale(1.1) rotate(5deg); }
+}
+
+.chapter-header { position: relative; margin-bottom: 30px; display: flex; align-items: center; gap: 16px; }
+.chapter-num {
+    position: absolute; left: -65px; top: -5px;
+    font-size: 2.5rem; font-weight: 900; color: #334155;
+    -webkit-text-stroke: 1px var(--chapter-color);
+    line-height: 1;
+}
+.chapter-title { font-size: 1.3rem; font-weight: 800; color: #F8FAFC; margin: 0; display: flex; align-items: center; gap: 12px; }
+.chapter-icon { color: var(--chapter-color); }
+
+.chapter-puzzle-node {
+    display: none; /* 加入這行直接隱藏拼圖 */
+}
+
+.step-item { position: relative; margin-bottom: 40px; }
+.step-header { display: flex; align-items: center; gap: 12px; margin-bottom: 12px; }
+.step-num-box {
+    width: 28px; height: 28px; border-radius: 6px;
+    background: #475569; border: 1px solid #64748B; color: #F8FAFC;
+    font-weight: 700; font-size: 0.9rem;
+    display: flex; align-items: center; justify-content: center;
+}
+.step-title { font-size: 1.1rem; font-weight: 700; color: #F8FAFC; margin: 0; }
+.step-desc { color: #CBD5E1; font-size: 0.95rem; line-height: 1.6; margin-bottom: 16px; padding-left: 40px; }
+
+/* 圖片框 */
+.step-img-box {
+    margin-left: 40px; border-radius: 8px; overflow: hidden;
+    border: 1px solid #64748B; background-color: #475569; transition: border-color 0.3s;
+}
+.guide-img-placeholder { padding: 30px 20px; text-align: center; color: #94A3B8; }
+
+/* 5. 右側 HELP CENTER */
+.support-center-panel {
+    background-color: #475569; /* 調亮：面板底色 */
+    border-radius: 16px; padding: 28px; border: 1px solid #64748B;
+    box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+}
+.support-header-icon {
+    width: 42px; height: 42px; border-radius: 10px;
+    background: #334155; color: #60A5FA;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 1.25rem; margin-bottom: 16px;
+}
+.support-input-dark {
+    background-color: #334155 !important; border: 1px solid #64748B !important;
+    color: #F8FAFC !important; border-radius: 12px !important; padding: 16px !important;
+    transition: border-color 0.2s;
+}
+.support-input-dark:focus { border-color: #60A5FA !important; box-shadow: none !important; }
+
+/* 送出按鈕 */
+.btn-support-submit {
+    background-color: #3B82F6; border: none; color: white;
+    border-radius: 8px; font-weight: 700; padding: 12px 32px;
+    transition: background-color 0.2s; width: 100%; font-size: 1rem;
+}
+.btn-support-submit:hover { background-color: #2563EB; }
+
+/* 6. 問題回報紀錄 (工單卡片式) */
+.qna-history-list {
+    max-height: 50vh; overflow-y: auto; padding-right: 8px; margin-top: 24px;
+    border-top: 1px solid #64748B; padding-top: 24px;
+}
+.qna-history-list::-webkit-scrollbar { width: 6px; }
+.qna-history-list::-webkit-scrollbar-thumb { background-color: #64748B; border-radius: 10px; }
+
+/* 單一則提問的獨立卡片 */
+.qna-record-card {
+    background-color: #334155; /* 調亮：與主背景相同 */
+    border: 1px solid #64748B;
+    border-radius: 12px; padding: 16px; margin-bottom: 16px;
+}
+.qna-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; border-bottom: 1px dashed #64748B; padding-bottom: 8px; }
+.qna-author { font-size: 0.9rem; font-weight: 700; color: #F8FAFC; display: flex; align-items: center; gap: 6px; }
+.qna-author i { color: #94A3B8; }
+.qna-time { font-size: 0.75rem; color: #94A3B8; }
+
+.qna-content-text { font-size: 0.95rem; color: #CBD5E1; line-height: 1.6; white-space: pre-wrap; margin-bottom: 8px; }
+
+/* 狀態標籤 */
+.qna-status-badge { font-size: 0.75rem; padding: 4px 8px; border-radius: 6px; font-weight: 700; }
+.badge-pending { background: rgba(245, 158, 11, 0.2); color: #FBBF24; }
+.badge-replied { background: rgba(52, 211, 153, 0.2); color: #34D399; }
+
+/* 內嵌的管理員回覆框 */
+.admin-reply-box {
+    background-color: #475569; /* 調亮：回覆框底色 */
+    border-left: 3px solid #34D399; 
+    border-radius: 0 8px 8px 0;
+    padding: 12px 16px; margin-top: 16px;
+}
+.reply-header { font-size: 0.85rem; font-weight: 700; color: #34D399; margin-bottom: 6px; display: flex; align-items: center; gap: 6px; }
+.reply-text { font-size: 0.95rem; color: #F8FAFC; line-height: 1.6; white-space: pre-wrap; }
+
+/* 手機版適配 */
+@media (max-width: 992px) {
+    #section-guide { padding: 0; }
+    .guide-editorial-header { flex-direction: column; gap: 20px; }
+    .timeline-chapter { padding-left: 20px; }
+    .chapter-num { font-size: 2rem; left: -40px; }
+    .chapter-puzzle-node { left: -30px; }
+    .step-img-box { margin-left: 0; }
+    .step-desc { padding-left: 0; }
+}

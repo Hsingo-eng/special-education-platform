@@ -2623,7 +2623,7 @@ async function submitSupport() {
     }
 }
 
-// 讀取 Q&A 列表與管理員回覆
+// 讀取 Q&A 列表與管理員回覆 (獨立卡片工單設計)
 async function loadSystemQA() {
     const list = document.getElementById('support-qna-list');
     if (!list) return;
@@ -2633,36 +2633,46 @@ async function loadSystemQA() {
         const json = await res.json();
 
         if (!json.data || json.data.length === 0) {
-            list.innerHTML = '<div class="text-center text-muted small py-3">尚無提問紀錄</div>';
+            list.innerHTML = '<div class="text-center small py-3" style="color:#768390;">尚無提問紀錄</div>';
             return;
         }
 
-        // 依時間降冪排序 (最新的提問排在最上面)
         const sortedQA = json.data.sort((a, b) => new Date(b.datetime) - new Date(a.datetime));
 
         list.innerHTML = sortedQA.map(qa => {
-            // 判斷管理員是否有填寫回覆欄位
             const hasReply = qa.reply && qa.reply.trim() !== '';
             const dateStr = new Date(qa.datetime).toLocaleString('zh-TW', { month: 'short', day: 'numeric', hour: '2-digit', minute: '2-digit' });
+            const authorRole = qa.author.split(' | ')[1] || '老師';
+            const authorName = qa.author.split(' | ')[0];
             
+            // 右上角的狀態標籤
+            const statusTag = hasReply 
+                ? `<span class="qna-status-badge badge-replied"><i class="fas fa-check-circle me-1"></i>已回覆</span>`
+                : `<span class="qna-status-badge badge-pending"><i class="fas fa-hourglass-half me-1"></i>等待回覆</span>`;
+
+            // 內嵌的管理員回覆子區塊 (只有已回覆才會渲染)
+            const replyBlock = hasReply ? `
+                <div class="admin-reply-box">
+                    <div class="reply-header"><i class="fas fa-user-shield"></i> 管理員回覆</div>
+                    <div class="reply-text">${qa.reply}</div>
+                </div>
+            ` : '';
+
+            // 組合為一張完整的提問工單卡片
             return `
-                <div class="bg-white p-3 rounded-3 shadow-sm border border-light">
-                    <div class="d-flex justify-content-between align-items-start mb-2">
-                        <span class="fw-bold text-dark small"><i class="fas fa-user-circle text-secondary me-1"></i>${qa.author.split(' | ')[0]}</span>
-                        <span class="text-muted" style="font-size: 0.7rem;">${dateStr}</span>
+                <div class="qna-record-card">
+                    <div class="qna-header">
+                        <div class="qna-author">
+                            <i class="fas fa-user-circle"></i> 
+                            ${authorName} <span style="font-weight:normal; color:#768390;">(${authorRole})</span>
+                        </div>
+                        ${statusTag}
                     </div>
-                    <p class="text-secondary small mb-2" style="white-space: pre-wrap; line-height: 1.5;">${qa.content}</p>
+                    <div class="qna-content-text">${qa.content}</div>
+                    <div class="qna-time text-end">${dateStr}</div>
                     
-                    ${hasReply ? `
-                        <div class="bg-light p-2 rounded-2 mt-3 border-start border-3 border-primary">
-                            <div class="fw-bold text-primary mb-1" style="font-size: 0.75rem;"><i class="fas fa-user-shield me-1"></i>管理員回覆：</div>
-                            <div class="text-dark small" style="white-space: pre-wrap; line-height: 1.5;">${qa.reply}</div>
-                        </div>
-                    ` : `
-                        <div class="text-muted mt-2 border-top pt-2" style="font-size: 0.75rem;">
-                            <i class="fas fa-hourglass-half me-1"></i>等待管理員回覆中...
-                        </div>
-                    `}
+                    <!-- 管理員回覆框會緊接著包覆在問題下方 -->
+                    ${replyBlock}
                 </div>
             `;
         }).join('');
