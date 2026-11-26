@@ -163,6 +163,46 @@ const cleanQuestionPersonName = (name, role) => {
         .trim() || roleLabel;
 };
 
+const isRetryableGeminiError = (error) => {
+    const status = error?.status ?? error?.response?.status;
+    if (status !== undefined && [408, 429, 500, 502, 503, 504].includes(Number(status))) {
+        return true;
+    }
+
+    const message = String(error?.message || '');
+    const statusMatch = message.match(/\[(408|429|500|502|503|504)(?:\s+[^\]]*)?\]/);
+    return Boolean(statusMatch) || /\b(ECONNRESET|ETIMEDOUT|EAI_AGAIN|ENOTFOUND|fetch failed|network error)\b/i.test(message);
+};
+
+const generateSummaryWithFallback = async (prompt) => {
+    const models = ['gemini-3.6-flash', 'gemini-3.5-flash-lite'];
+    let lastError;
+
+    for (const [modelIndex, modelName] of models.entries()) {
+        for (let attempt = 1; attempt <= 2; attempt++) {
+            try {
+                const model = genAI.getGenerativeModel({ model: modelName });
+                const result = await model.generateContent(prompt);
+                return result.response.text();
+            } catch (error) {
+                lastError = error;
+                if (!isRetryableGeminiError(error) || attempt === 2) break;
+
+                const delay = 1000 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 250);
+                console.warn(`⚠️ Gemini ${modelName} 暫時失敗，${delay}ms 後重試 (${attempt}/2)`);
+                await new Promise(resolve => setTimeout(resolve, delay));
+            }
+        }
+
+        if (!isRetryableGeminiError(lastError)) throw lastError;
+        if (modelIndex < models.length - 1) {
+            console.warn(`⚠️ Gemini ${modelName} 重試失敗，改用 ${models[modelIndex + 1]}`);
+        }
+    }
+
+    throw lastError;
+};
+
 // --- API 路由 ---
 app.get("/", (req, res) => res.send("學前特教專業人員溝通平台後端伺服器運作中！🚀"));
 
@@ -450,19 +490,19 @@ app.get('/api/summary', verifyToken, async (req, res) => {
             return res.json({ summary: "目前留言板內容為空，無法生成摘要。" });
         }
 
-        // 🌟 使用 Google 官方 SDK 直接生成內容，捨棄容易出錯的 fetch 網址寫法
-        const model = genAI.getGenerativeModel({ model: "gemini-3.6-flash" });
         const prompt = `你是一個專業的特殊教育個案管理 AI 助手。請閱讀以下跨專業團隊與家長的留言紀錄，並用繁體中文以「條列式」寫出一份簡短、精準的「重點摘要」，幫助團隊快速掌握溝通重點，字數請盡量控制在 100 字以內。\n\n近期留言紀錄：\n${messageText}`;
 
-        const result = await model.generateContent(prompt);
-        const responseText = result.response.text();
+        const responseText = await generateSummaryWithFallback(prompt);
 
         res.json({ summary: responseText });
         console.log("✅ AI 摘要成功生成！");
 
     } catch (error) {
         console.error("❌ AI 摘要生成失敗:", error);
-        res.status(500).json({ error: "AI 摘要生成失敗：" + (error?.message || '未知錯誤') });
+        if (isRetryableGeminiError(error)) {
+            return res.status(503).json({ error: "AI 摘要服務目前忙碌，請稍後再試。" });
+        }
+        res.status(500).json({ error: "AI 摘要生成失敗，請稍後再試。" });
     }
 });
 
