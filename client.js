@@ -1756,15 +1756,20 @@ function openIepUpload() {
 // 🤖 呼叫 AI 重點摘要功能 (精準除錯修正版)
 // ==========================================
 async function getAiSummary() {
+    const requestController = new AbortController();
+    const requestTimeout = setTimeout(() => requestController.abort(), 50000);
+
     try {
         Swal.fire({
             title: '正在生成 AI 摘要...',
-            text: 'Gemini 正在為您統整留言板重點，請稍候',
+            text: 'Gemini 正在為您統整留言板重點，請稍候（最多約 50 秒）',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
 
-        const res = await apiRequest(`${API_URL}/api/summary`);
+        const res = await apiRequest(`${API_URL}/api/summary`, {
+            signal: requestController.signal
+        });
 
         const data = await res.json();
 
@@ -1785,9 +1790,13 @@ async function getAiSummary() {
         console.error("AI 摘要生成失敗:", err);
         Swal.fire({
             title: '摘要生成失敗',
-            text: err.message || '無法連線至伺服器或後端發生錯誤',
+            text: err.name === 'AbortError'
+                ? '摘要處理逾時，請稍後再試。'
+                : err.message || '無法連線至伺服器或後端發生錯誤',
             icon: 'error'
         });
+    } finally {
+        clearTimeout(requestTimeout);
     }
 }
 
