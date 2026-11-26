@@ -181,28 +181,20 @@ const generateSummaryWithFallback = async (prompt) => {
     let lastError;
 
     for (const [modelIndex, modelName] of models.entries()) {
-        const maxAttempts = modelIndex === 0 ? 2 : 1;
-        for (let attempt = 1; attempt <= maxAttempts; attempt++) {
-            try {
-                const model = genAI.getGenerativeModel(
-                    { model: modelName, generationConfig: { maxOutputTokens: 256 } },
-                    { timeout: 15000 }
-                );
-                const result = await model.generateContent(prompt);
-                return result.response.text();
-            } catch (error) {
-                lastError = error;
-                if (!isRetryableGeminiError(error) || attempt === maxAttempts) break;
-
-                const delay = 1000 * (2 ** (attempt - 1)) + Math.floor(Math.random() * 250);
-                console.warn(`⚠️ Gemini ${modelName} 暫時失敗，${delay}ms 後重試 (${attempt}/${maxAttempts})`);
-                await new Promise(resolve => setTimeout(resolve, delay));
-            }
+        try {
+            const model = genAI.getGenerativeModel(
+                { model: modelName, generationConfig: { maxOutputTokens: 128 } },
+                { timeout: 10000 }
+            );
+            const result = await model.generateContent(prompt);
+            return result.response.text();
+        } catch (error) {
+            lastError = error;
         }
 
         if (!isRetryableGeminiError(lastError)) throw lastError;
         if (modelIndex < models.length - 1) {
-            console.warn(`⚠️ Gemini ${modelName} 重試失敗，改用 ${models[modelIndex + 1]}`);
+            console.warn(`⚠️ Gemini ${modelName} 暫時失敗，改用 ${models[modelIndex + 1]}`);
         }
     }
 

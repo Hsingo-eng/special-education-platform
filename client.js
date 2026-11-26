@@ -1757,12 +1757,12 @@ function openIepUpload() {
 // ==========================================
 async function getAiSummary() {
     const requestController = new AbortController();
-    const requestTimeout = setTimeout(() => requestController.abort(), 50000);
+    const requestTimeout = setTimeout(() => requestController.abort(), 35000);
 
     try {
         Swal.fire({
             title: '正在生成 AI 摘要...',
-            text: 'Gemini 正在為您統整留言板重點，請稍候（最多約 50 秒）',
+            text: 'Gemini 正在為您統整留言板重點，請稍候（最多約 35 秒）',
             allowOutsideClick: false,
             didOpen: () => Swal.showLoading()
         });
@@ -1792,6 +1792,8 @@ async function getAiSummary() {
             title: '摘要生成失敗',
             text: err.name === 'AbortError'
                 ? '摘要處理逾時，請稍後再試。'
+                : err instanceof TypeError
+                    ? '摘要服務目前沒有及時回應，請稍後再試。若持續發生，請檢查後端服務狀態。'
                 : err.message || '無法連線至伺服器或後端發生錯誤',
             icon: 'error'
         });
