@@ -1815,14 +1815,15 @@ async function getAiSummary() {
         const data = await res.json();
 
         if (res.ok) {
-            Swal.close();
-
             const summaryBox = document.getElementById('ai-summary-box');
             const summaryContent = document.getElementById('ai-summary-content');
-            if (summaryBox && summaryContent) {
-                summaryBox.classList.remove('d-none');
-                summaryContent.innerHTML = data.summary ? data.summary.replace(/\n/g, '<br>') : "無摘要資料";
+            if (!summaryBox || !summaryContent) {
+                throw new Error('找不到 AI 摘要顯示區，請重新整理頁面後再試。');
             }
+
+            summaryContent.textContent = data.summary || "無摘要資料";
+            summaryBox.classList.remove('d-none');
+            Swal.close();
         } else {
             // 🟢 精準除錯：如果後端報錯，直接顯示後端的真正錯誤訊息（如 404 或 Key 錯誤）
             throw new Error(data.error || data.message || `後端回應錯誤 (Status: ${res.status})`);
